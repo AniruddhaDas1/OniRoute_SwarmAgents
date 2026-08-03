@@ -1,0 +1,6 @@
+id: architecture-domainmodeling
+name: Domain Modeling
+parent: architecture
+layer: engineering
+responsibility: domain boundaries and conceptual models
+status: planned

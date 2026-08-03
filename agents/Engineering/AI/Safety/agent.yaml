@@ -1,0 +1,6 @@
+id: ai-safety
+name: Safety
+parent: ai
+layer: engineering
+responsibility: AI safety, risk controls, and failure handling
+status: planned

@@ -1,0 +1,6 @@
+id: platform-configuration
+name: Configuration
+parent: platform
+layer: engineering
+responsibility: platform configuration and environment contracts
+status: planned

@@ -1,0 +1,6 @@
+id: architecture-integration
+name: Integration
+parent: architecture
+layer: engineering
+responsibility: system integration patterns and contracts
+status: planned

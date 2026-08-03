@@ -1,0 +1,6 @@
+id: ai-evaluation
+name: Evaluation
+parent: ai
+layer: engineering
+responsibility: AI capability evaluation and benchmarking
+status: planned

@@ -1,0 +1,6 @@
+id: devops-infrastructureascode
+name: Infrastructure as Code
+parent: devops
+layer: engineering
+responsibility: declarative infrastructure definitions
+status: planned

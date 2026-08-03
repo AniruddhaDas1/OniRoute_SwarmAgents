@@ -1,0 +1,6 @@
+id: frontend-forms
+name: Forms
+parent: frontend
+layer: engineering
+responsibility: form design, validation, and submission
+status: planned

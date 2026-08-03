@@ -1,0 +1,6 @@
+id: backend-services
+name: Services
+parent: backend
+layer: engineering
+responsibility: application services and business logic
+status: planned

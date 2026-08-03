@@ -1,0 +1,6 @@
+id: ai-prompt-design
+name: Prompt Design
+parent: ai
+layer: engineering
+responsibility: prompt design and instruction quality
+status: planned

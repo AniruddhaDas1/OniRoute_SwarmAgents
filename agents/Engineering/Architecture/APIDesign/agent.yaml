@@ -1,0 +1,6 @@
+id: architecture-apidesign
+name: API Design
+parent: architecture
+layer: engineering
+responsibility: interface contracts and API architecture
+status: planned

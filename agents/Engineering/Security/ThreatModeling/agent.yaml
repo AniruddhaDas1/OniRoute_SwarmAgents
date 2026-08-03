@@ -1,0 +1,6 @@
+id: security-threatmodeling
+name: Threat Modeling
+parent: security
+layer: engineering
+responsibility: threat identification and security design
+status: planned

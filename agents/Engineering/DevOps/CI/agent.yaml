@@ -1,0 +1,6 @@
+id: devops-ci
+name: CI
+parent: devops
+layer: engineering
+responsibility: continuous integration pipelines and checks
+status: planned

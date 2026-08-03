@@ -1,0 +1,6 @@
+id: platform-networking
+name: Networking
+parent: platform
+layer: engineering
+responsibility: application networking and service connectivity
+status: planned

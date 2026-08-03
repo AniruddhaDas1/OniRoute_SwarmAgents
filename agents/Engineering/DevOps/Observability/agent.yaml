@@ -1,0 +1,6 @@
+id: devops-observability
+name: Observability
+parent: devops
+layer: engineering
+responsibility: operational telemetry and feedback
+status: planned

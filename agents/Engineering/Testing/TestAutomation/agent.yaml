@@ -1,0 +1,6 @@
+id: testing-testautomation
+name: Test Automation
+parent: testing
+layer: engineering
+responsibility: test tooling, fixtures, and automation quality
+status: planned

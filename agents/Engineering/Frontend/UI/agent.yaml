@@ -1,0 +1,6 @@
+id: frontend-ui
+name: UI
+parent: frontend
+layer: engineering
+responsibility: user interface composition and visual behavior
+status: planned

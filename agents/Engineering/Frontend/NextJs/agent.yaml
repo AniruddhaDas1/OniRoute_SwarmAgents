@@ -1,0 +1,6 @@
+id: frontend-nextjs
+name: Next.js
+parent: frontend
+layer: engineering
+responsibility: Next.js application patterns and delivery
+status: planned

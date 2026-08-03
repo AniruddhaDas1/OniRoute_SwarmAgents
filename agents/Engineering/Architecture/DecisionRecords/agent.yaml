@@ -1,0 +1,6 @@
+id: architecture-decisionrecords
+name: Decision Records
+parent: architecture
+layer: engineering
+responsibility: architecture decisions and trade-off records
+status: planned

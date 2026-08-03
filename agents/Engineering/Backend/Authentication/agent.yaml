@@ -1,0 +1,6 @@
+id: backend-authentication
+name: Authentication
+parent: backend
+layer: engineering
+responsibility: server authentication and session flows
+status: planned

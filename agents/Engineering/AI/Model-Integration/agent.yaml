@@ -1,0 +1,6 @@
+id: ai-model-integration
+name: Model Integration
+parent: ai
+layer: engineering
+responsibility: model provider integration and abstraction
+status: planned
