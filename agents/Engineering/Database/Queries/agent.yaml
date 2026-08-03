@@ -1,6 +1,0 @@
-id: database-queries
-name: Queries
-parent: database
-layer: engineering
-responsibility: query design and data access patterns
-status: planned

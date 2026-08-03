@@ -1,6 +1,0 @@
-id: database-dataintegrity
-name: Data Integrity
-parent: database
-layer: engineering
-responsibility: constraints, consistency, and lifecycle controls
-status: planned

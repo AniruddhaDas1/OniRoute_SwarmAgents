@@ -1,5 +1,0 @@
-id: redis
-name: Redis
-layer: platform
-responsibility: Redis caching, messaging, data structures, and operations
-status: planned

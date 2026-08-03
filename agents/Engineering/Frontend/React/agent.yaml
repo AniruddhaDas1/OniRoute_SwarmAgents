@@ -1,6 +1,0 @@
-id: frontend-react
-name: React
-parent: frontend
-layer: engineering
-responsibility: React component architecture and implementation
-status: planned

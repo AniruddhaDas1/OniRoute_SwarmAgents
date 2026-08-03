@@ -1,6 +1,0 @@
-id: platform-runtime
-name: Runtime
-parent: platform
-layer: engineering
-responsibility: application runtime and hosting concerns
-status: planned

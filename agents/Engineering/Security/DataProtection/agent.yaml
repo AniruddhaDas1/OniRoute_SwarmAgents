@@ -1,6 +1,0 @@
-id: security-dataprotection
-name: Data Protection
-parent: security
-layer: engineering
-responsibility: data confidentiality, privacy, and protection
-status: planned

@@ -1,5 +1,0 @@
-id: cloudflare
-name: Cloudflare
-layer: platform
-responsibility: Cloudflare edge, networking, security, compute, and delivery
-status: planned

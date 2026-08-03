@@ -1,5 +1,0 @@
-id: google-cloud
-name: Google Cloud
-layer: platform
-responsibility: Google Cloud architecture, security, deployment, and operations
-status: planned

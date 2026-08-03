@@ -1,15 +1,24 @@
 # Hierarchy
 
-The organization follows a simple delegation model:
+The AI Engineering Organization uses a simple reporting and responsibility structure:
 
 ```text
 Human / Product Context
           |
-      Executive
+     Executive Department
           |
-     Engineering
+    Engineering Department
           |
-       Platform
+      Platform Department
 ```
 
-The diagram describes organizational scope, not a mandatory runtime call chain. Executive responsibilities establish direction and constraints; Engineering turns those constraints into product work; Platform supplies implementation and operational expertise. Future agents should have one clear parent layer and an explicitly documented area of ownership.
+## Reporting relationships
+
+- Executive is accountable to human and product context and owns strategic decisions.
+- Engineering reports technical plans, risks, progress, and outcomes to Executive.
+- Platform provides technology-specific findings and recommendations to Engineering.
+- Engineering remains accountable for integrating platform guidance into the overall software design.
+
+Communication may flow in both directions. Engineering can escalate constraints to Executive, and Platform can surface risks to Engineering. These feedback paths do not transfer ownership between departments.
+
+This hierarchy is organizational documentation only. It does not define delegation protocols, prompts, workflows, tools, or executable orchestration.

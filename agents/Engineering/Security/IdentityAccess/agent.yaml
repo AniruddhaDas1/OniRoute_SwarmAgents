@@ -1,6 +1,0 @@
-id: security-identityaccess
-name: Identity and Access
-parent: security
-layer: engineering
-responsibility: identity, authentication, and authorization controls
-status: planned

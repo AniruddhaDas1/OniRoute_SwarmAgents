@@ -1,6 +1,0 @@
-id: database-databaseperformance
-name: Database Performance
-parent: database
-layer: engineering
-responsibility: database performance analysis and optimization
-status: planned

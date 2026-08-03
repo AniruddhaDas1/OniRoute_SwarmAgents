@@ -1,6 +1,0 @@
-id: frontend-state
-name: State
-parent: frontend
-layer: engineering
-responsibility: client-side state and data flow
-status: planned

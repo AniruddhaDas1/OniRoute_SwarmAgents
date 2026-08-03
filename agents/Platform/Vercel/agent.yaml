@@ -1,5 +1,0 @@
-id: vercel
-name: Vercel
-layer: platform
-responsibility: Vercel deployment, framework integration, edge, and operations
-status: planned

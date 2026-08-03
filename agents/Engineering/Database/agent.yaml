@@ -1,5 +1,0 @@
-id: database
-name: Database
-layer: engineering
-responsibility: data models, persistence boundaries, and data integrity
-status: planned

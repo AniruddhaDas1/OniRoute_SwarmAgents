@@ -1,6 +1,0 @@
-id: testing-endtoend
-name: End-to-End
-parent: testing
-layer: engineering
-responsibility: user journey and system-level verification
-status: planned

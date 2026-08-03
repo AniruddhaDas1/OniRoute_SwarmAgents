@@ -1,5 +1,0 @@
-id: appwrite
-name: Appwrite
-layer: platform
-responsibility: Appwrite services, permissions, integration, and deployment
-status: planned

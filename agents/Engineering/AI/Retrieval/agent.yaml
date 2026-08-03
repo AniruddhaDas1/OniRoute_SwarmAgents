@@ -1,6 +1,0 @@
-id: ai-retrieval
-name: Retrieval
-parent: ai
-layer: engineering
-responsibility: retrieval-augmented generation and knowledge access
-status: planned

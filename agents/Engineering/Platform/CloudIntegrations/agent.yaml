@@ -1,6 +1,0 @@
-id: platform-cloudintegrations
-name: Cloud Integrations
-parent: platform
-layer: engineering
-responsibility: provider integration patterns and portability
-status: planned

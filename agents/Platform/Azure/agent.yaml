@@ -1,5 +1,0 @@
-id: azure
-name: Azure
-layer: platform
-responsibility: Azure architecture, security, deployment, and operations
-status: planned

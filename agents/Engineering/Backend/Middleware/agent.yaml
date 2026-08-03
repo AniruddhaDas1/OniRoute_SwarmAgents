@@ -1,6 +1,0 @@
-id: backend-middleware
-name: Middleware
-parent: backend
-layer: engineering
-responsibility: request middleware and cross-cutting processing
-status: planned

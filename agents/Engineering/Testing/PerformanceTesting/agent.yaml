@@ -1,6 +1,0 @@
-id: testing-performancetesting
-name: Performance Testing
-parent: testing
-layer: engineering
-responsibility: performance, load, and resilience testing
-status: planned

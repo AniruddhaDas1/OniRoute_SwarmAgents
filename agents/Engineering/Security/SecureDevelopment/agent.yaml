@@ -1,6 +1,0 @@
-id: security-securedevelopment
-name: Secure Development
-parent: security
-layer: engineering
-responsibility: secure coding and verification practices
-status: planned

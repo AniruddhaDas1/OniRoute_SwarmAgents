@@ -1,6 +1,0 @@
-id: backend-validation
-name: Validation
-parent: backend
-layer: engineering
-responsibility: input validation and contract enforcement
-status: planned

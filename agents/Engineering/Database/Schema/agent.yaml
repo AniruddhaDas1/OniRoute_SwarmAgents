@@ -1,6 +1,0 @@
-id: database-schema
-name: Schema
-parent: database
-layer: engineering
-responsibility: database schema and relational modeling
-status: planned

@@ -1,6 +1,0 @@
-id: testing-integration
-name: Integration
-parent: testing
-layer: engineering
-responsibility: integration and contract verification
-status: planned

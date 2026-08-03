@@ -1,5 +1,0 @@
-id: docker
-name: Docker
-layer: platform
-responsibility: container packaging, development, security, and runtime configuration
-status: planned

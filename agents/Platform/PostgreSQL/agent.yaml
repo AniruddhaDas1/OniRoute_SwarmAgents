@@ -1,5 +1,0 @@
-id: postgresql
-name: PostgreSQL
-layer: platform
-responsibility: PostgreSQL design, performance, security, and operations
-status: planned

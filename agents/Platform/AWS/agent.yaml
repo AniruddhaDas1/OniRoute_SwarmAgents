@@ -1,5 +1,0 @@
-id: aws
-name: AWS
-layer: platform
-responsibility: AWS architecture, security, deployment, and operations
-status: planned

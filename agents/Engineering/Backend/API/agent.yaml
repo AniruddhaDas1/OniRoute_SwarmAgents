@@ -1,6 +1,0 @@
-id: backend-api
-name: API
-parent: backend
-layer: engineering
-responsibility: server API design and implementation
-status: planned

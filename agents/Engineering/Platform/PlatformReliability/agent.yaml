@@ -1,6 +1,0 @@
-id: platform-platformreliability
-name: Platform Reliability
-parent: platform
-layer: engineering
-responsibility: platform resilience and operational safeguards
-status: planned

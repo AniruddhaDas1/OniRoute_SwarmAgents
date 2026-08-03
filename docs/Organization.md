@@ -1,9 +1,27 @@
 # Organization
 
-The framework is organized into three top-level layers. Each layer groups related responsibilities and provides a stable place for future agent definitions.
+OniRoute_SwarmAgents models an AI Engineering Organization through three departments with distinct ownership boundaries.
 
-- **Executive** — direction, prioritization, governance, and cross-cutting coordination.
-- **Engineering** — product and software delivery disciplines.
-- **Platform** — infrastructure, services, and technology-provider expertise.
+## Executive
 
-This phase establishes the hierarchy only. The folders are intentionally empty of agent implementations and can be populated in later phases.
+Executive owns strategic direction, prioritization, governance, organizational context, and cross-department decisions. It defines outcomes and constraints without performing engineering or platform implementation.
+
+## Engineering
+
+Engineering translates strategic direction into software designs, delivery plans, implementations, and quality evidence. It owns provider-independent engineering responsibilities and coordinates specialist disciplines.
+
+## Platform
+
+Platform supplies expertise for specific technologies, infrastructure systems, managed services, and cloud providers. It makes vendor-specific constraints explicit while supporting Engineering-owned designs.
+
+## Organizational model
+
+The departments form a responsibility hierarchy:
+
+1. Executive establishes direction and constraints.
+2. Engineering turns that direction into technical outcomes.
+3. Platform advises Engineering on specific implementation technologies.
+
+The hierarchy defines ownership and reporting relationships only. It is not an executable agent system, orchestration workflow, or mandatory runtime call chain.
+
+Phase 1 creates department boundaries and documentation. Individual agents are introduced only in later phases.

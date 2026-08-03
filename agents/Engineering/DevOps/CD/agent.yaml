@@ -1,6 +1,0 @@
-id: devops-cd
-name: CD
-parent: devops
-layer: engineering
-responsibility: continuous delivery and release automation
-status: planned
