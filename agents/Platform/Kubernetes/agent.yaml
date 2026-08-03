@@ -1,0 +1,5 @@
+id: kubernetes
+name: Kubernetes
+layer: platform
+responsibility: Kubernetes workloads, security, networking, scaling, and operations
+status: planned

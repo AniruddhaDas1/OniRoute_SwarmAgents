@@ -1,0 +1,5 @@
+id: supabase
+name: Supabase
+layer: platform
+responsibility: Supabase architecture, security, integration, and operations
+status: planned

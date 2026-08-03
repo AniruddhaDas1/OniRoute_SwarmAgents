@@ -1,0 +1,5 @@
+id: firebase
+name: Firebase
+layer: platform
+responsibility: Firebase services, integration, security, and operations
+status: planned
