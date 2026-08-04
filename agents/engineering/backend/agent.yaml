@@ -6,7 +6,17 @@ phase: 2.2
 department: engineering
 reports_to: engineering-director
 parent: engineering
-children: []
+children:
+  - backend-api-design
+  - backend-service-design
+  - backend-business-logic
+  - backend-authentication-coordination
+  - backend-authorization-coordination
+  - backend-data-access
+  - backend-integration-coordination
+  - backend-error-handling
+  - backend-performance
+  - backend-backend-review
 description: Engineering owner of server-side application behavior and integrations.
 mission: Define reliable backend services and interfaces without implementing them.
 responsibilities:
