@@ -6,7 +6,17 @@ phase: 2.2
 department: engineering
 reports_to: engineering-director
 parent: engineering
-children: []
+children:
+  - frontend-ui-architecture
+  - frontend-component-design
+  - frontend-state-management
+  - frontend-routing-navigation
+  - frontend-user-experience
+  - frontend-accessibility
+  - frontend-frontend-performance
+  - frontend-client-data-management
+  - frontend-responsive-design
+  - frontend-frontend-review
 description: Engineering owner of client architecture and user-facing technical direction.
 mission: Define accessible, maintainable client experiences without implementing them.
 responsibilities:
