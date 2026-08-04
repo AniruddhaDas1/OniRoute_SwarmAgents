@@ -1,6 +1,6 @@
 # Agents
 
-This directory contains the framework's organizational and specialized agent definitions.
+This directory contains the framework's frozen Executive, Engineering, and Platform agent definitions.
 
 An agent is a bounded organizational capability, not a general-purpose assistant. Each agent definition must include:
 
@@ -10,4 +10,4 @@ An agent is a bounded organizational capability, not a general-purpose assistant
 
 Agent definitions should remain reusable across projects and model providers. Coordination contracts belong in shared documentation; implementation-specific settings belong in `config/`.
 
-The current definitions are non-executable. Skills, workflows, adapters, and runtime behavior remain deferred.
+The current definitions are non-executable. Sub-agents, skills, workflows, adapters, MCP integrations, and runtime behavior remain deferred.

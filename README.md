@@ -37,11 +37,11 @@ Human / Product Context
 
 Agents should have one primary responsibility, explicit interfaces, and minimal assumptions about other agents. Coordination belongs at the organizational layer; domain expertise belongs in agents; deployment-specific choices belong in configuration. This separation keeps the system testable and permits components to be replaced without redesigning the whole framework.
 
-The current architecture defines Executive and Engineering agents as documentation and configuration only. Skills, workflows, platform-specific agents, sub-agents, and runtime execution remain deferred until their boundaries are stable.
+The current architecture defines Executive, Engineering, and Platform agents as documentation and configuration only. Sub-agents, skills, workflows, adapters, MCP integrations, and runtime execution remain deferred until their boundaries are stable.
 
 ## Repository layout
 
-- [`agents/`](agents/README.md) — definitions and conventions for future agents.
+- [`agents/`](agents/README.md) — definitions and conventions for the Executive, Engineering, and Platform layers.
 - [`config/`](config/README.md) — configuration boundaries and environment-specific settings.
 - [`docs/`](docs/README.md) — architecture decisions, specifications, and project guidance.
 - [`AGENTS.md`](AGENTS.md) — instructions for future Codex sessions contributing to this repository.
@@ -59,7 +59,7 @@ The roadmap is directional. Each phase should produce a usable, documented incre
 
 ## Status
 
-This repository has defined its Executive and Engineering organization layers. No executable agent runtime is promised yet.
+This repository has defined and frozen its Executive, Engineering, and Platform organization layers. No executable agent runtime is promised yet.
 
 ## License
 

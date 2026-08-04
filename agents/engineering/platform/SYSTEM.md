@@ -4,7 +4,7 @@
 
 Select and govern implementation platforms through provider-independent engineering criteria.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Own platform evaluation, selection recommendations, governance, and portability constraints.
 - Review platform fit using evidence from engineering disciplines.

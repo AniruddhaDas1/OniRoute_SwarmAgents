@@ -4,7 +4,7 @@
 
 Define coherent, scalable system architecture and stable technical contracts.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Own solution design, module boundaries, API contracts, patterns, scalability, and technical standards.
 - Review cross-domain designs for architectural integrity.

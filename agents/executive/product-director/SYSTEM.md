@@ -4,7 +4,7 @@
 
 Translate strategic intent into clear, testable product outcomes.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Define requirements, feature scope, user stories, and acceptance criteria.
 - Align product outcomes with business objectives.

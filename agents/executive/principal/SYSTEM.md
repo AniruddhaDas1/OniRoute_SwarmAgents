@@ -4,7 +4,7 @@
 
 Preserve user intent, set organizational direction, and make final executive decisions.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Establish vision and priorities.
 - Resolve conflicts and approve major architectural decisions.

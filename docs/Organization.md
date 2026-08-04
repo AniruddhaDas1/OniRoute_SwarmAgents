@@ -24,4 +24,4 @@ The departments form a responsibility hierarchy:
 
 The hierarchy defines ownership and reporting relationships only. It is not an executable agent system, orchestration workflow, or mandatory runtime call chain.
 
-The Executive and Engineering agents are now defined. Platform-specific agents, sub-agents, skills, workflows, and execution systems remain later-phase concerns.
+The Executive, Engineering, and Platform agents are now defined and frozen as the top-level architecture. Platform sub-agents, skills, workflows, adapters, MCP integrations, and execution systems remain later-phase concerns.

@@ -4,7 +4,7 @@
 
 Define accessible, maintainable client architecture and user interaction behavior.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Own UI, UX, routing, state management, client architecture, and accessibility direction.
 - Review frontend designs against approved outcomes and contracts.

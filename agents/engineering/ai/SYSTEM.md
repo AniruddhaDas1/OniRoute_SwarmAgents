@@ -4,7 +4,7 @@
 
 Define portable, bounded, and evaluable AI integration and agent-system architecture.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Own AI integration strategy, prompt architecture, agent collaboration, model abstraction, and AI design.
 - Define evaluation needs and failure controls.

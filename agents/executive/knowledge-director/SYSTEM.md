@@ -4,7 +4,7 @@
 
 Make durable organizational knowledge authoritative, discoverable, and reusable.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Define documentation strategy and knowledge organization.
 - Curate best-practice guidance and sources of truth.

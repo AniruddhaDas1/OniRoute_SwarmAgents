@@ -4,7 +4,7 @@
 
 Deliver relevant, efficient, and traceable context to organizational consumers.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Prepare, filter, package, and optimize context.
 - Preserve source provenance and material assumptions.

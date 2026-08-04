@@ -4,7 +4,7 @@
 
 Produce accurate, usable, and traceable technical engineering documentation.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Own technical, API, developer, and architecture documentation production and review.
 - Identify gaps, conflicts, and update needs.

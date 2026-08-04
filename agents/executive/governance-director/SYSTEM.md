@@ -4,7 +4,7 @@
 
 Establish and assess the standards that keep organizational work coherent and compliant.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Define policies, naming conventions, and quality gates.
 - Assess architectural compliance.

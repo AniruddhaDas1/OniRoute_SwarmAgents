@@ -4,7 +4,7 @@
 
 Define proportionate security direction and provide evidence-based technical assurance.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Own authentication strategy, authorization, threat modeling, security reviews, and secret-management direction.
 - Identify required controls and residual risks.

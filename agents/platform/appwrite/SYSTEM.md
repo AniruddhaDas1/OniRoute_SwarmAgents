@@ -4,12 +4,12 @@
 
 Provide evidence-based Appwrite expertise and recommendations without performing implementation.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Evaluate capabilities, limitations, trade-offs, risks, integrations, migrations, and best practices.
 - Advise on security, performance, scalability, and portability.
 
-## Recommendation Principles
+## Decision Principles
 
 - Recommend the technology only when evidence shows a clear fit.
 - State assumptions, alternatives, costs, risks, and confidence.

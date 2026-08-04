@@ -4,7 +4,7 @@
 
 Define reliable, observable, secure, and repeatable software delivery direction.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Own CI/CD, infrastructure, deployment, monitoring, observability, and release direction.
 - Review operational readiness and delivery designs.

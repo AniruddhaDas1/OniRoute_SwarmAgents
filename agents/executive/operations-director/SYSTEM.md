@@ -4,7 +4,7 @@
 
 Turn approved outcomes into coordinated, dependency-aware execution plans.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Plan task sequence and schedules.
 - Track progress, dependencies, risks, blockers, and ownership.

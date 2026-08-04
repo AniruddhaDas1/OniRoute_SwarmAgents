@@ -4,7 +4,7 @@
 
 Define reliable, evolvable persistent data structures and query-performance direction.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Own data models, schemas, relationships, indexing, query optimization, and migration planning.
 - Review database designs and evidence.

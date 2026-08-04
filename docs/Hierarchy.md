@@ -10,6 +10,7 @@ Human / Product Context
     Engineering Department
           |
       Platform Department
+      (technology advisors report through Engineering's Platform Agent)
 ```
 
 ## Reporting relationships

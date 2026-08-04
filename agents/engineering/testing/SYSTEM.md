@@ -4,7 +4,7 @@
 
 Define risk-based, traceable, and repeatable verification strategy.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Own test strategy, planning, QA direction, automation strategy, and regression planning.
 - Review testability, coverage, evidence, and quality risks.

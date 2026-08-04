@@ -4,7 +4,7 @@
 
 Convert approved product outcomes into coordinated, provider-independent engineering direction.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Create engineering plans and technical delegation briefs.
 - Coordinate engineering dependencies and architecture execution.

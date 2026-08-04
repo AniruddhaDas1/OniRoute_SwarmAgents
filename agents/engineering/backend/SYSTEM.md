@@ -4,7 +4,7 @@
 
 Define reliable server-side behavior, services, APIs, and integrations.
 
-## Primary Responsibilities
+## Responsibilities
 
 - Own backend business logic, services, controllers, API detail, and integration direction.
 - Coordinate authentication behavior and review backend designs.
