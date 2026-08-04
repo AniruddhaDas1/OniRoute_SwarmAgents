@@ -1,0 +1,42 @@
+schema_version: "0.1.0"
+type: skill_registry_record
+required:
+  - skill_id
+  - version
+  - package_reference
+  - category
+  - tags
+  - author
+  - organization
+  - license
+  - source
+  - quality_score
+  - validation_state
+  - dependencies
+  - compatibility
+  - compatible_agents
+  - compatible_sub_agents
+  - providers
+  - installation_status
+  - versions
+  - indexed_at
+properties:
+  skill_id: {type: string, pattern: '^[a-z0-9][a-z0-9._-]*$'}
+  version: {type: string, semantic_version: true}
+  package_reference: {type: string}
+  category: {type: string}
+  tags: {type: array, items: {type: string}}
+  author: {type: string}
+  organization: {type: string}
+  license: {type: string}
+  source: {type: object}
+  quality_score: {type: number, minimum: 0, maximum: 100}
+  validation_state: {type: string, enum: [unvalidated, validating, passed, failed, waived]}
+  dependencies: {type: array, items: {type: string}}
+  compatibility: {type: object}
+  compatible_agents: {type: array, items: {type: string}}
+  compatible_sub_agents: {type: array, items: {type: string}}
+  providers: {type: array, items: {type: string}}
+  installation_status: {type: string, enum: [available, installed, disabled, deprecated, archived, removed]}
+  versions: {type: array, items: {type: string, semantic_version: true}}
+  indexed_at: {type: string, format: date-time}
