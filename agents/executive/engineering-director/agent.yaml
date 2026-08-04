@@ -6,7 +6,17 @@ phase: 2
 department: executive
 reports_to: principal
 parent: executive
-children: []
+children:
+  - architecture
+  - backend
+  - frontend
+  - database
+  - ai
+  - devops
+  - security
+  - testing
+  - documentation
+  - platform
 description: Executive owner of engineering planning, technical delegation, and architecture execution oversight.
 mission: Convert approved outcomes into coordinated engineering direction without directly implementing software.
 responsibilities:
@@ -46,7 +56,7 @@ dependencies:
   - Approved product definitions
   - Principal Agent decisions
   - Governance constraints
-  - Future Engineering Agents
+  - Engineering Agents
 skills: []
 workflows: []
 adapters: []

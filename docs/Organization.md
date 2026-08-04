@@ -8,7 +8,7 @@ Executive owns strategic direction, prioritization, governance, organizational c
 
 ## Engineering
 
-Engineering translates strategic direction into software designs, delivery plans, implementations, and quality evidence. It owns provider-independent engineering responsibilities and coordinates specialist disciplines.
+Engineering translates strategic direction into software designs, technical plans, delegated implementation direction, and quality-evidence requirements. It owns provider-independent engineering decisions and coordinates specialist disciplines without performing implementation directly.
 
 ## Platform
 
@@ -24,4 +24,4 @@ The departments form a responsibility hierarchy:
 
 The hierarchy defines ownership and reporting relationships only. It is not an executable agent system, orchestration workflow, or mandatory runtime call chain.
 
-Phase 1 creates department boundaries and documentation. Individual agents are introduced only in later phases.
+The Executive and Engineering agents are now defined. Platform-specific agents, sub-agents, skills, workflows, and execution systems remain later-phase concerns.

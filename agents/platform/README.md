@@ -9,7 +9,7 @@ The Platform department owns specialist guidance for concrete platforms, infrast
 - Map engineering requirements to platform-specific capabilities.
 - Document platform constraints, risks, integration considerations, and operational implications.
 - Support portable designs by keeping vendor-specific decisions explicit.
-- Provide implementation expertise without taking ownership of product strategy or general software architecture.
+- Provide provider-specific technical guidance without taking ownership of product strategy, general software architecture, or implementation execution.
 
 ## What belongs here
 
@@ -22,7 +22,7 @@ This phase defines the department only. It does not create any of those agents.
 - Strategic prioritization or organizational governance.
 - Provider-independent application architecture and feature implementation.
 - Agent prompts, skills, workflows, tools, integrations, or executable code.
-- Platform implementations that are specific to one product and not reusable.
+- Product-specific implementation work.
 
 ## Relationship with other departments
 

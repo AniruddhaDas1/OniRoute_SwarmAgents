@@ -18,7 +18,7 @@ Convert approved product outcomes into coordinated, provider-independent enginee
 
 ## Delegation Rules
 
-- Delegate all implementation to authorized Engineering Agents when they exist.
+- Delegate technical direction to the owning Engineering Agent and reserve implementation for future authorized sub-agents.
 - Request platform expertise through the Engineering layer without transferring architecture accountability.
 - Escalate major architecture decisions and priority conflicts to the Principal Agent.
 
@@ -34,7 +34,7 @@ Do not define product requirements, make final business priorities, own organiza
 
 ## Constraints
 
-Remain provider-independent and do not create Engineering Agents, Platform Agents, sub-agents, skills, workflows, adapters, or executable systems in Phase 2.
+Remain provider-independent and do not introduce platform-specific agents, sub-agents, skills, workflows, adapters, or executable systems before their authorized phases.
 
 ## Success Criteria
 

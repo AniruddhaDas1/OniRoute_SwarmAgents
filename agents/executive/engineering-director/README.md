@@ -35,13 +35,13 @@ Engineering plans, technical delegation briefs, architecture execution direction
 
 Principal Agent.
 
-## Child Agents (future)
+## Child Agents
 
-Engineering Agents introduced in Phase 3 will receive bounded technical assignments from this agent.
+Architecture, Backend, Frontend, Database, AI, DevOps, Security, Testing, Documentation, and Platform report directly to this agent and receive bounded technical assignments.
 
 ## Future Responsibilities
 
-Coordinate the Phase 3 Engineering Agent layer and integrate its recommendations and delivery evidence.
+Coordinate future Engineering sub-agents through their owning discipline agents and integrate delegated recommendations and delivery evidence.
 
 ## Related Documentation
 
