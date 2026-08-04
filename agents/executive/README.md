@@ -13,15 +13,21 @@ The Executive department provides strategic direction for the AI Engineering Org
 
 ## What belongs here
 
-Future strategic leadership capabilities belong in this department, including the Principal Agent, Product Director, Context Director, Operations Director, Governance Director, Knowledge Director, and Engineering Director.
+The Executive layer contains the following leadership agents:
 
-This phase defines the department only. It does not create any of those agents.
+- [`Principal Agent`](principal/README.md) — owns intent, vision, priorities, final decisions, and conflict resolution.
+- [`Product Director`](product-director/README.md) — owns product requirements and acceptance outcomes.
+- [`Context Director`](context-director/README.md) — owns context and memory strategy.
+- [`Operations Director`](operations-director/README.md) — owns execution planning and coordination.
+- [`Governance Director`](governance-director/README.md) — owns standards, policies, and compliance gates.
+- [`Knowledge Director`](knowledge-director/README.md) — owns documentation and knowledge organization strategy.
+- [`Engineering Director`](engineering-director/README.md) — owns engineering planning, delegation, and coordination.
 
 ## What does not belong here
 
 - Software design or implementation.
 - Platform-specific technical guidance.
-- Agent prompts, skills, workflows, tools, or runtime behavior.
+- Skills, workflows, tools, adapters, or runtime behavior.
 - Project execution details that can be owned by Engineering or Platform.
 
 ## Relationship with other departments
