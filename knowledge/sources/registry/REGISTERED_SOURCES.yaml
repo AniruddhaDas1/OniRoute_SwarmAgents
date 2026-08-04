@@ -1,0 +1,146 @@
+schema_version: 0.1.0
+registered_sources:
+- id: source.multica-ai.andrej-karpathy-skills
+  repository: https://github.com/multica-ai/andrej-karpathy-skills
+  owner: multica-ai
+  license: License review required
+  trust: Unknown
+  validation: Needs Review
+  review_status: License Review Required
+  refresh_frequency: Monthly
+  lifecycle: Registered
+  revision: 2c606141936f1eeef17fa3043a72095b4765b9c2
+  discovery_status: Cataloged
+  supported_asset_types:
+  - Skills
+  - Documentation
+  - Future assets
+  source_record: skills/community/andrej-karpathy-skills/IMPORT_METADATA.yaml
+- id: source.alirezarezvani.claude-skills
+  repository: https://github.com/alirezarezvani/claude-skills
+  owner: alirezarezvani
+  license: MIT
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Metadata Review Complete
+  refresh_frequency: Monthly
+  lifecycle: Registered
+  revision: aa8d778811a557a2c28ccadda4cf3d0bd028a4cc
+  discovery_status: Cataloged
+  supported_asset_types:
+  - Skills
+  - Documentation
+  - Future assets
+  source_record: skills/community/claude-skills/IMPORT_METADATA.yaml
+- id: source.open-gsd.gsd-core
+  repository: https://github.com/open-gsd/gsd-core
+  owner: open-gsd
+  license: MIT
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Metadata Review Complete
+  refresh_frequency: Monthly
+  lifecycle: Registered
+  revision: ff4a57b78c384e7beddcf3cd18e403cd6f192b5c
+  discovery_status: Cataloged
+  supported_asset_types:
+  - Skills
+  - Documentation
+  - Future assets
+  source_record: skills/community/gsd-core/IMPORT_METADATA.yaml
+- id: source.garrytan.gstack
+  repository: https://github.com/garrytan/gstack
+  owner: garrytan
+  license: MIT
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Metadata Review Complete
+  refresh_frequency: Monthly
+  lifecycle: Registered
+  revision: a3259400a366593e0c909dd9ac3e59752efd2488
+  discovery_status: Cataloged
+  supported_asset_types:
+  - Skills
+  - Documentation
+  - Future assets
+  source_record: skills/community/gstack/IMPORT_METADATA.yaml
+- id: source.pbakaus.impeccable
+  repository: https://github.com/pbakaus/impeccable
+  owner: pbakaus
+  license: Apache-2.0
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Metadata Review Complete
+  refresh_frequency: Monthly
+  lifecycle: Registered
+  revision: 620ba1fe7d87a39039a8528bfaa319ecfa893cb2
+  discovery_status: Cataloged
+  supported_asset_types:
+  - Skills
+  - Documentation
+  - Future assets
+  source_record: skills/community/impeccable/IMPORT_METADATA.yaml
+- id: source.mattpocock.skills
+  repository: https://github.com/mattpocock/skills
+  owner: mattpocock
+  license: MIT
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Metadata Review Complete
+  refresh_frequency: Monthly
+  lifecycle: Registered
+  revision: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
+  discovery_status: Cataloged
+  supported_asset_types:
+  - Skills
+  - Documentation
+  - Future assets
+  source_record: skills/community/mattpocock/IMPORT_METADATA.yaml
+- id: source.knoxgraeme.skillfish
+  repository: https://github.com/knoxgraeme/skillfish
+  owner: knoxgraeme
+  license: AGPL-3.0
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Metadata Review Complete
+  refresh_frequency: Monthly
+  lifecycle: Registered
+  revision: 7b8c868ea34e41c82929c47bcd5e47ccc8dec1c5
+  discovery_status: Cataloged
+  supported_asset_types:
+  - Skills
+  - Documentation
+  - Future assets
+  source_record: skills/community/skillfish/IMPORT_METADATA.yaml
+- id: source.leonxlnx.taste-skill
+  repository: https://github.com/leonxlnx/taste-skill
+  owner: leonxlnx
+  license: MIT
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Metadata Review Complete
+  refresh_frequency: Monthly
+  lifecycle: Registered
+  revision: e988add20dab0fa97d7a76781c48961c8184288e
+  discovery_status: Cataloged
+  supported_asset_types:
+  - Skills
+  - Documentation
+  - Future assets
+  source_record: skills/community/taste-skill/IMPORT_METADATA.yaml
+- id: source.vuejs-ai.skills
+  repository: https://github.com/vuejs-ai/skills
+  owner: vuejs-ai
+  license: MIT
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Metadata Review Complete
+  refresh_frequency: Monthly
+  lifecycle: Registered
+  revision: c9d355ff23f654309dd02006be671859df0a134c
+  discovery_status: Cataloged
+  supported_asset_types:
+  - Skills
+  - Documentation
+  - Future assets
+  source_record: skills/community/vuejs-ai/IMPORT_METADATA.yaml

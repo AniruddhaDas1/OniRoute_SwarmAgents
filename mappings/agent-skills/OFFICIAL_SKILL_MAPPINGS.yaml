@@ -1,0 +1,1753 @@
+schema_version: 0.1.0
+source: Official Skill compatibility metadata
+mappings:
+- agent: ai
+  sub_agent: 
+  official_skills:
+  - official.ai.agent-collaboration
+  - official.ai.ai-evaluation-framework
+  - official.ai.ai-safety
+  - official.ai.context-optimization
+  - official.ai.hallucination-reduction
+  - official.ai.model-evaluation
+  - official.ai.prompt-evaluation
+  - official.ai.reasoning-strategies
+  - official.ai.token-optimization
+  - official.ai.tool-calling
+  - official.foundation.ai-agent-fundamentals
+  - official.foundation.context-engineering-fundamentals
+  - official.foundation.prompt-engineering-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 13
+    community: 77
+    package: 0
+    total: 90
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: ai
+  sub_agent: ai-agent-orchestration
+  official_skills:
+  - official.ai.agent-collaboration
+  - official.foundation.ai-agent-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 77
+    package: 0
+    total: 79
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: ai
+  sub_agent: ai-ai-performance
+  official_skills:
+  - official.ai.token-optimization
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 77
+    package: 0
+    total: 78
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: ai
+  sub_agent: ai-ai-review
+  official_skills:
+  - official.ai.hallucination-reduction
+  - official.ai.prompt-evaluation
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 77
+    package: 0
+    total: 79
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: ai
+  sub_agent: ai-context-strategy
+  official_skills:
+  - official.ai.context-optimization
+  - official.foundation.context-engineering-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 0
+    package: 0
+    total: 2
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: ai
+  sub_agent: ai-model-evaluation
+  official_skills:
+  - official.ai.ai-evaluation-framework
+  - official.ai.model-evaluation
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 77
+    package: 0
+    total: 79
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: ai
+  sub_agent: ai-prompt-architecture
+  official_skills:
+  - official.foundation.prompt-engineering-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 77
+    package: 0
+    total: 78
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: ai
+  sub_agent: ai-reasoning-strategy
+  official_skills:
+  - official.ai.reasoning-strategies
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 77
+    package: 0
+    total: 78
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: ai
+  sub_agent: ai-safety-alignment
+  official_skills:
+  - official.ai.ai-safety
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: ai
+  sub_agent: ai-tool-integration
+  official_skills:
+  - official.ai.tool-calling
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 77
+    package: 0
+    total: 78
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: architecture
+  sub_agent: 
+  official_skills:
+  - official.ai.agent-collaboration
+  - official.ai.ai-evaluation-framework
+  - official.ai.ai-safety
+  - official.ai.context-optimization
+  - official.ai.hallucination-reduction
+  - official.ai.model-evaluation
+  - official.ai.prompt-evaluation
+  - official.ai.reasoning-strategies
+  - official.ai.token-optimization
+  - official.ai.tool-calling
+  - official.analytics.analytical-thinking
+  - official.analytics.dashboard-design
+  - official.analytics.data-storytelling
+  - official.backend.api-versioning
+  - official.backend.background-jobs
+  - official.backend.business-logic-design
+  - official.backend.integration-patterns
+  - official.backend.resilience-patterns
+  - official.backend.service-design
+  - official.database.data-modeling
+  - official.database.database-performance
+  - official.database.index-strategy
+  - official.database.schema-design
+  - official.database.transactions
+  - official.devops.capacity-planning
+  - official.devops.configuration-management
+  - official.devops.continuous-delivery
+  - official.devops.continuous-integration
+  - official.devops.deployment-strategies
+  - official.devops.disaster-recovery
+  - official.devops.infrastructure-as-code
+  - official.devops.monitoring-strategy
+  - official.devops.release-strategy
+  - official.devops.reliability-engineering
+  - official.foundation.ai-agent-fundamentals
+  - official.foundation.api-design-fundamentals
+  - official.foundation.authentication-fundamentals
+  - official.foundation.authorization-fundamentals
+  - official.foundation.caching-fundamentals
+  - official.foundation.cloud-fundamentals
+  - official.foundation.context-engineering-fundamentals
+  - official.foundation.database-fundamentals
+  - official.foundation.documentation-fundamentals
+  - official.foundation.error-handling-fundamentals
+  - official.foundation.logging-fundamentals
+  - official.foundation.observability-fundamentals
+  - official.foundation.prompt-engineering-fundamentals
+  - official.foundation.rest-fundamentals
+  - official.foundation.security-fundamentals
+  - official.foundation.sql-fundamentals
+  - official.foundation.testing-fundamentals
+  - official.foundation.versioning-fundamentals
+  - official.frontend.accessibility
+  - official.frontend.component-design
+  - official.frontend.forms
+  - official.frontend.frontend-architecture
+  - official.frontend.frontend-performance
+  - official.frontend.frontend-testing
+  - official.frontend.responsive-design
+  - official.frontend.routing
+  - official.frontend.state-management
+  - official.frontend.ui-patterns
+  - official.platform.integration-strategy
+  - official.platform.migration-planning
+  - official.platform.platform-compatibility
+  - official.platform.scalability-planning
+  - official.platform.technology-evaluation
+  - official.platform.vendor-neutral-architecture
+  - official.presentation.executive-communication
+  - official.presentation.presentation-engineering
+  - official.presentation.presentation-quality
+  - official.presentation.presentation-review
+  - official.presentation.slide-architecture
+  - official.presentation.technical-storytelling
+  - official.presentation.visual-hierarchy
+  - official.security.access-control-models
+  - official.security.compliance-fundamentals
+  - official.security.encryption-fundamentals
+  - official.security.identity-management
+  - official.security.incident-response
+  - official.security.secrets-management
+  - official.security.secure-api-design
+  - official.security.security-reviews
+  - official.security.threat-modeling
+  - official.security.vulnerability-management
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 85
+    community: 523
+    package: 0
+    total: 608
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: architecture
+  sub_agent: architecture-api-contracts
+  official_skills:
+  - official.backend.api-versioning
+  - official.foundation.api-design-fundamentals
+  - official.foundation.rest-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 3
+    community: 0
+    package: 0
+    total: 3
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: architecture
+  sub_agent: architecture-architecture-review
+  official_skills:
+  - official.analytics.analytical-thinking
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: architecture
+  sub_agent: architecture-integration-architecture
+  official_skills:
+  - official.platform.integration-strategy
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: architecture
+  sub_agent: architecture-scalability
+  official_skills:
+  - official.foundation.caching-fundamentals
+  - official.platform.scalability-planning
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 0
+    package: 0
+    total: 2
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: architecture
+  sub_agent: architecture-solution-architecture
+  official_skills:
+  - official.platform.migration-planning
+  - official.platform.vendor-neutral-architecture
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 0
+    package: 0
+    total: 2
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: architecture
+  sub_agent: architecture-technical-standards
+  official_skills:
+  - official.foundation.versioning-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: architecture
+  sub_agent: architecture-technology-evaluation
+  official_skills:
+  - official.foundation.cloud-fundamentals
+  - official.platform.platform-compatibility
+  - official.platform.technology-evaluation
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 3
+    community: 0
+    package: 0
+    total: 3
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: backend
+  sub_agent: 
+  official_skills:
+  - official.analytics.analytical-thinking
+  - official.backend.api-versioning
+  - official.backend.background-jobs
+  - official.backend.business-logic-design
+  - official.backend.integration-patterns
+  - official.backend.resilience-patterns
+  - official.backend.service-design
+  - official.database.data-modeling
+  - official.database.database-performance
+  - official.database.index-strategy
+  - official.database.schema-design
+  - official.database.transactions
+  - official.foundation.api-design-fundamentals
+  - official.foundation.authentication-fundamentals
+  - official.foundation.authorization-fundamentals
+  - official.foundation.caching-fundamentals
+  - official.foundation.cloud-fundamentals
+  - official.foundation.database-fundamentals
+  - official.foundation.error-handling-fundamentals
+  - official.foundation.rest-fundamentals
+  - official.foundation.security-fundamentals
+  - official.foundation.sql-fundamentals
+  - official.foundation.testing-fundamentals
+  - official.foundation.versioning-fundamentals
+  - official.frontend.frontend-testing
+  - official.platform.integration-strategy
+  - official.platform.migration-planning
+  - official.platform.platform-compatibility
+  - official.platform.scalability-planning
+  - official.platform.technology-evaluation
+  - official.platform.vendor-neutral-architecture
+  - official.security.access-control-models
+  - official.security.compliance-fundamentals
+  - official.security.encryption-fundamentals
+  - official.security.identity-management
+  - official.security.incident-response
+  - official.security.secrets-management
+  - official.security.secure-api-design
+  - official.security.security-reviews
+  - official.security.threat-modeling
+  - official.security.vulnerability-management
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 41
+    community: 657
+    package: 0
+    total: 698
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: backend
+  sub_agent: backend-business-logic
+  official_skills:
+  - official.backend.business-logic-design
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: backend
+  sub_agent: backend-error-handling
+  official_skills:
+  - official.foundation.error-handling-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 8
+    package: 0
+    total: 9
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: backend
+  sub_agent: backend-integration-coordination
+  official_skills:
+  - official.backend.integration-patterns
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 8
+    package: 0
+    total: 9
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: backend
+  sub_agent: backend-performance
+  official_skills:
+  - official.backend.resilience-patterns
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 8
+    package: 0
+    total: 9
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: backend
+  sub_agent: backend-service-design
+  official_skills:
+  - official.backend.background-jobs
+  - official.backend.service-design
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 8
+    package: 0
+    total: 10
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: database
+  sub_agent: 
+  official_skills:
+  - official.backend.api-versioning
+  - official.backend.background-jobs
+  - official.backend.business-logic-design
+  - official.backend.integration-patterns
+  - official.backend.resilience-patterns
+  - official.backend.service-design
+  - official.database.data-modeling
+  - official.database.database-performance
+  - official.database.index-strategy
+  - official.database.schema-design
+  - official.database.transactions
+  - official.foundation.api-design-fundamentals
+  - official.foundation.caching-fundamentals
+  - official.foundation.cloud-fundamentals
+  - official.foundation.database-fundamentals
+  - official.foundation.error-handling-fundamentals
+  - official.foundation.rest-fundamentals
+  - official.foundation.sql-fundamentals
+  - official.foundation.versioning-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 19
+    community: 629
+    package: 0
+    total: 648
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: database
+  sub_agent: database-data-modeling
+  official_skills:
+  - official.database.data-modeling
+  - official.foundation.database-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 0
+    package: 0
+    total: 2
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: database
+  sub_agent: database-index-strategy
+  official_skills:
+  - official.database.index-strategy
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 9
+    package: 0
+    total: 10
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: database
+  sub_agent: database-performance-optimization
+  official_skills:
+  - official.database.database-performance
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: database
+  sub_agent: database-query-design
+  official_skills:
+  - official.foundation.sql-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 9
+    package: 0
+    total: 10
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: database
+  sub_agent: database-schema-design
+  official_skills:
+  - official.database.schema-design
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 9
+    package: 0
+    total: 10
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: database
+  sub_agent: database-transaction-management
+  official_skills:
+  - official.database.transactions
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 9
+    package: 0
+    total: 10
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: devops
+  sub_agent: 
+  official_skills:
+  - official.analytics.analytical-thinking
+  - official.backend.background-jobs
+  - official.backend.business-logic-design
+  - official.backend.integration-patterns
+  - official.backend.resilience-patterns
+  - official.backend.service-design
+  - official.devops.capacity-planning
+  - official.devops.configuration-management
+  - official.devops.continuous-delivery
+  - official.devops.continuous-integration
+  - official.devops.deployment-strategies
+  - official.devops.disaster-recovery
+  - official.devops.infrastructure-as-code
+  - official.devops.monitoring-strategy
+  - official.devops.release-strategy
+  - official.devops.reliability-engineering
+  - official.foundation.error-handling-fundamentals
+  - official.foundation.logging-fundamentals
+  - official.foundation.observability-fundamentals
+  - official.platform.integration-strategy
+  - official.platform.migration-planning
+  - official.platform.platform-compatibility
+  - official.platform.scalability-planning
+  - official.platform.technology-evaluation
+  - official.platform.vendor-neutral-architecture
+  - official.security.access-control-models
+  - official.security.compliance-fundamentals
+  - official.security.encryption-fundamentals
+  - official.security.identity-management
+  - official.security.incident-response
+  - official.security.secrets-management
+  - official.security.secure-api-design
+  - official.security.security-reviews
+  - official.security.threat-modeling
+  - official.security.vulnerability-management
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 35
+    community: 688
+    package: 0
+    total: 723
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: devops
+  sub_agent: devops-capacity-planning
+  official_skills:
+  - official.devops.capacity-planning
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: devops
+  sub_agent: devops-configuration-governance
+  official_skills:
+  - official.devops.configuration-management
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: devops
+  sub_agent: devops-delivery-architecture
+  official_skills:
+  - official.devops.continuous-delivery
+  - official.devops.continuous-integration
+  - official.devops.deployment-strategies
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 3
+    community: 0
+    package: 0
+    total: 3
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: devops
+  sub_agent: devops-incident-readiness
+  official_skills:
+  - official.devops.disaster-recovery
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: devops
+  sub_agent: devops-infrastructure-coordination
+  official_skills:
+  - official.devops.infrastructure-as-code
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: devops
+  sub_agent: devops-observability
+  official_skills:
+  - official.devops.monitoring-strategy
+  - official.foundation.logging-fundamentals
+  - official.foundation.observability-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 3
+    community: 0
+    package: 0
+    total: 3
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: devops
+  sub_agent: devops-release-governance
+  official_skills:
+  - official.devops.release-strategy
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: devops
+  sub_agent: devops-reliability
+  official_skills:
+  - official.devops.reliability-engineering
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: documentation
+  sub_agent: 
+  official_skills:
+  - official.ai.agent-collaboration
+  - official.ai.ai-evaluation-framework
+  - official.ai.ai-safety
+  - official.ai.context-optimization
+  - official.ai.hallucination-reduction
+  - official.ai.model-evaluation
+  - official.ai.prompt-evaluation
+  - official.ai.reasoning-strategies
+  - official.ai.token-optimization
+  - official.ai.tool-calling
+  - official.analytics.business-metrics
+  - official.analytics.dashboard-design
+  - official.analytics.data-storytelling
+  - official.analytics.kpi-design
+  - official.analytics.requirements-analysis
+  - official.foundation.documentation-fundamentals
+  - official.frontend.accessibility
+  - official.frontend.component-design
+  - official.frontend.forms
+  - official.frontend.frontend-architecture
+  - official.frontend.frontend-performance
+  - official.frontend.responsive-design
+  - official.frontend.routing
+  - official.frontend.state-management
+  - official.frontend.ui-patterns
+  - official.presentation.executive-communication
+  - official.presentation.presentation-engineering
+  - official.presentation.presentation-quality
+  - official.presentation.presentation-review
+  - official.presentation.slide-architecture
+  - official.presentation.technical-storytelling
+  - official.presentation.visual-hierarchy
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 32
+    community: 640
+    package: 0
+    total: 672
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: documentation
+  sub_agent: documentation-technical-writing
+  official_skills:
+  - official.foundation.documentation-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 20
+    package: 0
+    total: 21
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: frontend
+  sub_agent: 
+  official_skills:
+  - official.backend.api-versioning
+  - official.foundation.api-design-fundamentals
+  - official.foundation.caching-fundamentals
+  - official.foundation.cloud-fundamentals
+  - official.foundation.rest-fundamentals
+  - official.foundation.testing-fundamentals
+  - official.foundation.versioning-fundamentals
+  - official.frontend.accessibility
+  - official.frontend.component-design
+  - official.frontend.forms
+  - official.frontend.frontend-architecture
+  - official.frontend.frontend-performance
+  - official.frontend.frontend-testing
+  - official.frontend.responsive-design
+  - official.frontend.routing
+  - official.frontend.state-management
+  - official.frontend.ui-patterns
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 17
+    community: 705
+    package: 0
+    total: 722
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: frontend
+  sub_agent: frontend-accessibility
+  official_skills:
+  - official.frontend.accessibility
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: frontend
+  sub_agent: frontend-component-design
+  official_skills:
+  - official.frontend.component-design
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 85
+    package: 0
+    total: 86
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: frontend
+  sub_agent: frontend-frontend-performance
+  official_skills:
+  - official.frontend.frontend-performance
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 85
+    package: 0
+    total: 86
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: frontend
+  sub_agent: frontend-responsive-design
+  official_skills:
+  - official.frontend.responsive-design
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 85
+    package: 0
+    total: 86
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: frontend
+  sub_agent: frontend-routing-navigation
+  official_skills:
+  - official.frontend.routing
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 85
+    package: 0
+    total: 86
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: frontend
+  sub_agent: frontend-state-management
+  official_skills:
+  - official.frontend.state-management
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 85
+    package: 0
+    total: 86
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: frontend
+  sub_agent: frontend-ui-architecture
+  official_skills:
+  - official.frontend.frontend-architecture
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: frontend
+  sub_agent: frontend-user-experience
+  official_skills:
+  - official.frontend.forms
+  - official.frontend.ui-patterns
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 85
+    package: 0
+    total: 87
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: platform
+  sub_agent: 
+  official_skills:
+  - official.analytics.analytical-thinking
+  - official.backend.api-versioning
+  - official.devops.capacity-planning
+  - official.devops.configuration-management
+  - official.devops.continuous-delivery
+  - official.devops.continuous-integration
+  - official.devops.deployment-strategies
+  - official.devops.disaster-recovery
+  - official.devops.infrastructure-as-code
+  - official.devops.monitoring-strategy
+  - official.devops.release-strategy
+  - official.devops.reliability-engineering
+  - official.foundation.cloud-fundamentals
+  - official.platform.integration-strategy
+  - official.platform.migration-planning
+  - official.platform.platform-compatibility
+  - official.platform.scalability-planning
+  - official.platform.technology-evaluation
+  - official.platform.vendor-neutral-architecture
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 19
+    community: 688
+    package: 0
+    total: 707
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: presentation
+  sub_agent: 
+  official_skills:
+  - official.analytics.business-metrics
+  - official.analytics.dashboard-design
+  - official.analytics.data-storytelling
+  - official.analytics.kpi-design
+  - official.analytics.requirements-analysis
+  - official.presentation.executive-communication
+  - official.presentation.presentation-engineering
+  - official.presentation.presentation-quality
+  - official.presentation.presentation-review
+  - official.presentation.slide-architecture
+  - official.presentation.technical-storytelling
+  - official.presentation.visual-hierarchy
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 12
+    community: 45
+    package: 0
+    total: 57
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: presentation
+  sub_agent: presentation-data-storytelling
+  official_skills:
+  - official.analytics.data-storytelling
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: presentation
+  sub_agent: presentation-data-visualization
+  official_skills:
+  - official.analytics.dashboard-design
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: presentation
+  sub_agent: presentation-executive-presentations
+  official_skills:
+  - official.presentation.executive-communication
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: presentation
+  sub_agent: presentation-infographics
+  official_skills:
+  - official.presentation.visual-hierarchy
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: presentation
+  sub_agent: presentation-presentation-review
+  official_skills:
+  - official.presentation.presentation-quality
+  - official.presentation.presentation-review
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 0
+    package: 0
+    total: 2
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: presentation
+  sub_agent: presentation-slide-architecture
+  official_skills:
+  - official.presentation.presentation-engineering
+  - official.presentation.slide-architecture
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 0
+    package: 0
+    total: 2
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: presentation
+  sub_agent: presentation-technical-presentations
+  official_skills:
+  - official.presentation.technical-storytelling
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: product-director
+  sub_agent: 
+  official_skills:
+  - official.analytics.business-metrics
+  - official.analytics.dashboard-design
+  - official.analytics.data-storytelling
+  - official.analytics.kpi-design
+  - official.analytics.requirements-analysis
+  - official.presentation.executive-communication
+  - official.presentation.presentation-engineering
+  - official.presentation.presentation-quality
+  - official.presentation.presentation-review
+  - official.presentation.slide-architecture
+  - official.presentation.technical-storytelling
+  - official.presentation.visual-hierarchy
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 12
+    community: 105
+    package: 0
+    total: 117
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: product-director
+  sub_agent: product-director-requirements
+  official_skills:
+  - official.analytics.business-metrics
+  - official.analytics.kpi-design
+  - official.analytics.requirements-analysis
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 3
+    community: 0
+    package: 0
+    total: 3
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: security
+  sub_agent: 
+  official_skills:
+  - official.ai.agent-collaboration
+  - official.ai.ai-evaluation-framework
+  - official.ai.ai-safety
+  - official.ai.context-optimization
+  - official.ai.hallucination-reduction
+  - official.ai.model-evaluation
+  - official.ai.prompt-evaluation
+  - official.ai.reasoning-strategies
+  - official.ai.token-optimization
+  - official.ai.tool-calling
+  - official.analytics.analytical-thinking
+  - official.backend.api-versioning
+  - official.backend.background-jobs
+  - official.backend.business-logic-design
+  - official.backend.integration-patterns
+  - official.backend.resilience-patterns
+  - official.backend.service-design
+  - official.database.data-modeling
+  - official.database.database-performance
+  - official.database.index-strategy
+  - official.database.schema-design
+  - official.database.transactions
+  - official.devops.capacity-planning
+  - official.devops.configuration-management
+  - official.devops.continuous-delivery
+  - official.devops.continuous-integration
+  - official.devops.deployment-strategies
+  - official.devops.disaster-recovery
+  - official.devops.infrastructure-as-code
+  - official.devops.monitoring-strategy
+  - official.devops.release-strategy
+  - official.devops.reliability-engineering
+  - official.foundation.ai-agent-fundamentals
+  - official.foundation.api-design-fundamentals
+  - official.foundation.authentication-fundamentals
+  - official.foundation.authorization-fundamentals
+  - official.foundation.caching-fundamentals
+  - official.foundation.cloud-fundamentals
+  - official.foundation.context-engineering-fundamentals
+  - official.foundation.database-fundamentals
+  - official.foundation.error-handling-fundamentals
+  - official.foundation.logging-fundamentals
+  - official.foundation.observability-fundamentals
+  - official.foundation.prompt-engineering-fundamentals
+  - official.foundation.rest-fundamentals
+  - official.foundation.security-fundamentals
+  - official.foundation.sql-fundamentals
+  - official.foundation.versioning-fundamentals
+  - official.frontend.accessibility
+  - official.frontend.component-design
+  - official.frontend.forms
+  - official.frontend.frontend-architecture
+  - official.frontend.frontend-performance
+  - official.frontend.responsive-design
+  - official.frontend.routing
+  - official.frontend.state-management
+  - official.frontend.ui-patterns
+  - official.platform.integration-strategy
+  - official.platform.migration-planning
+  - official.platform.platform-compatibility
+  - official.platform.scalability-planning
+  - official.platform.technology-evaluation
+  - official.platform.vendor-neutral-architecture
+  - official.security.access-control-models
+  - official.security.compliance-fundamentals
+  - official.security.encryption-fundamentals
+  - official.security.identity-management
+  - official.security.incident-response
+  - official.security.secrets-management
+  - official.security.secure-api-design
+  - official.security.security-reviews
+  - official.security.threat-modeling
+  - official.security.vulnerability-management
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 73
+    community: 640
+    package: 0
+    total: 713
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: security
+  sub_agent: security-authorization-strategy
+  official_skills:
+  - official.foundation.authorization-fundamentals
+  - official.security.access-control-models
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 20
+    package: 0
+    total: 22
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: security
+  sub_agent: security-compliance-coordination
+  official_skills:
+  - official.security.compliance-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 20
+    package: 0
+    total: 21
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: security
+  sub_agent: security-data-protection
+  official_skills:
+  - official.security.encryption-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: security
+  sub_agent: security-identity-coordination
+  official_skills:
+  - official.foundation.authentication-fundamentals
+  - official.security.identity-management
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 20
+    package: 0
+    total: 22
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: security
+  sub_agent: security-incident-security-readiness
+  official_skills:
+  - official.security.incident-response
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 20
+    package: 0
+    total: 21
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: security
+  sub_agent: security-secrets-governance
+  official_skills:
+  - official.security.secrets-management
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 20
+    package: 0
+    total: 21
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: security
+  sub_agent: security-security-architecture
+  official_skills:
+  - official.foundation.security-fundamentals
+  - official.security.secure-api-design
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 2
+    community: 20
+    package: 0
+    total: 22
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: security
+  sub_agent: security-security-review
+  official_skills:
+  - official.security.security-reviews
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: security
+  sub_agent: security-threat-modeling
+  official_skills:
+  - official.security.threat-modeling
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 20
+    package: 0
+    total: 21
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: security
+  sub_agent: security-vulnerability-management
+  official_skills:
+  - official.security.vulnerability-management
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 20
+    package: 0
+    total: 21
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: testing
+  sub_agent: 
+  official_skills:
+  - official.ai.agent-collaboration
+  - official.ai.ai-evaluation-framework
+  - official.ai.ai-safety
+  - official.ai.context-optimization
+  - official.ai.hallucination-reduction
+  - official.ai.model-evaluation
+  - official.ai.prompt-evaluation
+  - official.ai.reasoning-strategies
+  - official.ai.token-optimization
+  - official.ai.tool-calling
+  - official.analytics.analytical-thinking
+  - official.analytics.business-metrics
+  - official.analytics.dashboard-design
+  - official.analytics.data-storytelling
+  - official.analytics.kpi-design
+  - official.analytics.requirements-analysis
+  - official.backend.api-versioning
+  - official.backend.background-jobs
+  - official.backend.business-logic-design
+  - official.backend.integration-patterns
+  - official.backend.resilience-patterns
+  - official.backend.service-design
+  - official.database.data-modeling
+  - official.database.database-performance
+  - official.database.index-strategy
+  - official.database.schema-design
+  - official.database.transactions
+  - official.devops.capacity-planning
+  - official.devops.configuration-management
+  - official.devops.continuous-delivery
+  - official.devops.continuous-integration
+  - official.devops.deployment-strategies
+  - official.devops.disaster-recovery
+  - official.devops.infrastructure-as-code
+  - official.devops.monitoring-strategy
+  - official.devops.release-strategy
+  - official.devops.reliability-engineering
+  - official.foundation.ai-agent-fundamentals
+  - official.foundation.api-design-fundamentals
+  - official.foundation.authentication-fundamentals
+  - official.foundation.authorization-fundamentals
+  - official.foundation.caching-fundamentals
+  - official.foundation.cloud-fundamentals
+  - official.foundation.context-engineering-fundamentals
+  - official.foundation.database-fundamentals
+  - official.foundation.documentation-fundamentals
+  - official.foundation.error-handling-fundamentals
+  - official.foundation.logging-fundamentals
+  - official.foundation.observability-fundamentals
+  - official.foundation.prompt-engineering-fundamentals
+  - official.foundation.rest-fundamentals
+  - official.foundation.security-fundamentals
+  - official.foundation.sql-fundamentals
+  - official.foundation.testing-fundamentals
+  - official.foundation.versioning-fundamentals
+  - official.frontend.accessibility
+  - official.frontend.component-design
+  - official.frontend.forms
+  - official.frontend.frontend-architecture
+  - official.frontend.frontend-performance
+  - official.frontend.frontend-testing
+  - official.frontend.responsive-design
+  - official.frontend.routing
+  - official.frontend.state-management
+  - official.frontend.ui-patterns
+  - official.platform.integration-strategy
+  - official.platform.migration-planning
+  - official.platform.platform-compatibility
+  - official.platform.scalability-planning
+  - official.platform.technology-evaluation
+  - official.platform.vendor-neutral-architecture
+  - official.presentation.executive-communication
+  - official.presentation.presentation-engineering
+  - official.presentation.presentation-quality
+  - official.presentation.presentation-review
+  - official.presentation.slide-architecture
+  - official.presentation.technical-storytelling
+  - official.presentation.visual-hierarchy
+  - official.security.access-control-models
+  - official.security.compliance-fundamentals
+  - official.security.encryption-fundamentals
+  - official.security.identity-management
+  - official.security.incident-response
+  - official.security.secrets-management
+  - official.security.secure-api-design
+  - official.security.security-reviews
+  - official.security.threat-modeling
+  - official.security.vulnerability-management
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 88
+    community: 704
+    package: 0
+    total: 792
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: testing
+  sub_agent: testing-test-architecture
+  official_skills:
+  - official.frontend.frontend-testing
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 0
+    package: 0
+    total: 1
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
+- agent: testing
+  sub_agent: testing-test-strategy
+  official_skills:
+  - official.foundation.testing-fundamentals
+  community_skills: []
+  future_package_skills: []
+  priority: Normal
+  confidence: High
+  status: Active
+  coverage:
+    official: 1
+    community: 84
+    package: 0
+    total: 85
+  evidence:
+  - Phase 4.13 production knowledge audit
+  - Existing Skill compatibility metadata
