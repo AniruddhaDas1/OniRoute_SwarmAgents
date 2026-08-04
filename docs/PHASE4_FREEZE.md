@@ -10,7 +10,7 @@ The Knowledge architecture is production-ready as a frozen resolver contract. Th
 
 | Component | Count |
 |---|---:|
-| Agents and Sub-Agents | 285 |
+| Agents and Sub-Agents | 296 |
 | Official Skills | 88 |
 | Community Skills | 991 |
 | Registered Knowledge Sources | 9 |
@@ -39,6 +39,8 @@ Knowledge quality is evidence-backed through Schema Validation, Ownership Review
 ## Architecture Version
 
 **v0.4 — Knowledge Architecture Frozen.**
+
+ACR-001 Phase M1 extends the agent architecture only; the Knowledge Layer remains frozen and its mapping records remain unchanged pending a separately approved resolution update.
 
 ## Frozen Components
 

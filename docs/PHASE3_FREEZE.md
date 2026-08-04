@@ -10,15 +10,15 @@ Reporting remains hierarchical and reciprocal: Principal is the external organiz
 
 | Measure | Count |
 |---|---:|
-| Total agents | 285 |
-| Top-level agents | 30 |
-| Total sub-agents | 255 |
+| Total agents | 296 |
+| Top-level agents | 31 |
+| Total sub-agents | 265 |
 | Departments | 3 |
 | Executive agents | 42 (7 top-level, 35 sub-agents) |
-| Engineering agents | 111 (11 top-level, 100 sub-agents) |
+| Engineering agents | 122 (12 top-level, 110 sub-agents) |
 | Platform agents | 132 (12 top-level, 120 sub-agents) |
-| Agent directories | 285 |
-| Agent contract files | 855 (285 README, 285 agent.yaml, 285 SYSTEM) |
+| Agent directories | 296 |
+| Agent contract files | 888 (296 README, 296 agent.yaml, 296 SYSTEM) |
 | Documentation files | 7 |
 | Configuration files | 1 |
 
@@ -64,5 +64,7 @@ The frozen contracts reserve empty `skills`, `workflows`, and `adapters` fields.
 **v0.3 — Phase 3 Sub-Agent Architecture Frozen.**
 
 Phase 3.13 records the sole approved enhancement before Phase 4: Presentation Engineering and its ten bounded sub-agents. The v0.3 freeze remains in force with this amendment.
+
+ACR-001 Phase M1 adds Motion Engineering and ten bounded sub-agents; the v0.3 freeze remains in force with this amendment.
 
 Phase 4 is not implemented by this record.

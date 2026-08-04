@@ -22,6 +22,6 @@ Human / Product Context
 
 Communication may flow in both directions. Engineering can escalate constraints to Executive, and Platform can surface risks to Engineering. These feedback paths do not transfer ownership between departments.
 
-Within Engineering, Presentation Engineering reports to the Engineering Director alongside Architecture, Backend, Frontend, Database, AI, DevOps, Security, Testing, Documentation, and Platform. Its ten sub-agents report to Presentation Engineering.
+Within Engineering, Presentation Engineering and Motion report to the Engineering Director alongside Architecture, Backend, Frontend, Database, AI, DevOps, Security, Testing, Documentation, and Platform. Each discipline's bounded sub-agents report to its owning discipline.
 
 This hierarchy is organizational documentation only. It does not define delegation protocols, prompts, workflows, tools, or executable orchestration.
