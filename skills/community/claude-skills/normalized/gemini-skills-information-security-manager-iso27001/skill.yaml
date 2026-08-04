@@ -1,0 +1,53 @@
+id: community.claude-skills.gemini-skills-information-security-manager-iso27001
+name: gemini skills information security manager iso27001
+display_name: Gemini Skills Information Security Manager Iso27001
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from alirezarezvani/claude-skills:.gemini/skills/information-security-manager-iso27001/SKILL.md.
+category: Security
+tags:
+- security
+- authentication
+- authorization
+author: alirezarezvani
+organization: alirezarezvani
+license: MIT
+source:
+  repository: https://github.com/alirezarezvani/claude-skills
+  original_path: ".gemini/skills/information-security-manager-iso27001/SKILL.md"
+  commit: aa8d778811a557a2c28ccadda4cf3d0bd028a4cc
+  blob_sha: 242d6153e0538c7deff10bf0d42b9369ecc15ed5
+  source_url: https://github.com/alirezarezvani/claude-skills/blob/aa8d778811a557a2c28ccadda4cf3d0bd028a4cc/.gemini/skills/information-security-manager-iso27001/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- security
+- backend
+compatible_sub_agents:
+- security-compliance-coordination
+- security-secrets-governance
+- security-authorization-strategy
+- security-incident-security-readiness
+- security-vulnerability-management
+- security-threat-modeling
+- security-security-architecture
+- security-identity-coordination
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

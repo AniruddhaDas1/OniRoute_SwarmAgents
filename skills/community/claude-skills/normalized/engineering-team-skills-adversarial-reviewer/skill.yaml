@@ -1,0 +1,54 @@
+id: community.claude-skills.engineering-team-skills-adversarial-reviewer
+name: engineering team skills adversarial reviewer
+display_name: Engineering Team Skills Adversarial Reviewer
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from alirezarezvani/claude-skills:engineering-team/skills/adversarial-reviewer/SKILL.md.
+category: Testing
+tags:
+- testing
+- test
+- qa
+- review
+- verification
+author: alirezarezvani
+organization: alirezarezvani
+license: MIT
+source:
+  repository: https://github.com/alirezarezvani/claude-skills
+  original_path: engineering-team/skills/adversarial-reviewer/SKILL.md
+  commit: aa8d778811a557a2c28ccadda4cf3d0bd028a4cc
+  blob_sha: d0d6e65e993f70e91d5e83822c47e0b75b1a6a33
+  source_url: https://github.com/alirezarezvani/claude-skills/blob/aa8d778811a557a2c28ccadda4cf3d0bd028a4cc/engineering-team/skills/adversarial-reviewer/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- testing
+compatible_sub_agents:
+- testing-system-verification
+- testing-testing-review
+- testing-coverage-analysis
+- testing-integration-testing
+- testing-test-data-coordination
+- testing-unit-testing-governance
+- testing-automation-governance
+- testing-test-strategy
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

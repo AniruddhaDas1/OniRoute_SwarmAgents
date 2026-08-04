@@ -1,0 +1,56 @@
+id: community.gstack.setup-deploy
+name: setup deploy
+display_name: Setup Deploy
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from garrytan/gstack:setup-deploy/SKILL.md.
+category: DevOps
+tags:
+- devops
+- deployment
+- ci
+- cd
+- release
+- operations
+author: garrytan
+organization: garrytan
+license: MIT
+source:
+  repository: https://github.com/garrytan/gstack
+  original_path: setup-deploy/SKILL.md
+  commit: a3259400a366593e0c909dd9ac3e59752efd2488
+  blob_sha: 3465dc564b57990a42cb4ccd45a2d2b28e027703
+  source_url: https://github.com/garrytan/gstack/blob/a3259400a366593e0c909dd9ac3e59752efd2488/setup-deploy/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- devops
+- platform
+compatible_sub_agents:
+- postgresql
+- docker
+- vercel
+- redis
+- azure
+- cloudflare
+- supabase
+- firebase
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

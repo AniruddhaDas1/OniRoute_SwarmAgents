@@ -1,0 +1,278 @@
+repository: pbakaus/impeccable
+commit: 620ba1fe7d87a39039a8528bfaa319ecfa893cb2
+extracted: 15
+accepted: 14
+rejected: 1
+quarantined: 0
+decisions:
+- canonical_id: community.impeccable.agents-skills-impeccable
+  original_path: ".agents/skills/impeccable/SKILL.md"
+  blob_sha: de54a3ae215d187ed53e57b158e585998e5ce06a
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.claude-skills-impeccable
+  original_path: ".claude/skills/impeccable/SKILL.md"
+  blob_sha: f89c3f92abe3f88069f79d828f31931a2f12ab1a
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.cursor-skills-impeccable
+  original_path: ".cursor/skills/impeccable/SKILL.md"
+  blob_sha: a3676270a041893504f7bd1668e7828158838a92
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.gemini-skills-impeccable
+  original_path: ".gemini/skills/impeccable/SKILL.md"
+  blob_sha: 8c6ec5bd5ad901b364b67607a41fc1dbc7b1e909
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.github-skills-impeccable
+  original_path: ".github/skills/impeccable/SKILL.md"
+  blob_sha: aac5c5f38218cb1e55785ca550cda24406fce66d
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.grok-skills-impeccable
+  original_path: ".grok/skills/impeccable/SKILL.md"
+  blob_sha: 6381ee8b4d32ebe1742146bb585ec841aa39451c
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.kiro-skills-impeccable
+  original_path: ".kiro/skills/impeccable/SKILL.md"
+  blob_sha: 066a82aa3fa0a3ee0520cc3aab819b6d49c7575e
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.opencode-skills-impeccable
+  original_path: ".opencode/skills/impeccable/SKILL.md"
+  blob_sha: a3c09b266f2452747a253e1a344ba92a3a1c8999
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.pi-skills-impeccable
+  original_path: ".pi/skills/impeccable/SKILL.md"
+  blob_sha: '0186716945e8e1d5a471129364012b49dc79b3ee'
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.qoder-skills-impeccable
+  original_path: ".qoder/skills/impeccable/SKILL.md"
+  blob_sha: cc683fe902161136c574913dd76a44e83c9089b2
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.rovodev-skills-impeccable
+  original_path: ".rovodev/skills/impeccable/SKILL.md"
+  blob_sha: 5a703741468725448927b23092da7d24a726da4e
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.trae-cn-skills-impeccable
+  original_path: ".trae-cn/skills/impeccable/SKILL.md"
+  blob_sha: 660b9948977001b023949f67e03ef1f30f68437d
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.trae-skills-impeccable
+  original_path: ".trae/skills/impeccable/SKILL.md"
+  blob_sha: d0bf938765e2da9deda12bdf789ced3d4f0adec8
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.impeccable.vibe-skills-impeccable
+  original_path: ".vibe/skills/impeccable/SKILL.md"
+  blob_sha: ef911bf1d6e47d3aa286a848f531072e5a7860a5
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- original_path: plugin/skills/impeccable/SKILL.md
+  blob_sha: f89c3f92abe3f88069f79d828f31931a2f12ab1a
+  decision: Rejected
+  reason: duplicate_content
+  duplicate_of: community.impeccable.claude-skills-impeccable

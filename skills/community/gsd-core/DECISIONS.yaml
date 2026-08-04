@@ -1,0 +1,1342 @@
+repository: open-gsd/gsd-core
+commit: ff4a57b78c384e7beddcf3cd18e403cd6f192b5c
+extracted: 71
+accepted: 71
+rejected: 0
+quarantined: 0
+decisions:
+- canonical_id: community.gsd-core.skills-gsd-add-tests
+  original_path: skills/gsd-add-tests/SKILL.md
+  blob_sha: dea90b9f0b977b013e4c054b4401c37bc21bf9c1
+  decision: Accepted
+  validation_state: Needs Review
+  category: Testing
+  compatible_agents:
+  - testing
+  compatible_sub_agents:
+  - testing-system-verification
+  - testing-testing-review
+  - testing-coverage-analysis
+  - testing-integration-testing
+  - testing-test-data-coordination
+  - testing-unit-testing-governance
+  - testing-automation-governance
+  - testing-test-strategy
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-ai-integration-phase
+  original_path: skills/gsd-ai-integration-phase/SKILL.md
+  blob_sha: cb31560dd4d9a4605a3559a3366309b8b4577c93
+  decision: Accepted
+  validation_state: Needs Review
+  category: AI
+  compatible_agents:
+  - ai
+  compatible_sub_agents:
+  - ai-ai-performance
+  - ai-model-evaluation
+  - ai-provider-abstraction
+  - ai-reasoning-strategy
+  - ai-prompt-architecture
+  - ai-agent-orchestration
+  - ai-ai-review
+  - ai-tool-integration
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-audit-fix
+  original_path: skills/gsd-audit-fix/SKILL.md
+  blob_sha: 5c3d901e45a08ee09303ec22b67850174d537813
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-audit-milestone
+  original_path: skills/gsd-audit-milestone/SKILL.md
+  blob_sha: 46cd392822ae2eea0762aae5d8f921878a8e9c88
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-audit-uat
+  original_path: skills/gsd-audit-uat/SKILL.md
+  blob_sha: fceff0a09ec6c48602e865bc7d8b5f949af3c00c
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-autonomous
+  original_path: skills/gsd-autonomous/SKILL.md
+  blob_sha: 6007e530b7582faf2dbeea52f46d7ba865742615
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-capture
+  original_path: skills/gsd-capture/SKILL.md
+  blob_sha: faa88ed230d5550eef3d8681f5cc3aae1bbfde24
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-cleanup
+  original_path: skills/gsd-cleanup/SKILL.md
+  blob_sha: f5e8822c66debd6558e4f96e910199f30bd227d0
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-code-review
+  original_path: skills/gsd-code-review/SKILL.md
+  blob_sha: d7f87b32156db1a9c3f3d7e20f50a8fc88d9d558
+  decision: Accepted
+  validation_state: Needs Review
+  category: Testing
+  compatible_agents:
+  - testing
+  compatible_sub_agents:
+  - testing-system-verification
+  - testing-testing-review
+  - testing-coverage-analysis
+  - testing-integration-testing
+  - testing-test-data-coordination
+  - testing-unit-testing-governance
+  - testing-automation-governance
+  - testing-test-strategy
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-complete-milestone
+  original_path: skills/gsd-complete-milestone/SKILL.md
+  blob_sha: 10d940495ed48eb4476114fee39399e597f5c2ec
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-config
+  original_path: skills/gsd-config/SKILL.md
+  blob_sha: 2e2bbc0089e5f0d430d4d2f26d368e5352602dc1
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-debug
+  original_path: skills/gsd-debug/SKILL.md
+  blob_sha: 0fc9b04044aebb093680e0a2d9bf4ac7665cfe4c
+  decision: Accepted
+  validation_state: Needs Review
+  category: Testing
+  compatible_agents:
+  - testing
+  compatible_sub_agents:
+  - testing-system-verification
+  - testing-testing-review
+  - testing-coverage-analysis
+  - testing-integration-testing
+  - testing-test-data-coordination
+  - testing-unit-testing-governance
+  - testing-automation-governance
+  - testing-test-strategy
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-discuss-phase
+  original_path: skills/gsd-discuss-phase/SKILL.md
+  blob_sha: c50f2392982c124940f090829bf2033427a6295f
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-docs-update
+  original_path: skills/gsd-docs-update/SKILL.md
+  blob_sha: 8b6d4feed76b542805c78623ffb5f8b962499425
+  decision: Accepted
+  validation_state: Needs Review
+  category: Documentation
+  compatible_agents:
+  - documentation
+  compatible_sub_agents:
+  - documentation-developer-guides
+  - documentation-technical-writing
+  - documentation-documentation-quality
+  - documentation-documentation-review
+  - documentation-examples-reference
+  - documentation-documentation-strategy
+  - documentation-change-documentation
+  - documentation-information-organization
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-eval-review
+  original_path: skills/gsd-eval-review/SKILL.md
+  blob_sha: 9a275667020cfbef538b967151378156a56523f1
+  decision: Accepted
+  validation_state: Needs Review
+  category: Testing
+  compatible_agents:
+  - testing
+  compatible_sub_agents:
+  - testing-system-verification
+  - testing-testing-review
+  - testing-coverage-analysis
+  - testing-integration-testing
+  - testing-test-data-coordination
+  - testing-unit-testing-governance
+  - testing-automation-governance
+  - testing-test-strategy
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-execute-phase
+  original_path: skills/gsd-execute-phase/SKILL.md
+  blob_sha: 670a7c2a2daef66ba0fd4c3348401ceb173a054d
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-explore
+  original_path: skills/gsd-explore/SKILL.md
+  blob_sha: 2d4ccba1877f8e9ca5e47e2f148f49749b4e1a85
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-extract-learnings
+  original_path: skills/gsd-extract-learnings/SKILL.md
+  blob_sha: 8ea24e9546683027a2d888e026839cbe7c877951
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-fast
+  original_path: skills/gsd-fast/SKILL.md
+  blob_sha: 7b02ae735dd45cb241a9d282d23e71c47db4a0a4
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-forensics
+  original_path: skills/gsd-forensics/SKILL.md
+  blob_sha: e586f9bd95f528614192413a9be0ffe674a97b36
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-graphify
+  original_path: skills/gsd-graphify/SKILL.md
+  blob_sha: bf18826b33283677b0da264a98083d8ba427b797
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-health
+  original_path: skills/gsd-health/SKILL.md
+  blob_sha: d52c0943098fadf1567e0cc1b318d173e3caef8e
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-help
+  original_path: skills/gsd-help/SKILL.md
+  blob_sha: 39d14b73bcba9ddcd086ba2fcc23dbfb83cadaae
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-import
+  original_path: skills/gsd-import/SKILL.md
+  blob_sha: 638148c4dd2c4a2fb539262d7b1e3f2b48cc97e2
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-inbox
+  original_path: skills/gsd-inbox/SKILL.md
+  blob_sha: cd161d7d74fde4477fff379e95509661b16e79a7
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-ingest-docs
+  original_path: skills/gsd-ingest-docs/SKILL.md
+  blob_sha: ae73d07830b0aa267de13d6017e97ad9154530e3
+  decision: Accepted
+  validation_state: Needs Review
+  category: Documentation
+  compatible_agents:
+  - documentation
+  compatible_sub_agents:
+  - documentation-developer-guides
+  - documentation-technical-writing
+  - documentation-documentation-quality
+  - documentation-documentation-review
+  - documentation-examples-reference
+  - documentation-documentation-strategy
+  - documentation-change-documentation
+  - documentation-information-organization
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-manager
+  original_path: skills/gsd-manager/SKILL.md
+  blob_sha: 39c733900fd97717853f7ecf5f0428d5f6608771
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-map-codebase
+  original_path: skills/gsd-map-codebase/SKILL.md
+  blob_sha: 36c90912863985c18b3bf1349c222970511ba504
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-mempalace-capture
+  original_path: skills/gsd-mempalace-capture/SKILL.md
+  blob_sha: f7e984b548c55c5f7763933f12cde345ee455539
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-mempalace-recall
+  original_path: skills/gsd-mempalace-recall/SKILL.md
+  blob_sha: a62169980645b4fc2085eb424f49561e90e95ebd
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-milestone-summary
+  original_path: skills/gsd-milestone-summary/SKILL.md
+  blob_sha: 25ef49e81e93fade0bbd2331491c579061bc70a2
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-mvp-phase
+  original_path: skills/gsd-mvp-phase/SKILL.md
+  blob_sha: 67df023371831804ca3dc6928a42ee7f07c02bd9
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-new-milestone
+  original_path: skills/gsd-new-milestone/SKILL.md
+  blob_sha: 9ee777b4f63689fc8c2a8ae50ba88584ad233545
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-new-project
+  original_path: skills/gsd-new-project/SKILL.md
+  blob_sha: bd62c32f07ff9bcde0add72f3be0a74d6c3fe92d
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-next
+  original_path: skills/gsd-next/SKILL.md
+  blob_sha: ebef741bdec70c6b9c2bb731d23e4a5883b2edd9
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-ns-context
+  original_path: skills/gsd-ns-context/SKILL.md
+  blob_sha: a4d256f3967caa7aedbbc67a10162a3299953ada
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-ns-ideate
+  original_path: skills/gsd-ns-ideate/SKILL.md
+  blob_sha: b2394bcc47684f43433fb1d63cb829541887a342
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-ns-manage
+  original_path: skills/gsd-ns-manage/SKILL.md
+  blob_sha: f23bf130d2ce3ea6316e8ed939d9b940fe0ca1ab
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-ns-project
+  original_path: skills/gsd-ns-project/SKILL.md
+  blob_sha: 96d22ac4d347f7f6679f633f4fc7281e7ca88bc0
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-ns-review
+  original_path: skills/gsd-ns-review/SKILL.md
+  blob_sha: bb6c14161a5697b9de19bfc9a09753f6e43b8c06
+  decision: Accepted
+  validation_state: Needs Review
+  category: Testing
+  compatible_agents:
+  - testing
+  compatible_sub_agents:
+  - testing-system-verification
+  - testing-testing-review
+  - testing-coverage-analysis
+  - testing-integration-testing
+  - testing-test-data-coordination
+  - testing-unit-testing-governance
+  - testing-automation-governance
+  - testing-test-strategy
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-ns-workflow
+  original_path: skills/gsd-ns-workflow/SKILL.md
+  blob_sha: dd22c4a8276c7dd5e964feb04d1ff71642e918ce
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-onboard
+  original_path: skills/gsd-onboard/SKILL.md
+  blob_sha: d3b3946f5c1ef2906252f9843128924020fc8523
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-pause-work
+  original_path: skills/gsd-pause-work/SKILL.md
+  blob_sha: e1962277a38d7652ed2f5627036b22230af789a1
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-phase
+  original_path: skills/gsd-phase/SKILL.md
+  blob_sha: 4c5fe7adeeddb66b598ab04646b44bae99158320
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-plan-phase
+  original_path: skills/gsd-plan-phase/SKILL.md
+  blob_sha: 73bf6fa6543c7a2728f7672a3659e59e0f756e46
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-plan-review-convergence
+  original_path: skills/gsd-plan-review-convergence/SKILL.md
+  blob_sha: 0026ceda2ba5143c70ec9c6df75f7b4fbf81ebad
+  decision: Accepted
+  validation_state: Needs Review
+  category: Testing
+  compatible_agents:
+  - testing
+  compatible_sub_agents:
+  - testing-system-verification
+  - testing-testing-review
+  - testing-coverage-analysis
+  - testing-integration-testing
+  - testing-test-data-coordination
+  - testing-unit-testing-governance
+  - testing-automation-governance
+  - testing-test-strategy
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-pr-branch
+  original_path: skills/gsd-pr-branch/SKILL.md
+  blob_sha: 0a0ad7aa065df22e2125d78ea3236da205b80921
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-profile-user
+  original_path: skills/gsd-profile-user/SKILL.md
+  blob_sha: 6207545ac92032079b0fcfa229cdf059536be199
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-progress
+  original_path: skills/gsd-progress/SKILL.md
+  blob_sha: a9199229e60328f104768b1897fbfeb9970b160f
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-quick
+  original_path: skills/gsd-quick/SKILL.md
+  blob_sha: 2cec5ebffa7ed3aa2df66880a083cac355b39134
+  decision: Accepted
+  validation_state: Needs Review
+  category: Frontend
+  compatible_agents:
+  - frontend
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-resume-work
+  original_path: skills/gsd-resume-work/SKILL.md
+  blob_sha: 66dd1c5444bf79d2d580ee69ce488218fbbe3c54
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-review-backlog
+  original_path: skills/gsd-review-backlog/SKILL.md
+  blob_sha: 10293795639597204d05fc741d19078078c7740d
+  decision: Accepted
+  validation_state: Needs Review
+  category: Testing
+  compatible_agents:
+  - testing
+  compatible_sub_agents:
+  - testing-system-verification
+  - testing-testing-review
+  - testing-coverage-analysis
+  - testing-integration-testing
+  - testing-test-data-coordination
+  - testing-unit-testing-governance
+  - testing-automation-governance
+  - testing-test-strategy
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-review
+  original_path: skills/gsd-review/SKILL.md
+  blob_sha: 9773eecb16b3933795049c48c1e8412071d12742
+  decision: Accepted
+  validation_state: Needs Review
+  category: Testing
+  compatible_agents:
+  - testing
+  compatible_sub_agents:
+  - testing-system-verification
+  - testing-testing-review
+  - testing-coverage-analysis
+  - testing-integration-testing
+  - testing-test-data-coordination
+  - testing-unit-testing-governance
+  - testing-automation-governance
+  - testing-test-strategy
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-secure-phase
+  original_path: skills/gsd-secure-phase/SKILL.md
+  blob_sha: dfd0b6127126e585731148352e9eaa471e87976e
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-settings
+  original_path: skills/gsd-settings/SKILL.md
+  blob_sha: 86e1765418ac210baf83ea1e6c94a558238df4cc
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-ship
+  original_path: skills/gsd-ship/SKILL.md
+  blob_sha: 7e2c9c1e5bfbb5884b7882ce2fb0e98dda0ab8c9
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-sketch
+  original_path: skills/gsd-sketch/SKILL.md
+  blob_sha: 00c4ec6b1679b2fbae17be875346732c4f3b882f
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-spec-phase
+  original_path: skills/gsd-spec-phase/SKILL.md
+  blob_sha: 0a9b0f7a1d0905aec68de13d340ffa172ea1a139
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-spike
+  original_path: skills/gsd-spike/SKILL.md
+  blob_sha: a7499104db562b89650aae5b67afdce16f0a399f
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-stats
+  original_path: skills/gsd-stats/SKILL.md
+  blob_sha: f481087f1b15d6edaa17d240b4667853f2bbf696
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-surface
+  original_path: skills/gsd-surface/SKILL.md
+  blob_sha: 7c3177159f4a67a38aa063a44833df89f6c16644
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-thread
+  original_path: skills/gsd-thread/SKILL.md
+  blob_sha: 215d6e5f35922a797e1d0ce55fa172d20ac01a07
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-ui-phase
+  original_path: skills/gsd-ui-phase/SKILL.md
+  blob_sha: 53e89d906e98fb607e3421e3ee017685ebcb2dbb
+  decision: Accepted
+  validation_state: Needs Review
+  category: Frontend
+  compatible_agents:
+  - frontend
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-ui-review
+  original_path: skills/gsd-ui-review/SKILL.md
+  blob_sha: 6d4854f12f2ef5cc859d0920b6ce777eb3b83873
+  decision: Accepted
+  validation_state: Needs Review
+  category: Testing
+  compatible_agents:
+  - testing
+  compatible_sub_agents:
+  - testing-system-verification
+  - testing-testing-review
+  - testing-coverage-analysis
+  - testing-integration-testing
+  - testing-test-data-coordination
+  - testing-unit-testing-governance
+  - testing-automation-governance
+  - testing-test-strategy
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-ultraplan-phase
+  original_path: skills/gsd-ultraplan-phase/SKILL.md
+  blob_sha: 1573e38d77425edfa2dff03829de6738813ef8b9
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-undo
+  original_path: skills/gsd-undo/SKILL.md
+  blob_sha: 9dfa160610f3d44bca8cc091d59ae7af5661cec4
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-update
+  original_path: skills/gsd-update/SKILL.md
+  blob_sha: 81b363a4f5a5ae8bbcd7458bf481e43a8508aeb1
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-validate-phase
+  original_path: skills/gsd-validate-phase/SKILL.md
+  blob_sha: 45d832c8b9e8b71bc9c12c35acbb0a960d3d0682
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-verify-work
+  original_path: skills/gsd-verify-work/SKILL.md
+  blob_sha: f49fba482465fd956eb59dfd06ffe50c76a0b526
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-workspace
+  original_path: skills/gsd-workspace/SKILL.md
+  blob_sha: 8028f5abc01aa4550dea5f5b44f34c357ba23355
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.gsd-core.skills-gsd-workstreams
+  original_path: skills/gsd-workstreams/SKILL.md
+  blob_sha: '08f8aec0c85b9abe2bfda588965df6c5eccf8d15'
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []

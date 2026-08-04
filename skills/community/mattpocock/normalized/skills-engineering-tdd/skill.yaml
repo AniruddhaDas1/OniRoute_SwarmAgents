@@ -1,0 +1,54 @@
+id: community.mattpocock.skills-engineering-tdd
+name: skills engineering tdd
+display_name: Skills Engineering Tdd
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from mattpocock/skills:skills/engineering/tdd/SKILL.md.
+category: General Engineering
+tags:
+- engineering
+- planning
+- workflow
+- fundamentals
+author: mattpocock
+organization: mattpocock
+license: MIT
+source:
+  repository: https://github.com/mattpocock/skills
+  original_path: skills/engineering/tdd/SKILL.md
+  commit: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
+  blob_sha: 9a2e1d2a1ad856b0d5903dd002209ff8c32c9a48
+  source_url: https://github.com/mattpocock/skills/blob/2ab958093e83e0ec752e6c1c5932da465bf23e0c/skills/engineering/tdd/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- architecture
+- engineering-director
+compatible_sub_agents:
+- database
+- documentation
+- devops
+- frontend
+- security
+- platform
+- backend
+- testing
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

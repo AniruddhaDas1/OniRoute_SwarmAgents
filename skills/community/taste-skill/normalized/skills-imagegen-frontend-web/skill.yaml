@@ -1,0 +1,56 @@
+id: community.taste-skill.skills-imagegen-frontend-web
+name: skills imagegen frontend web
+display_name: Skills Imagegen Frontend Web
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from leonxlnx/taste-skill:skills/imagegen-frontend-web/SKILL.md.
+category: Frontend
+tags:
+- frontend
+- ui
+- ux
+- web
+- react
+- vue
+- css
+author: leonxlnx
+organization: leonxlnx
+license: MIT
+source:
+  repository: https://github.com/leonxlnx/taste-skill
+  original_path: skills/imagegen-frontend-web/SKILL.md
+  commit: e988add20dab0fa97d7a76781c48961c8184288e
+  blob_sha: 26b293b8d0088631c41ebefde4a650768d01cf22
+  source_url: https://github.com/leonxlnx/taste-skill/blob/e988add20dab0fa97d7a76781c48961c8184288e/skills/imagegen-frontend-web/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- frontend
+compatible_sub_agents:
+- frontend-responsive-design
+- frontend-client-data-management
+- frontend-frontend-review
+- frontend-routing-navigation
+- frontend-state-management
+- frontend-user-experience
+- frontend-frontend-performance
+- frontend-component-design
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

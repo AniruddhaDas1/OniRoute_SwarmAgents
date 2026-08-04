@@ -1,0 +1,54 @@
+id: community.claude-skills.engineering-docker-development-skills-docker-development
+name: engineering docker development skills docker development
+display_name: Engineering Docker Development Skills Docker Development
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from alirezarezvani/claude-skills:engineering/docker-development/skills/docker-development/SKILL.md.
+category: Documentation
+tags:
+- documentation
+- writing
+- docs
+- reference
+author: alirezarezvani
+organization: alirezarezvani
+license: MIT
+source:
+  repository: https://github.com/alirezarezvani/claude-skills
+  original_path: engineering/docker-development/skills/docker-development/SKILL.md
+  commit: aa8d778811a557a2c28ccadda4cf3d0bd028a4cc
+  blob_sha: bd65d708c722b4a5878deab6d8e239861cf7e899
+  source_url: https://github.com/alirezarezvani/claude-skills/blob/aa8d778811a557a2c28ccadda4cf3d0bd028a4cc/engineering/docker-development/skills/docker-development/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents:
+  - docker
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- documentation
+compatible_sub_agents:
+- documentation-developer-guides
+- documentation-technical-writing
+- documentation-documentation-quality
+- documentation-documentation-review
+- documentation-examples-reference
+- documentation-documentation-strategy
+- documentation-change-documentation
+- documentation-information-organization
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

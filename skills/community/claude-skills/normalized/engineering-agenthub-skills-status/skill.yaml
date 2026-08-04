@@ -1,0 +1,54 @@
+id: community.claude-skills.engineering-agenthub-skills-status
+name: engineering agenthub skills status
+display_name: Engineering Agenthub Skills Status
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from alirezarezvani/claude-skills:engineering/agenthub/skills/status/SKILL.md.
+category: AI
+tags:
+- ai
+- prompt
+- agent
+- model
+- context
+author: alirezarezvani
+organization: alirezarezvani
+license: MIT
+source:
+  repository: https://github.com/alirezarezvani/claude-skills
+  original_path: engineering/agenthub/skills/status/SKILL.md
+  commit: aa8d778811a557a2c28ccadda4cf3d0bd028a4cc
+  blob_sha: 17f0ae7ee2339e9428f42fb7c850f7ae33cc6ef4
+  source_url: https://github.com/alirezarezvani/claude-skills/blob/aa8d778811a557a2c28ccadda4cf3d0bd028a4cc/engineering/agenthub/skills/status/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- ai
+compatible_sub_agents:
+- ai-ai-performance
+- ai-model-evaluation
+- ai-provider-abstraction
+- ai-reasoning-strategy
+- ai-prompt-architecture
+- ai-agent-orchestration
+- ai-ai-review
+- ai-tool-integration
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

@@ -1,0 +1,56 @@
+id: community.mattpocock.skills-deprecated-ubiquitous-language
+name: skills deprecated ubiquitous language
+display_name: Skills Deprecated Ubiquitous Language
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from mattpocock/skills:skills/deprecated/ubiquitous-language/SKILL.md.
+category: Frontend
+tags:
+- frontend
+- ui
+- ux
+- web
+- react
+- vue
+- css
+author: mattpocock
+organization: mattpocock
+license: MIT
+source:
+  repository: https://github.com/mattpocock/skills
+  original_path: skills/deprecated/ubiquitous-language/SKILL.md
+  commit: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
+  blob_sha: 35b649ddcd4f6da16d70f27662e0dfb86fb34870
+  source_url: https://github.com/mattpocock/skills/blob/2ab958093e83e0ec752e6c1c5932da465bf23e0c/skills/deprecated/ubiquitous-language/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- frontend
+compatible_sub_agents:
+- frontend-responsive-design
+- frontend-client-data-management
+- frontend-frontend-review
+- frontend-routing-navigation
+- frontend-state-management
+- frontend-user-experience
+- frontend-frontend-performance
+- frontend-component-design
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

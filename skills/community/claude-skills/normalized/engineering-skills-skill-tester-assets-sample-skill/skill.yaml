@@ -1,0 +1,54 @@
+id: community.claude-skills.engineering-skills-skill-tester-assets-sample-skill
+name: engineering skills skill tester assets sample skill
+display_name: Engineering Skills Skill Tester Assets Sample Skill
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from alirezarezvani/claude-skills:engineering/skills/skill-tester/assets/sample-skill/SKILL.md.
+category: Testing
+tags:
+- testing
+- test
+- qa
+- review
+- verification
+author: alirezarezvani
+organization: alirezarezvani
+license: MIT
+source:
+  repository: https://github.com/alirezarezvani/claude-skills
+  original_path: engineering/skills/skill-tester/assets/sample-skill/SKILL.md
+  commit: aa8d778811a557a2c28ccadda4cf3d0bd028a4cc
+  blob_sha: c717dba3b9eb26a555a3fd4f8fe82616fef63c03
+  source_url: https://github.com/alirezarezvani/claude-skills/blob/aa8d778811a557a2c28ccadda4cf3d0bd028a4cc/engineering/skills/skill-tester/assets/sample-skill/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- testing
+compatible_sub_agents:
+- testing-system-verification
+- testing-testing-review
+- testing-coverage-analysis
+- testing-integration-testing
+- testing-test-data-coordination
+- testing-unit-testing-governance
+- testing-automation-governance
+- testing-test-strategy
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

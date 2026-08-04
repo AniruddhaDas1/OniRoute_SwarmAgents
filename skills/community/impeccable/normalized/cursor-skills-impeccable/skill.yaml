@@ -1,0 +1,54 @@
+id: community.impeccable.cursor-skills-impeccable
+name: cursor skills impeccable
+display_name: Cursor Skills Impeccable
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from pbakaus/impeccable:.cursor/skills/impeccable/SKILL.md.
+category: Presentation
+tags:
+- presentation
+- storytelling
+- visualization
+- design
+author: pbakaus
+organization: pbakaus
+license: Apache-2.0
+source:
+  repository: https://github.com/pbakaus/impeccable
+  original_path: ".cursor/skills/impeccable/SKILL.md"
+  commit: 620ba1fe7d87a39039a8528bfaa319ecfa893cb2
+  blob_sha: a3676270a041893504f7bd1668e7828158838a92
+  source_url: https://github.com/pbakaus/impeccable/blob/620ba1fe7d87a39039a8528bfaa319ecfa893cb2/.cursor/skills/impeccable/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- frontend
+- presentation
+compatible_sub_agents:
+- frontend-responsive-design
+- frontend-client-data-management
+- frontend-frontend-review
+- frontend-routing-navigation
+- frontend-state-management
+- frontend-user-experience
+- frontend-frontend-performance
+- frontend-component-design
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

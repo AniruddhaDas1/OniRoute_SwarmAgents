@@ -1,0 +1,53 @@
+id: community.gstack.document-release
+name: document release
+display_name: Document Release
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from garrytan/gstack:document-release/SKILL.md.
+category: Documentation
+tags:
+- documentation
+- writing
+- docs
+- reference
+author: garrytan
+organization: garrytan
+license: MIT
+source:
+  repository: https://github.com/garrytan/gstack
+  original_path: document-release/SKILL.md
+  commit: a3259400a366593e0c909dd9ac3e59752efd2488
+  blob_sha: b95873625b9ad49a3ead9bc76378cd3b52beb031
+  source_url: https://github.com/garrytan/gstack/blob/a3259400a366593e0c909dd9ac3e59752efd2488/document-release/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- documentation
+compatible_sub_agents:
+- documentation-developer-guides
+- documentation-technical-writing
+- documentation-documentation-quality
+- documentation-documentation-review
+- documentation-examples-reference
+- documentation-documentation-strategy
+- documentation-change-documentation
+- documentation-information-organization
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

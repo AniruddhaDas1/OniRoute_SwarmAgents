@@ -1,0 +1,252 @@
+repository: leonxlnx/taste-skill
+commit: e988add20dab0fa97d7a76781c48961c8184288e
+extracted: 13
+accepted: 13
+rejected: 0
+quarantined: 0
+decisions:
+- canonical_id: community.taste-skill.skills-brandkit
+  original_path: skills/brandkit/SKILL.md
+  blob_sha: d76399f666af97ac8c142928e02602d9732e78aa
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.taste-skill.skills-brutalist-skill
+  original_path: skills/brutalist-skill/SKILL.md
+  blob_sha: f5375b908340e1376ed391232a31c5d82d5babfb
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.taste-skill.skills-gpt-tasteskill
+  original_path: skills/gpt-tasteskill/SKILL.md
+  blob_sha: 03ed209b8fdc0a3cd6bccf8a5b3bfffe56aa4558
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.taste-skill.skills-image-to-code-skill
+  original_path: skills/image-to-code-skill/SKILL.md
+  blob_sha: d19f8de112252ea88724c540647cad85b7653d46
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.taste-skill.skills-imagegen-frontend-mobile
+  original_path: skills/imagegen-frontend-mobile/SKILL.md
+  blob_sha: 9d8d55f3ca7a77e18329922ea8a67694dee52ebb
+  decision: Accepted
+  validation_state: Needs Review
+  category: Frontend
+  compatible_agents:
+  - frontend
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.taste-skill.skills-imagegen-frontend-web
+  original_path: skills/imagegen-frontend-web/SKILL.md
+  blob_sha: 26b293b8d0088631c41ebefde4a650768d01cf22
+  decision: Accepted
+  validation_state: Needs Review
+  category: Frontend
+  compatible_agents:
+  - frontend
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.taste-skill.skills-minimalist-skill
+  original_path: skills/minimalist-skill/SKILL.md
+  blob_sha: 44ead27ef04ffe79ade0c6df7fd696dbcf7b246b
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.taste-skill.skills-output-skill
+  original_path: skills/output-skill/SKILL.md
+  blob_sha: d983bbcf040b6f433c624ce2212a2c044ad2da3c
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.taste-skill.skills-redesign-skill
+  original_path: skills/redesign-skill/SKILL.md
+  blob_sha: c8304f0c9301385e3641b052d6b25b8af11cb6c1
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.taste-skill.skills-soft-skill
+  original_path: skills/soft-skill/SKILL.md
+  blob_sha: 4038f41ec0137ec92e98ed0151fe3b7038b9329e
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.taste-skill.skills-stitch-skill
+  original_path: skills/stitch-skill/SKILL.md
+  blob_sha: 19d958cdb5f83d14e4021fac942c1bcf8395c042
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.taste-skill.skills-taste-skill-v1
+  original_path: skills/taste-skill-v1/SKILL.md
+  blob_sha: 4054982cd292c7fe6d01170c2372e986a427d776
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.taste-skill.skills-taste-skill
+  original_path: skills/taste-skill/SKILL.md
+  blob_sha: b72132fcd466da605623ffe96e370b3991fc5285
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []

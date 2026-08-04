@@ -1,0 +1,53 @@
+id: community.mattpocock.skills-in-progress-writing-shape
+name: skills in progress writing shape
+display_name: Skills In Progress Writing Shape
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from mattpocock/skills:skills/in-progress/writing-shape/SKILL.md.
+category: Documentation
+tags:
+- documentation
+- writing
+- docs
+- reference
+author: mattpocock
+organization: mattpocock
+license: MIT
+source:
+  repository: https://github.com/mattpocock/skills
+  original_path: skills/in-progress/writing-shape/SKILL.md
+  commit: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
+  blob_sha: a9694e345d585e58778a5541f6a35fd4479d6f7f
+  source_url: https://github.com/mattpocock/skills/blob/2ab958093e83e0ec752e6c1c5932da465bf23e0c/skills/in-progress/writing-shape/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- documentation
+compatible_sub_agents:
+- documentation-developer-guides
+- documentation-technical-writing
+- documentation-documentation-quality
+- documentation-documentation-review
+- documentation-examples-reference
+- documentation-documentation-strategy
+- documentation-change-documentation
+- documentation-information-organization
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

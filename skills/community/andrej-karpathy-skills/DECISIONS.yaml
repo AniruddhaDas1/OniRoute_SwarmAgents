@@ -1,0 +1,12 @@
+repository: multica-ai/andrej-karpathy-skills
+commit: 2c606141936f1eeef17fa3043a72095b4765b9c2
+extracted: 1
+accepted: 0
+rejected: 1
+quarantined: 0
+decisions:
+- original_path: skills/karpathy-guidelines/SKILL.md
+  blob_sha: 6a62d0441753157ca6ca50479e490c2948033adb
+  decision: Rejected
+  reason: license_undetermined
+  duplicate_of: 

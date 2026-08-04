@@ -1,0 +1,54 @@
+id: community.gsd-core.skills-gsd-ns-context
+name: skills gsd ns context
+display_name: Skills Gsd Ns Context
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from open-gsd/gsd-core:skills/gsd-ns-context/SKILL.md.
+category: General Engineering
+tags:
+- engineering
+- planning
+- workflow
+- fundamentals
+author: open-gsd
+organization: open-gsd
+license: MIT
+source:
+  repository: https://github.com/open-gsd/gsd-core
+  original_path: skills/gsd-ns-context/SKILL.md
+  commit: ff4a57b78c384e7beddcf3cd18e403cd6f192b5c
+  blob_sha: a4d256f3967caa7aedbbc67a10162a3299953ada
+  source_url: https://github.com/open-gsd/gsd-core/blob/ff4a57b78c384e7beddcf3cd18e403cd6f192b5c/skills/gsd-ns-context/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- architecture
+- engineering-director
+compatible_sub_agents:
+- database
+- documentation
+- devops
+- frontend
+- security
+- platform
+- backend
+- testing
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

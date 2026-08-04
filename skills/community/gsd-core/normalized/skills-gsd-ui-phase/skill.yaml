@@ -1,0 +1,56 @@
+id: community.gsd-core.skills-gsd-ui-phase
+name: skills gsd ui phase
+display_name: Skills Gsd Ui Phase
+version: 0.1.0
+description: Metadata-normalized community Skill candidate from open-gsd/gsd-core:skills/gsd-ui-phase/SKILL.md.
+category: Frontend
+tags:
+- frontend
+- ui
+- ux
+- web
+- react
+- vue
+- css
+author: open-gsd
+organization: open-gsd
+license: MIT
+source:
+  repository: https://github.com/open-gsd/gsd-core
+  original_path: skills/gsd-ui-phase/SKILL.md
+  commit: ff4a57b78c384e7beddcf3cd18e403cd6f192b5c
+  blob_sha: 53e89d906e98fb607e3421e3ee017685ebcb2dbb
+  source_url: https://github.com/open-gsd/gsd-core/blob/ff4a57b78c384e7beddcf3cd18e403cd6f192b5c/skills/gsd-ui-phase/SKILL.md
+  import_timestamp: '2026-08-04T00:00:00+05:30'
+  normalization_version: 0.1.0
+  original_version: unavailable
+status: Community
+compatibility:
+  platform_agents: []
+  provider_independent_contract: true
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Requires future contract review before execution eligibility.
+output_contract: Produces no runtime output in metadata-only normalization.
+dependencies: []
+related_skills: []
+compatible_agents:
+- frontend
+compatible_sub_agents:
+- frontend-responsive-design
+- frontend-client-data-management
+- frontend-frontend-review
+- frontend-routing-navigation
+- frontend-state-management
+- frontend-user-experience
+- frontend-frontend-performance
+- frontend-component-design
+validation_level: metadata-normalized
+quality_score: 60
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+trust_level: Community
+validation_state: Needs Review
+lifecycle: Community

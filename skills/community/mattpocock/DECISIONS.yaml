@@ -1,0 +1,774 @@
+repository: mattpocock/skills
+commit: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
+extracted: 41
+accepted: 41
+rejected: 0
+quarantined: 0
+decisions:
+- canonical_id: community.mattpocock.skills-deprecated-design-an-interface
+  original_path: skills/deprecated/design-an-interface/SKILL.md
+  blob_sha: d056bd183229ca93bd41cf1b8c10c6fd1f30e75f
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-deprecated-qa
+  original_path: skills/deprecated/qa/SKILL.md
+  blob_sha: 305e43fbc1a171987fcab977ebd124c3f9792d39
+  decision: Accepted
+  validation_state: Needs Review
+  category: Testing
+  compatible_agents:
+  - testing
+  compatible_sub_agents:
+  - testing-system-verification
+  - testing-testing-review
+  - testing-coverage-analysis
+  - testing-integration-testing
+  - testing-test-data-coordination
+  - testing-unit-testing-governance
+  - testing-automation-governance
+  - testing-test-strategy
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-deprecated-request-refactor-plan
+  original_path: skills/deprecated/request-refactor-plan/SKILL.md
+  blob_sha: 7e8b2e41d7ce805746d18b8e9dba4559301db251
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-deprecated-ubiquitous-language
+  original_path: skills/deprecated/ubiquitous-language/SKILL.md
+  blob_sha: 35b649ddcd4f6da16d70f27662e0dfb86fb34870
+  decision: Accepted
+  validation_state: Needs Review
+  category: Frontend
+  compatible_agents:
+  - frontend
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-ask-matt
+  original_path: skills/engineering/ask-matt/SKILL.md
+  blob_sha: 70b807b35f85859b0c6cced1919f56e024e6a753
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-code-review
+  original_path: skills/engineering/code-review/SKILL.md
+  blob_sha: 2a0b5240731b927caa9ac0bf43c3e2af9dc3f0a7
+  decision: Accepted
+  validation_state: Needs Review
+  category: Testing
+  compatible_agents:
+  - testing
+  compatible_sub_agents:
+  - testing-system-verification
+  - testing-testing-review
+  - testing-coverage-analysis
+  - testing-integration-testing
+  - testing-test-data-coordination
+  - testing-unit-testing-governance
+  - testing-automation-governance
+  - testing-test-strategy
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-codebase-design
+  original_path: skills/engineering/codebase-design/SKILL.md
+  blob_sha: 16620c24528b737408e78d95dd6a0e01a98d3d63
+  decision: Accepted
+  validation_state: Needs Review
+  category: Presentation
+  compatible_agents:
+  - frontend
+  - presentation
+  compatible_sub_agents:
+  - frontend-responsive-design
+  - frontend-client-data-management
+  - frontend-frontend-review
+  - frontend-routing-navigation
+  - frontend-state-management
+  - frontend-user-experience
+  - frontend-frontend-performance
+  - frontend-component-design
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-diagnosing-bugs
+  original_path: skills/engineering/diagnosing-bugs/SKILL.md
+  blob_sha: f400de7c1937377fec7ff9bae3b0c072670f1e81
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-domain-modeling
+  original_path: skills/engineering/domain-modeling/SKILL.md
+  blob_sha: d0f7e1a5ccb06a7184056ff9af02b67bc77f9dda
+  decision: Accepted
+  validation_state: Needs Review
+  category: AI
+  compatible_agents:
+  - ai
+  compatible_sub_agents:
+  - ai-ai-performance
+  - ai-model-evaluation
+  - ai-provider-abstraction
+  - ai-reasoning-strategy
+  - ai-prompt-architecture
+  - ai-agent-orchestration
+  - ai-ai-review
+  - ai-tool-integration
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-grill-with-docs
+  original_path: skills/engineering/grill-with-docs/SKILL.md
+  blob_sha: bed05d2bd3245306267cea57cd696b5dd94d50fe
+  decision: Accepted
+  validation_state: Needs Review
+  category: Documentation
+  compatible_agents:
+  - documentation
+  compatible_sub_agents:
+  - documentation-developer-guides
+  - documentation-technical-writing
+  - documentation-documentation-quality
+  - documentation-documentation-review
+  - documentation-examples-reference
+  - documentation-documentation-strategy
+  - documentation-change-documentation
+  - documentation-information-organization
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-implement
+  original_path: skills/engineering/implement/SKILL.md
+  blob_sha: 7a0b11f5f4fe9505ea5c7983c3083ba1bf754f69
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-improve-codebase-architecture
+  original_path: skills/engineering/improve-codebase-architecture/SKILL.md
+  blob_sha: b56969e92f0705d70700f908b8ec929a1edfa782
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-prototype
+  original_path: skills/engineering/prototype/SKILL.md
+  blob_sha: e75d5331ceffd9b2c5a9554c3db124d848afa054
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-research
+  original_path: skills/engineering/research/SKILL.md
+  blob_sha: 0ba594a07f306479baa67104381f48e209ab6aae
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-resolving-merge-conflicts
+  original_path: skills/engineering/resolving-merge-conflicts/SKILL.md
+  blob_sha: aadb3fcb1dfb43413dff30c2fb4b18b7cf58e90e
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-setup-matt-pocock-skills
+  original_path: skills/engineering/setup-matt-pocock-skills/SKILL.md
+  blob_sha: aecf855317d3202f8c812f9b2e0d1b65d98d7d26
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-tdd
+  original_path: skills/engineering/tdd/SKILL.md
+  blob_sha: 9a2e1d2a1ad856b0d5903dd002209ff8c32c9a48
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-to-spec
+  original_path: skills/engineering/to-spec/SKILL.md
+  blob_sha: f3cca8d3dbdb7c22e11447f1d13011a78ca6efba
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-to-tickets
+  original_path: skills/engineering/to-tickets/SKILL.md
+  blob_sha: 96deac51d4391a3f691478d48f85f43261516c08
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-triage
+  original_path: skills/engineering/triage/SKILL.md
+  blob_sha: be47b78100c8524c3af3681790d2bb8b9ff150b7
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-engineering-wayfinder
+  original_path: skills/engineering/wayfinder/SKILL.md
+  blob_sha: 42e3644cc57e41a1b87482754f25b4d9462d4bbc
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-in-progress-batch-grill-me
+  original_path: skills/in-progress/batch-grill-me/SKILL.md
+  blob_sha: 4dbf90deb9c2bcadb36520b2f885e9d585d3fde7
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-in-progress-claude-handoff
+  original_path: skills/in-progress/claude-handoff/SKILL.md
+  blob_sha: 88ce8be28217c9dbcd5f8cef0ead2502bf2e2b1c
+  decision: Accepted
+  validation_state: Needs Review
+  category: AI
+  compatible_agents:
+  - ai
+  compatible_sub_agents:
+  - ai-ai-performance
+  - ai-model-evaluation
+  - ai-provider-abstraction
+  - ai-reasoning-strategy
+  - ai-prompt-architecture
+  - ai-agent-orchestration
+  - ai-ai-review
+  - ai-tool-integration
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-in-progress-loop-me
+  original_path: skills/in-progress/loop-me/SKILL.md
+  blob_sha: 3a8c52c8d0a429905bfe728b91e31b01ab57adaf
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-in-progress-setup-ts-deep-modules
+  original_path: skills/in-progress/setup-ts-deep-modules/SKILL.md
+  blob_sha: 5963b8a39f1818da85bbef74eab8c96cf544181e
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-in-progress-to-questionnaire
+  original_path: skills/in-progress/to-questionnaire/SKILL.md
+  blob_sha: 1423375bb23923a754e931f034a9714b8f81dfcc
+  decision: Accepted
+  validation_state: Needs Review
+  category: AI
+  compatible_agents:
+  - ai
+  compatible_sub_agents:
+  - ai-ai-performance
+  - ai-model-evaluation
+  - ai-provider-abstraction
+  - ai-reasoning-strategy
+  - ai-prompt-architecture
+  - ai-agent-orchestration
+  - ai-ai-review
+  - ai-tool-integration
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-in-progress-wizard
+  original_path: skills/in-progress/wizard/SKILL.md
+  blob_sha: a754784080d85f559ee2d4ba6327c68098a02029
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-in-progress-writing-beats
+  original_path: skills/in-progress/writing-beats/SKILL.md
+  blob_sha: 1cdb7dec65d1168c8516c3e83af32149226f79e3
+  decision: Accepted
+  validation_state: Needs Review
+  category: Documentation
+  compatible_agents:
+  - documentation
+  compatible_sub_agents:
+  - documentation-developer-guides
+  - documentation-technical-writing
+  - documentation-documentation-quality
+  - documentation-documentation-review
+  - documentation-examples-reference
+  - documentation-documentation-strategy
+  - documentation-change-documentation
+  - documentation-information-organization
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-in-progress-writing-fragments
+  original_path: skills/in-progress/writing-fragments/SKILL.md
+  blob_sha: 3d0ea7527ac01405ce94857e8a5e0c4c1e105087
+  decision: Accepted
+  validation_state: Needs Review
+  category: Documentation
+  compatible_agents:
+  - documentation
+  compatible_sub_agents:
+  - documentation-developer-guides
+  - documentation-technical-writing
+  - documentation-documentation-quality
+  - documentation-documentation-review
+  - documentation-examples-reference
+  - documentation-documentation-strategy
+  - documentation-change-documentation
+  - documentation-information-organization
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-in-progress-writing-shape
+  original_path: skills/in-progress/writing-shape/SKILL.md
+  blob_sha: a9694e345d585e58778a5541f6a35fd4479d6f7f
+  decision: Accepted
+  validation_state: Needs Review
+  category: Documentation
+  compatible_agents:
+  - documentation
+  compatible_sub_agents:
+  - documentation-developer-guides
+  - documentation-technical-writing
+  - documentation-documentation-quality
+  - documentation-documentation-review
+  - documentation-examples-reference
+  - documentation-documentation-strategy
+  - documentation-change-documentation
+  - documentation-information-organization
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-misc-git-guardrails-claude-code
+  original_path: skills/misc/git-guardrails-claude-code/SKILL.md
+  blob_sha: d943c68219d0f47512f10c5018a11fd8358e9bb5
+  decision: Accepted
+  validation_state: Needs Review
+  category: AI
+  compatible_agents:
+  - ai
+  compatible_sub_agents:
+  - ai-ai-performance
+  - ai-model-evaluation
+  - ai-provider-abstraction
+  - ai-reasoning-strategy
+  - ai-prompt-architecture
+  - ai-agent-orchestration
+  - ai-ai-review
+  - ai-tool-integration
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-misc-migrate-to-shoehorn
+  original_path: skills/misc/migrate-to-shoehorn/SKILL.md
+  blob_sha: ae4f965e204fc93cedbc4e2c306e92829d93f800
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-misc-scaffold-exercises
+  original_path: skills/misc/scaffold-exercises/SKILL.md
+  blob_sha: d87df28e7d8abb4e57ecc6e47d71c274d16054c7
+  decision: Accepted
+  validation_state: Needs Review
+  category: DevOps
+  compatible_agents:
+  - devops
+  - platform
+  compatible_sub_agents:
+  - postgresql
+  - docker
+  - vercel
+  - redis
+  - azure
+  - cloudflare
+  - supabase
+  - firebase
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-misc-setup-pre-commit
+  original_path: skills/misc/setup-pre-commit/SKILL.md
+  blob_sha: 395a77b5f7e33911092f7bc86e7d87c4ca70d189
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-personal-edit-article
+  original_path: skills/personal/edit-article/SKILL.md
+  blob_sha: 2a6ad33e969068afa6917b5ed778b5f53aa357ca
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-personal-obsidian-vault
+  original_path: skills/personal/obsidian-vault/SKILL.md
+  blob_sha: b9393654a90811d6e1ce25163b3bd77f803c1026
+  decision: Accepted
+  validation_state: Needs Review
+  category: General Engineering
+  compatible_agents:
+  - architecture
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-productivity-grill-me
+  original_path: skills/productivity/grill-me/SKILL.md
+  blob_sha: 9470cfcfe231a35e46494cddbacdd395991afb1e
+  decision: Accepted
+  validation_state: Needs Review
+  category: Business
+  compatible_agents:
+  - product-director
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-productivity-grilling
+  original_path: skills/productivity/grilling/SKILL.md
+  blob_sha: 52d8eb3cadd2dca62634d5dccfa73ea6b725b117
+  decision: Accepted
+  validation_state: Needs Review
+  category: Business
+  compatible_agents:
+  - product-director
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-productivity-handoff
+  original_path: skills/productivity/handoff/SKILL.md
+  blob_sha: 043d9e13dc7eca3002a47d3ab9865c568f647863
+  decision: Accepted
+  validation_state: Needs Review
+  category: Business
+  compatible_agents:
+  - product-director
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-productivity-teach
+  original_path: skills/productivity/teach/SKILL.md
+  blob_sha: b1603e5ac536d2b5c29496c06df4db0bb9f74e69
+  decision: Accepted
+  validation_state: Needs Review
+  category: Business
+  compatible_agents:
+  - product-director
+  - engineering-director
+  compatible_sub_agents:
+  - database
+  - documentation
+  - devops
+  - frontend
+  - security
+  - platform
+  - backend
+  - testing
+  platform_agents: []
+- canonical_id: community.mattpocock.skills-productivity-writing-great-skills
+  original_path: skills/productivity/writing-great-skills/SKILL.md
+  blob_sha: 82abd0dce264eecb3ed461b3eac17bdafb52f84b
+  decision: Accepted
+  validation_state: Needs Review
+  category: Documentation
+  compatible_agents:
+  - documentation
+  compatible_sub_agents:
+  - documentation-developer-guides
+  - documentation-technical-writing
+  - documentation-documentation-quality
+  - documentation-documentation-review
+  - documentation-examples-reference
+  - documentation-documentation-strategy
+  - documentation-change-documentation
+  - documentation-information-organization
+  platform_agents: []
