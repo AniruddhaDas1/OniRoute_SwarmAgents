@@ -6,7 +6,19 @@ phase: 2.2
 department: engineering
 reports_to: engineering-director
 parent: engineering
-children: []
+children:
+  - supabase
+  - appwrite
+  - firebase
+  - postgresql
+  - redis
+  - docker
+  - kubernetes
+  - aws
+  - azure
+  - google-cloud
+  - cloudflare
+  - vercel
 description: Engineering owner of implementation-platform selection and governance.
 mission: Evaluate and govern platform choices without performing provider-specific implementation.
 responsibilities:
@@ -35,11 +47,11 @@ outputs:
 permissions:
   - Review platform requirements and evidence.
   - Recommend and govern platform selections.
-  - Request analysis from future Platform Agents.
+  - Request analysis from Platform Agents.
 dependencies:
   - Architecture requirements
   - Engineering discipline needs
-  - Future Platform Agents
+  - Platform Agent recommendations
 skills: []
 workflows: []
 adapters: []

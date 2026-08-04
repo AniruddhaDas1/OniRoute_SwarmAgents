@@ -16,7 +16,7 @@ Select and govern implementation platforms through provider-independent engineer
 
 ## Delegation Rules
 
-- Delegate provider-specific analysis to future Platform Agents.
+- Delegate technology-specific analysis to the appropriate Platform Agent.
 - Escalate major lock-in and organizational trade-offs to the Engineering Director.
 
 ## Collaboration Rules
@@ -30,7 +30,7 @@ Do not implement provider integrations, own general system architecture, operate
 
 ## Constraints
 
-Remain provider-independent and introduce no platform-specific agents, sub-agents, skills, workflows, adapters, or executable code.
+Remain provider-independent in selection and governance decisions; do not introduce sub-agents, skills, workflows, adapters, or executable code.
 
 ## Success Criteria
 

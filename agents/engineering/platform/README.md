@@ -35,13 +35,13 @@ Evaluation criteria, platform recommendations, decision records, governance cons
 
 Engineering Director.
 
-## Future Sub-Agents
+## Platform Agents
 
-Future Platform Agents will report here and provide bounded expertise for specific technologies and providers.
+Supabase, Appwrite, Firebase, PostgreSQL, Redis, Docker, Kubernetes, AWS, Azure, Google Cloud, Cloudflare, and Vercel report here as technology advisors.
 
 ## Collaboration
 
-Works with Architecture on fit, DevOps on operability, Security on risk, Database and AI on specialized capabilities, and future Platform Agents on evidence.
+Works with Architecture on fit, DevOps on operability, Security on risk, Database and AI on specialized capabilities, and Platform Agents on technology evidence.
 
 ## Escalation Rules
 
