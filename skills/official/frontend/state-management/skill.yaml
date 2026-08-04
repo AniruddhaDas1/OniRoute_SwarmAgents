@@ -1,0 +1,69 @@
+id: official.frontend.state-management
+name: state-management
+display_name: State Management
+version: 1.0.0
+description: Place state according to ownership, lifetime, synchronization, and consistency.
+category: Frontend
+tags:
+- frontend
+- state-management
+- official
+author: OniRoute
+organization: OniRoute
+license: MIT
+source:
+  type: original
+  owner: OniRoute
+  community_repositories_reviewed:
+  - https://github.com/mattpocock/skills
+  - https://github.com/pbakaus/impeccable
+  - https://github.com/leonxlnx/taste-skill
+  - https://github.com/garrytan/gstack
+  - https://github.com/vuejs-ai/skills
+  - https://github.com/open-gsd/gsd-core
+  - https://github.com/alirezarezvani/claude-skills
+status: Official
+compatibility:
+  primary_owner_agent: frontend
+  primary_owner_sub_agent: frontend-state-management
+  secondary_agents: &2
+  - architecture
+  - testing
+  - documentation
+  - security
+  consumer_agents: &1
+  - frontend
+  - architecture
+  - testing
+  - documentation
+  - security
+consumes_context:
+- Approved requirements
+- Architecture decisions
+- Risk and quality constraints
+produces_context:
+- State Management decisions
+- Trade-offs and review findings
+required_tools: []
+optional_tools: []
+input_contract: Approved requirements, constraints, and evidence relevant to the bounded
+  capability.
+output_contract: Provider-independent decisions, trade-offs, risks, and reviewable
+  guidance.
+dependencies: []
+related_skills: []
+compatible_agents: *1
+compatible_sub_agents:
+- frontend-state-management
+validation_level: Verified
+quality_score: 100
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+owner: OniRoute
+trust_level: Official
+validation_state: Verified
+lifecycle: Official
+primary_owner_agent: frontend
+primary_owner_sub_agent: frontend-state-management
+secondary_agents: *2
+consumer_agents: *1

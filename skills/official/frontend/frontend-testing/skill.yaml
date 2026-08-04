@@ -1,0 +1,67 @@
+id: official.frontend.frontend-testing
+name: frontend-testing
+display_name: Frontend Testing
+version: 1.0.0
+description: Verify client behavior, accessibility, integration, and regression risk.
+category: Frontend
+tags:
+- frontend
+- frontend-testing
+- official
+author: OniRoute
+organization: OniRoute
+license: MIT
+source:
+  type: original
+  owner: OniRoute
+  community_repositories_reviewed:
+  - https://github.com/mattpocock/skills
+  - https://github.com/pbakaus/impeccable
+  - https://github.com/leonxlnx/taste-skill
+  - https://github.com/garrytan/gstack
+  - https://github.com/vuejs-ai/skills
+  - https://github.com/open-gsd/gsd-core
+  - https://github.com/alirezarezvani/claude-skills
+status: Official
+compatibility:
+  primary_owner_agent: testing
+  primary_owner_sub_agent: testing-test-architecture
+  secondary_agents: &2
+  - architecture
+  - backend
+  - frontend
+  consumer_agents: &1
+  - testing
+  - architecture
+  - backend
+  - frontend
+consumes_context:
+- Approved requirements
+- Architecture decisions
+- Risk and quality constraints
+produces_context:
+- Frontend Testing decisions
+- Trade-offs and review findings
+required_tools: []
+optional_tools: []
+input_contract: Approved requirements, constraints, and evidence relevant to the bounded
+  capability.
+output_contract: Provider-independent decisions, trade-offs, risks, and reviewable
+  guidance.
+dependencies: []
+related_skills: []
+compatible_agents: *1
+compatible_sub_agents:
+- testing-test-architecture
+validation_level: Verified
+quality_score: 100
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+owner: OniRoute
+trust_level: Official
+validation_state: Verified
+lifecycle: Official
+primary_owner_agent: testing
+primary_owner_sub_agent: testing-test-architecture
+secondary_agents: *2
+consumer_agents: *1

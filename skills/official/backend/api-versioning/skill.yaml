@@ -1,0 +1,73 @@
+id: official.backend.api-versioning
+name: api-versioning
+display_name: API Versioning
+version: 1.0.0
+description: Evolve external interfaces while protecting consumers and migration paths.
+category: Backend
+tags:
+- backend
+- api-versioning
+- official
+author: OniRoute
+organization: OniRoute
+license: MIT
+source:
+  type: original
+  owner: OniRoute
+  community_repositories_reviewed:
+  - https://github.com/mattpocock/skills
+  - https://github.com/pbakaus/impeccable
+  - https://github.com/leonxlnx/taste-skill
+  - https://github.com/garrytan/gstack
+  - https://github.com/vuejs-ai/skills
+  - https://github.com/open-gsd/gsd-core
+  - https://github.com/alirezarezvani/claude-skills
+status: Official
+compatibility:
+  primary_owner_agent: architecture
+  primary_owner_sub_agent: architecture-api-contracts
+  secondary_agents: &2
+  - backend
+  - frontend
+  - database
+  - security
+  - testing
+  - platform
+  consumer_agents: &1
+  - architecture
+  - backend
+  - frontend
+  - database
+  - security
+  - testing
+  - platform
+consumes_context:
+- Approved requirements
+- Architecture decisions
+- Risk and quality constraints
+produces_context:
+- API Versioning decisions
+- Trade-offs and review findings
+required_tools: []
+optional_tools: []
+input_contract: Approved requirements, constraints, and evidence relevant to the bounded
+  capability.
+output_contract: Provider-independent decisions, trade-offs, risks, and reviewable
+  guidance.
+dependencies: []
+related_skills: []
+compatible_agents: *1
+compatible_sub_agents:
+- architecture-api-contracts
+validation_level: Verified
+quality_score: 100
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+owner: OniRoute
+trust_level: Official
+validation_state: Verified
+lifecycle: Official
+primary_owner_agent: architecture
+primary_owner_sub_agent: architecture-api-contracts
+secondary_agents: *2
+consumer_agents: *1

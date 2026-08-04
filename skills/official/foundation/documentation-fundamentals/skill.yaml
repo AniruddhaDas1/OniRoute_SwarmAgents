@@ -1,0 +1,69 @@
+id: official.foundation.documentation-fundamentals
+name: documentation-fundamentals
+display_name: Documentation Fundamentals
+version: 1.0.0
+description: Plan clear, traceable, maintainable technical information.
+category: Foundation
+tags:
+- foundation
+- documentation
+- official
+author: OniRoute
+organization: OniRoute
+license: MIT
+source:
+  type: original
+  owner: OniRoute
+  community_repositories_reviewed:
+  - https://github.com/mattpocock/skills
+  - https://github.com/pbakaus/impeccable
+  - https://github.com/leonxlnx/taste-skill
+  - https://github.com/garrytan/gstack
+  - https://github.com/vuejs-ai/skills
+  - https://github.com/open-gsd/gsd-core
+  - https://github.com/alirezarezvani/claude-skills
+status: Official
+compatibility:
+  primary_owner_agent: documentation
+  primary_owner_sub_agent: documentation-technical-writing
+  secondary_agents: &2
+  - architecture
+  - testing
+  consumer_agents: &1
+  - documentation
+  - architecture
+  - testing
+consumes_context:
+- Approved requirements
+- Architecture decisions
+- Risk and quality constraints
+produces_context:
+- Documentation Fundamentals decisions
+- Trade-offs and review findings
+required_tools: []
+optional_tools: []
+input_contract: Approved requirements, constraints, and evidence relevant to the bounded
+  capability.
+output_contract: Provider-independent decisions, trade-offs, risks, and reviewable
+  guidance.
+dependencies: []
+related_skills:
+- official.foundation.rest-fundamentals
+- official.foundation.api-design-fundamentals
+- official.foundation.authentication-fundamentals
+- official.foundation.authorization-fundamentals
+compatible_agents: *1
+compatible_sub_agents:
+- documentation-technical-writing
+validation_level: Verified
+quality_score: 100
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+owner: OniRoute
+trust_level: Official
+validation_state: Verified
+lifecycle: Official
+primary_owner_agent: documentation
+primary_owner_sub_agent: documentation-technical-writing
+secondary_agents: *2
+consumer_agents: *1
