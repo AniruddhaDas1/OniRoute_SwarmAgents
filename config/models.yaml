@@ -15,6 +15,14 @@ usage_limits: {max_tokens: 4096}
 retry_limits: {attempts: 1}
 per_workflow_overrides: {}
 per_agent_overrides: {}
+optimization:
+  enabled: true
+  mode: Dry Run
+  prompt_budget: null
+  protected_context: []
+  protected_artifacts: []
+  protected_prompts: false
+  protected_skills: []
 providers: {}
 protocols: {}
 models:

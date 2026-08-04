@@ -13,6 +13,10 @@ from runtime.optimization.prompt_optimizer import optimize_prompt
 from runtime.optimization.repository_optimizer import lookup_symbols
 from runtime.optimization.skill_optimizer import optimize_skills
 from runtime.optimization.terminal_optimizer import summarize_terminal
+from runtime.loader import RepositoryLoader
+from runtime.execution.engine import WorkflowEngine
+
+ROOT = Path(__file__).parents[2]
 
 
 def test_context_optimization_preserves_protected_content():
@@ -71,7 +75,21 @@ def test_optimization_cli_commands(tmp_path: Path):
         ["optimize", "terminal", "--stdout", "ok\nok"],
         ["optimize", "conversation", json.dumps([{"role": "user", "content": "hello"}])],
         ["optimize", "benchmark"],
+        ["optimize", "report", "--repository-root", str(ROOT)],
+        ["optimize", "explain", "--repository-root", str(ROOT)],
     ]
     for command in commands:
         result = runner.invoke(app, command)
         assert result.exit_code == 0, result.output
+
+
+def test_execution_integration_records_governed_optimization():
+    engine = WorkflowEngine(RepositoryLoader(ROOT).load())
+    workflow_id = next(iter(engine.registry.workflows))
+    result = engine.run(workflow_id)
+    trace = result.report["optimization"][0]
+    assert trace["requested"] is True
+    assert trace["applied"] is False
+    assert trace["bypass_reason"] == "dry run"
+    bypassed = engine.run(workflow_id, optimize=False)
+    assert bypassed.report["optimization"][0]["bypass_reason"] == "explicit bypass"

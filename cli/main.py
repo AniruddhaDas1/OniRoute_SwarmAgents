@@ -146,8 +146,8 @@ def plan_workflow(identifier: str, repository_root: Path = typer.Option(Path.cwd
     console.print(table)
 
 @run_app.command("workflow")
-def run_workflow(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
-    result = _engine(repository_root).run(identifier)
+def run_workflow(identifier: str, optimization: bool | None = typer.Option(None, "--optimization/--no-optimization"), repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    result = _engine(repository_root).run(identifier, optimize=optimization)
     console.print(f"Execution: {result.execution_id}  Status: [green]{result.status}[/]  Artifacts: {len(result.artifacts)}")
     for step in result.plan.steps: console.print(f"{step.execution_order}. {step.description}: {step.result}")
 
@@ -313,5 +313,15 @@ def optimize_benchmark(value: str = typer.Option('{"required":"keep","duplicate"
     source = json.loads(value)
     result, record = benchmark("context", lambda item: OptimizationEngine().optimize(OptimizationRequest(source=item)).envelope.payload, source)
     console.print_json(data={"optimized": result, "benchmark": record.model_dump(mode="json")})
+
+@optimize_app.command("report")
+def optimize_report(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    records=_engine(repository_root).history.all(); traces=[item for record in records for item in record.report.get("optimization",())]
+    console.print_json(data={"executions":len(records),"optimization_records":len(traces),"records":traces})
+
+@optimize_app.command("explain")
+def optimize_explain(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    manager=_models(repository_root); policy=manager.config.get("optimization",{})
+    console.print_json(data={"pipeline":"Context Engine -> ICOE -> UMAL -> Invocation","policy":policy,"native_plugin":"Healthy","optional_plugins":{"rtk":"Unavailable","ast":"Unavailable","repository-graph":"Unavailable"},"bypass":"oniroute run workflow <id> --no-optimization"})
 
 if __name__ == "__main__": app()
