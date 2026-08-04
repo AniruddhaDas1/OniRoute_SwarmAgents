@@ -18,7 +18,7 @@ dev = ["pytest>=9", "build>=1.2"]
 oniroute = "cli.main:app"
 
 [tool.setuptools]
-packages = ["runtime", "runtime.context", "runtime.execution", "runtime.models", "runtime.tools", "runtime.invocation", "runtime.governance", "cli"]
+packages = ["runtime", "runtime.context", "runtime.execution", "runtime.models", "runtime.tools", "runtime.invocation", "runtime.governance", "runtime.optimization", "cli"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

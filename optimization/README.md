@@ -1,12 +1,28 @@
 # Intelligent Context Optimization Engine
 
-ICOE is the proposed provider-independent optimization layer between OniRoute Context and UMAL. It prepares smaller, more relevant, traceable context without executing models, Tools, Workflows, or optimization algorithms in Phase O1.
+ICOE is the provider-independent optimization layer between OniRoute Context and UMAL. Phase O2 implements an optional, deterministic native engine that prepares smaller, more relevant, traceable context before invocation.
 
 ```text
 Workflow → Execution → Context Engine → ICOE → UMAL → Invocation → Model
 ```
 
-The architecture covers Context, Prompt, Repository, Skill, Artifact, Terminal, and Conversation optimization. Every transformation is policy-bound, measurable, reversible where required, provenance-preserving, and optional. Research references informed concepts only; no code or repository content was copied or imported.
+The native pipeline covers Context, Prompt, Repository, Skill, Artifact, Terminal, and Conversation optimization. Transformations preserve protected content, emit measurements and explainable reports, and fall back to native behavior when optional integrations are unavailable. Research references informed concepts only; no code or repository content was copied or imported.
+
+## Native pipeline
+
+`OptimizationRequest` produces an inspectable plan, optimized envelope, measurements, and report. Context optimization removes duplicate and empty entries and applies a byte budget while preserving protected keys. The focused optimizers normalize prompts, deduplicate Skills, reduce Markdown and JSON artifacts, retrieve Python symbols with the standard library AST, summarize terminal output, and prune repeated conversation messages.
+
+## Plugins and optional integrations
+
+The in-memory plugin registry declares capabilities, version, permissions, trust, health, compatibility, and optionality. The native plugin is always available. RTK terminal filtering, Tree-sitter AST retrieval, and repository-graph retrieval are represented as optional integrations and are never required. Phase O2 does not connect to MCP servers, execute RTK, or import external repositories.
+
+## Benchmarks
+
+Benchmarks record before/after bytes, estimated tokens, latency overhead, memory metadata, and reduction ratios. Token counts are deterministic estimates based on serialized representation and are not provider billing measurements.
+
+## CLI
+
+Use `oniroute optimize context`, `prompt`, `repository`, `artifact`, `terminal`, `conversation`, or `benchmark`. Inputs are explicit JSON/text values or a repository query; commands do not invoke a model or provider.
 
 ## Documents
 

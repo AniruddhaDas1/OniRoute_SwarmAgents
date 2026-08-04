@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import typer
@@ -20,6 +21,13 @@ from runtime.invocation.dispatcher import InvocationDispatcher
 from runtime.invocation.engine import InvocationEngine
 from runtime.invocation.request import InvocationRequest
 from runtime.governance import AuditEngine,BudgetLimits,BudgetTracker,GovernanceRequest,PolicyEngine
+from runtime.optimization import OptimizationEngine, OptimizationRequest
+from runtime.optimization.artifact_optimizer import optimize_artifact
+from runtime.optimization.benchmark import benchmark
+from runtime.optimization.conversation_optimizer import optimize_conversation
+from runtime.optimization.prompt_optimizer import optimize_prompt
+from runtime.optimization.repository_optimizer import lookup_symbols
+from runtime.optimization.terminal_optimizer import summarize_terminal
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -30,6 +38,7 @@ plan_app = typer.Typer(help="Build deterministic execution plans.")
 models_app = typer.Typer(help="List and test model metadata.", invoke_without_command=True)
 explain_app = typer.Typer(help="Explain Workflow and execution resolution.")
 policy_app = typer.Typer(help="Inspect governance policy.",invoke_without_command=True)
+optimize_app = typer.Typer(help="Optimize context deterministically before invocation.")
 app.add_typer(list_app, name="list")
 app.add_typer(inspect_app, name="inspect")
 app.add_typer(context_app, name="context")
@@ -38,6 +47,7 @@ app.add_typer(plan_app, name="plan")
 app.add_typer(models_app, name="models")
 app.add_typer(explain_app, name="explain")
 app.add_typer(policy_app, name="policy")
+app.add_typer(optimize_app, name="optimize")
 _session_engines: dict[str, WorkflowEngine] = {}
 console = Console()
 
@@ -265,5 +275,43 @@ def invoke(prompt:str=typer.Option(...),model:str|None=typer.Option(None),provid
 
 @models_app.command("test")
 def models_test(): console.print("Model catalog and adapter interfaces available; no network probe performed.")
+
+@optimize_app.command("context")
+def optimize_context(value: str = typer.Argument(..., help="Context as a JSON object."), budget: int | None = typer.Option(None), protected: list[str] = typer.Option([])):
+    source = json.loads(value)
+    if not isinstance(source, dict): raise typer.BadParameter("Context must be a JSON object")
+    result = OptimizationEngine().optimize(OptimizationRequest(source=source, budget=budget, protected=frozenset(protected)))
+    console.print_json(data=result.model_dump(mode="json"))
+
+@optimize_app.command("prompt")
+def optimize_prompt_command(prompt: str, budget: int | None = typer.Option(None)):
+    optimized, actions, removed = optimize_prompt(prompt, budget)
+    console.print_json(data={"optimized": optimized, "actions": actions, "removed": removed})
+
+@optimize_app.command("repository")
+def optimize_repository(query: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    console.print_json(data={"query": query, "matches": lookup_symbols(repository_root, query)})
+
+@optimize_app.command("artifact")
+def optimize_artifact_command(value: str, kind: str = typer.Option("markdown")):
+    source = json.loads(value) if kind == "json" else value
+    console.print_json(data={"kind": kind, "optimized": optimize_artifact(source, kind)})
+
+@optimize_app.command("terminal")
+def optimize_terminal(stdout: str = typer.Option(""), stderr: str = typer.Option(""), kind: str = typer.Option("command")):
+    console.print_json(data=summarize_terminal(stdout, stderr, kind))
+
+@optimize_app.command("conversation")
+def optimize_conversation_command(value: str = typer.Argument(..., help="Messages as a JSON array."), max_messages: int | None = typer.Option(None)):
+    messages = json.loads(value)
+    if not isinstance(messages, list): raise typer.BadParameter("Conversation must be a JSON array")
+    optimized, removed = optimize_conversation(messages, max_messages)
+    console.print_json(data={"optimized": optimized, "removed": removed})
+
+@optimize_app.command("benchmark")
+def optimize_benchmark(value: str = typer.Option('{"required":"keep","duplicate":"keep","empty":""}')):
+    source = json.loads(value)
+    result, record = benchmark("context", lambda item: OptimizationEngine().optimize(OptimizationRequest(source=item)).envelope.payload, source)
+    console.print_json(data={"optimized": result, "benchmark": record.model_dump(mode="json")})
 
 if __name__ == "__main__": app()
