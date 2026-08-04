@@ -144,3 +144,129 @@ registered_sources:
   - Documentation
   - Future assets
   source_record: skills/community/vuejs-ai/IMPORT_METADATA.yaml
+- id: source.motiondivision.motion
+  display_name: Motion
+  repository: https://github.com/motiondivision/motion
+  owner: motiondivision
+  official_repository_url: https://github.com/motiondivision/motion
+  license: MIT
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Motion Source Review Complete
+  lifecycle: Registered
+  revision: null
+  supported_asset_types: [Skills, Documentation, Future assets]
+  primary_engineering_domain: Motion Engineering
+  related_oniroute_skills: [official.motion.motion-fundamentals, official.motion.animation-principles, official.motion.motion-system-design]
+  related_agents: [motion, motion-motion-architecture]
+  refresh_frequency: Monthly
+  discovery_status: Cataloged
+  notes: MIT license verified from LICENSE.md; commit pin pending scheduled refresh.
+- id: source.pmndrs.react-spring
+  display_name: React Spring
+  repository: https://github.com/pmndrs/react-spring
+  owner: pmndrs
+  official_repository_url: https://github.com/pmndrs/react-spring
+  license: MIT
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Motion Source Review Complete
+  lifecycle: Registered
+  revision: null
+  supported_asset_types: [Skills, Documentation, Future assets]
+  primary_engineering_domain: Motion Engineering
+  related_oniroute_skills: [official.motion.animation-principles, official.motion.scroll-and-gesture-motion]
+  related_agents: [motion, motion-gesture-animations]
+  refresh_frequency: Monthly
+  discovery_status: Cataloged
+  notes: MIT license verified from LICENSE; framework-specific source retained for concept research.
+- id: source.popmotion.popmotion
+  display_name: Popmotion
+  repository: https://github.com/Popmotion/popmotion
+  owner: Popmotion
+  official_repository_url: https://github.com/Popmotion/popmotion
+  license: Review Required
+  trust: Unknown
+  validation: Needs Review
+  review_status: License Review Required
+  lifecycle: Registered
+  revision: null
+  supported_asset_types: [Documentation, Future assets]
+  primary_engineering_domain: Motion Engineering
+  related_oniroute_skills: [official.motion.animation-principles, official.motion.motion-performance-and-testing]
+  related_agents: [motion, motion-motion-performance]
+  refresh_frequency: Monthly
+  discovery_status: Cataloged
+  notes: License not exposed by inspected root metadata; normal admission is prohibited until confirmed.
+- id: source.animate-css.animate-css
+  display_name: Animate.css
+  repository: https://github.com/animate-css/animate.css
+  owner: animate-css
+  official_repository_url: https://github.com/animate-css/animate.css
+  license: Hippocratic License 2.1
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Motion Source Review Complete
+  lifecycle: Registered
+  revision: null
+  supported_asset_types: [Documentation, Future assets]
+  primary_engineering_domain: Motion Engineering
+  related_oniroute_skills: [official.motion.animation-principles, official.motion.transitions-and-choreography]
+  related_agents: [motion, motion-page-transitions]
+  refresh_frequency: Monthly
+  discovery_status: Cataloged
+  notes: License verified from LICENSE; legal review is required before import.
+- id: source.radix-ui.primitives
+  display_name: Radix Primitives
+  repository: https://github.com/radix-ui/primitives
+  owner: radix-ui
+  official_repository_url: https://github.com/radix-ui/primitives
+  license: MIT
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Motion Source Review Complete
+  lifecycle: Registered
+  revision: null
+  supported_asset_types: [Documentation, Future assets]
+  primary_engineering_domain: Motion Engineering
+  related_oniroute_skills: [official.motion.interaction-motion, official.motion.motion-accessibility]
+  related_agents: [motion, motion-micro-interactions, motion-motion-accessibility]
+  refresh_frequency: Monthly
+  discovery_status: Cataloged
+  notes: MIT license verified from LICENSE; accessible interaction primitives are research context only.
+- id: source.shadcn-ui.ui
+  display_name: shadcn UI
+  repository: https://github.com/shadcn-ui/ui
+  owner: shadcn-ui
+  official_repository_url: https://github.com/shadcn-ui/ui
+  license: MIT
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Motion Source Review Complete
+  lifecycle: Registered
+  revision: null
+  supported_asset_types: [Documentation, Future assets]
+  primary_engineering_domain: Motion Engineering
+  related_oniroute_skills: [official.motion.interaction-motion]
+  related_agents: [motion, motion-micro-interactions]
+  refresh_frequency: Monthly
+  discovery_status: Cataloged
+  notes: MIT license verified from LICENSE.md; component source remains research-only.
+- id: source.emilkowalski.sonner
+  display_name: Sonner
+  repository: https://github.com/emilkowalski/sonner
+  owner: emilkowalski
+  official_repository_url: https://github.com/emilkowalski/sonner
+  license: MIT
+  trust: Community
+  validation: Metadata Validated
+  review_status: Registered Motion Source Review Complete
+  lifecycle: Registered
+  revision: null
+  supported_asset_types: [Documentation, Future assets]
+  primary_engineering_domain: Motion Engineering
+  related_oniroute_skills: [official.motion.interaction-motion, official.motion.transitions-and-choreography]
+  related_agents: [motion, motion-micro-interactions, motion-page-transitions]
+  refresh_frequency: Monthly
+  discovery_status: Cataloged
+  notes: MIT license verified from LICENSE.md; notification implementation is research-only.

@@ -2,7 +2,7 @@
 
 ## Executive Result
 
-Motion architecture, ownership, Official Skills, external mapping, resolution order, and Official Skill Index validate successfully. Production freeze cannot be declared because the seven Motion research repositories are not registered in the frozen Knowledge Source registry.
+Motion architecture, ownership, Official Skills, external mapping, resolution order, Official Skill Index, and Knowledge Source governance validate successfully. All seven Motion research repositories are registered; Popmotion remains safely gated as Unknown and Review Required pending license confirmation.
 
 ## Architecture Validation
 
@@ -58,7 +58,7 @@ No resolution architecture was changed.
 
 ## Knowledge Source Validation
 
-The seven repositories recorded in Motion references are absent from knowledge/sources/registry/REGISTERED_SOURCES.yaml:
+The seven repositories recorded in Motion references are registered in knowledge/sources/registry/REGISTERED_SOURCES.yaml:
 
 - motiondivision/motion
 - pmndrs/react-spring
@@ -68,9 +68,7 @@ The seven repositories recorded in Motion references are absent from knowledge/s
 - shadcn-ui/ui
 - emilkowalski/sonner
 
-Consequently, registry-level pin, trust, validation, review state, lifecycle, and refresh policy cannot be verified. M3 reference files preserve repository, author, observed license, and concept attribution, but bibliography is not equivalent to Knowledge Source registration.
-
-This phase may not repair the issue because Knowledge Sources are frozen and explicitly excluded from modification.
+Each record contains canonical identity, repository ownership and URL, license evidence, trust, validation, review state, lifecycle, supported assets, domain, related Skills and Agents, refresh frequency, and notes. Revisions are null when unavailable and explicitly queued for scheduled refresh. Popmotion is registered but not eligible for normal admission until its license is confirmed.
 
 ## Repository Statistics
 
@@ -82,11 +80,11 @@ This phase may not repair the issue because Knowledge Sources are frozen and exp
 | Official Skills | 96 |
 | Official Motion Skills | 8 |
 | Community Skills | 991 |
-| Registered Knowledge Sources | 9 |
-| Registered Motion research sources | 0 of 7 |
+| Registered Knowledge Sources | 16 |
+| Registered Motion research sources | 7 of 7 |
 | Actual Packages | 0 |
 | Workflows | 0 |
 
 ## Validation Conclusion
 
-Architecture and knowledge integration pass. Knowledge Source governance fails. Overall result: **NOT READY FOR FREEZE**.
+Architecture, knowledge integration, and source governance pass. Overall result: **READY — ACR-001 frozen at M1.0**.

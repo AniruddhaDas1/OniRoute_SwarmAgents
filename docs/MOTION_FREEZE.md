@@ -2,9 +2,9 @@
 
 ## Freeze Status
 
-**PENDING — NOT FROZEN**
+**PRODUCTION READY — FROZEN**
 
-ACR-001 Motion Engineering cannot yet be truthfully declared Production Ready or Frozen. Extension version M1.0 is implemented, but its research-source governance prerequisite is incomplete.
+ACR-001 Motion Engineering is Production Ready and Frozen at extension version M1.0.
 
 ## Implemented Scope
 
@@ -17,7 +17,7 @@ ACR-001 Motion Engineering cannot yet be truthfully declared Production Ready or
 
 ## Community References
 
-Seven repositories are cited for concept research. None is registered in the canonical Knowledge Source registry. No source content was imported.
+Seven repositories are cited for concept research and registered in the canonical Knowledge Source registry. No source content was imported.
 
 ## Validation Evidence
 
@@ -39,12 +39,12 @@ Seven repositories are cited for concept research. None is registered in the can
 | Official Skills | 96 |
 | Official Motion Skills | 8 |
 | Community Skills | 991 |
-| Registered Sources | 9 |
-| Motion research sources registered | 0 |
+| Registered Sources | 16 |
+| Motion research sources registered | 7 |
 
-## Blocking Freeze Gate
+## Governance Validation
 
-Before ACR-001 can be frozen, a separately authorized governance action must register or explicitly exempt each Motion research repository with revision pin, license, trust, validation, review state, lifecycle, and refresh policy.
+All seven Motion research sources have governed registry records. Popmotion is explicitly Unknown, Needs Review, and License Review Required; it cannot enter normal admission until license confirmation. Unavailable commit pins are declared rather than guessed and must be populated through scheduled refresh.
 
 ## Future Extension Policy
 
@@ -52,6 +52,6 @@ After freeze, Motion changes require new Architecture Change Requests. Candidate
 
 ## Version
 
-Target extension version: **M1.0**.
+Frozen extension version: **M1.0**.
 
-The version becomes frozen only after the Knowledge Source governance gate passes.
+ACR-001 is fully complete under this record.
