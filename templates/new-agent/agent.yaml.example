@@ -1,0 +1,16 @@
+id: example-agent
+name: Example Agent
+version: 0.1.0
+status: draft
+department: example
+reports_to: example-owner
+description: Replace with one bounded responsibility.
+mission: Replace with the organizational outcome.
+responsibilities: []
+owns: []
+does_not_own: []
+inputs: []
+outputs: []
+dependencies: []
+skills: []
+workflows: []

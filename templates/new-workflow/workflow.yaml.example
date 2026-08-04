@@ -1,0 +1,34 @@
+workflow_id: example-workflow
+display_name: Example Workflow
+description: Replace with a declarative collaboration outcome.
+category: Custom
+version: 0.1.0
+status: Draft
+lifecycle: Draft
+owner: Example Owner
+maintainers: []
+authors: []
+tags: []
+compatible_agents: []
+compatible_skills: []
+compatible_packages: []
+compatible_platforms: []
+compatible_oniroute_version: "0.6"
+entry_agent: example
+exit_agent: example
+required_inputs: []
+expected_outputs: []
+produced_artifacts: []
+dependencies: []
+decision_points: []
+approval_points: []
+failure_states: []
+success_criteria: []
+context_requirements: {}
+security_classification: Internal
+validation_state: Unvalidated
+quality_score: 0
+license: MIT
+source: {type: original}
+created: 1970-01-01T00:00:00Z
+updated: 1970-01-01T00:00:00Z

@@ -1,0 +1,27 @@
+id: example.skill
+name: example-skill
+display_name: Example Skill
+version: 0.1.0
+description: Replace with a bounded capability contract.
+category: General Engineering
+tags: []
+author: Example
+organization: Example
+license: MIT
+source: {type: original}
+status: Draft
+compatibility: {}
+consumes_context: []
+produces_context: []
+required_tools: []
+optional_tools: []
+input_contract: Replace me.
+output_contract: Replace me.
+dependencies: []
+related_skills: []
+compatible_agents: []
+compatible_sub_agents: []
+validation_level: unvalidated
+quality_score: 0
+created: 1970-01-01T00:00:00Z
+updated: 1970-01-01T00:00:00Z

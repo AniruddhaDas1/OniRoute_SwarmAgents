@@ -1,0 +1,9 @@
+source_id: example-source
+display_name: Example Knowledge Source
+description: Replace with source scope.
+source_type: documentation
+trust: Unknown
+lifecycle: Draft
+validation: Unvalidated
+license: MIT
+provenance: {}

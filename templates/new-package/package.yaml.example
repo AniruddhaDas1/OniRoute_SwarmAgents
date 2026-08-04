@@ -1,0 +1,9 @@
+package_id: example-package
+display_name: Example Package
+version: 0.1.0
+description: Replace with package purpose.
+contents: []
+dependencies: []
+compatibility: {}
+license: MIT
+source: {type: original}
