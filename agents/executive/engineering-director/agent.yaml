@@ -17,6 +17,11 @@ children:
   - testing
   - documentation
   - platform
+  - engineering-director-technical-planning
+  - engineering-director-technical-delegation
+  - engineering-director-cross-team-coordination
+  - engineering-director-technical-review
+  - engineering-director-engineering-roadmap
 description: Executive owner of engineering planning, technical delegation, and architecture execution oversight.
 mission: Convert approved outcomes into coordinated engineering direction without directly implementing software.
 responsibilities:

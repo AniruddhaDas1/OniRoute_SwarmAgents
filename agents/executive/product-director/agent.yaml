@@ -6,7 +6,12 @@ phase: 2
 department: executive
 reports_to: principal
 parent: executive
-children: []
+children:
+  - product-director-requirements
+  - product-director-user-stories
+  - product-director-roadmap
+  - product-director-prioritization
+  - product-director-acceptance-criteria
 description: Executive owner of product requirements and outcome definitions.
 mission: Translate strategic intent into clear product requirements without designing technical architecture.
 responsibilities:

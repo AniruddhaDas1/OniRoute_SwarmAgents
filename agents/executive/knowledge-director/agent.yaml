@@ -6,7 +6,12 @@ phase: 2
 department: executive
 reports_to: principal
 parent: executive
-children: []
+children:
+  - knowledge-director-documentation-strategy
+  - knowledge-director-knowledge-organization
+  - knowledge-director-best-practices
+  - knowledge-director-knowledge-curation
+  - knowledge-director-reference-management
 description: Executive owner of documentation strategy and durable knowledge organization.
 mission: Make authoritative organizational knowledge discoverable and reusable without generating implementation.
 responsibilities:

@@ -6,7 +6,12 @@ phase: 2
 department: executive
 reports_to: principal
 parent: executive
-children: []
+children:
+  - operations-director-task-planning
+  - operations-director-scheduling
+  - operations-director-dependency-coordination
+  - operations-director-progress-tracking
+  - operations-director-resource-coordination
 description: Executive owner of execution planning and dependency coordination.
 mission: Coordinate approved work into transparent execution plans without making product decisions.
 responsibilities:

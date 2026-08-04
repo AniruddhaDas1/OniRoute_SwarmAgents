@@ -13,6 +13,11 @@ children:
   - governance-director
   - knowledge-director
   - engineering-director
+  - principal-planning
+  - principal-decision
+  - principal-approval
+  - principal-conflict-resolution
+  - principal-strategy
 description: Final executive authority for organizational direction and cross-functional decisions.
 mission: Preserve user intent, set priorities, and make final decisions without performing implementation.
 responsibilities:

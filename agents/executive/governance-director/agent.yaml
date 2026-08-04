@@ -6,7 +6,12 @@ phase: 2
 department: executive
 reports_to: principal
 parent: executive
-children: []
+children:
+  - governance-director-policy
+  - governance-director-standards
+  - governance-director-compliance
+  - governance-director-quality-gates
+  - governance-director-architecture-review
 description: Executive owner of standards, policies, quality gates, and architectural compliance.
 mission: Keep organizational work compliant with explicit standards without implementing software.
 responsibilities:
