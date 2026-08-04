@@ -1,4 +1,4 @@
-"""Workspace Architecture Foundation package for OniRoute (ACR-003 Phase W1)."""
+"""Workspace Architecture Foundation package for OniRoute (ACR-003 Phase W2)."""
 
 from .contracts import (
     ArtifactRouterContract,
@@ -6,6 +6,9 @@ from .contracts import (
     WorkspaceManagerContract,
     WorkspaceResolverContract,
 )
+from .discovery import WorkspaceResolver
+from .engine import EngineResolver
+from .manager import WorkspaceManager
 from .models import (
     ArtifactCategory,
     ArtifactDestination,
@@ -21,6 +24,8 @@ from .models import (
     WorkspaceMetadata,
     WorkspaceStatus,
 )
+from .project import ProjectDetector
+from .validation import WorkspaceValidator
 
 __all__ = [
     "ArtifactCategory",
@@ -28,16 +33,21 @@ __all__ = [
     "ArtifactRouterContract",
     "DiscoveryPriority",
     "DiscoveryRuleSpec",
+    "EngineResolver",
     "EngineResolverContract",
     "ExecutionContext",
+    "ProjectDetector",
     "ProjectMetadata",
     "ProjectType",
     "TrustLevel",
     "ValidationIssue",
     "ValidationState",
     "WorkspaceLifecycle",
+    "WorkspaceManager",
     "WorkspaceManagerContract",
     "WorkspaceMetadata",
+    "WorkspaceResolver",
     "WorkspaceResolverContract",
     "WorkspaceStatus",
+    "WorkspaceValidator",
 ]

@@ -14,7 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 
 class ProjectType(str, Enum):
@@ -138,6 +138,9 @@ class WorkspaceMetadata(BaseModel):
     configuration_root: Path
     validation: ValidationState = Field(default_factory=ValidationState)
     trust: TrustLevel = TrustLevel.TRUSTED
+    discovery_method: DiscoveryPriority | str = DiscoveryPriority.CURRENT_WORKING_DIRECTORY
+    discovery_source: str = "current_working_directory"
+    confidence: float = 1.0
 
 
 class ArtifactDestination(BaseModel):
@@ -178,6 +181,34 @@ class ExecutionContext(BaseModel):
     cwd: Path
     workspace_metadata: WorkspaceMetadata | None = None
     project_metadata: ProjectMetadata | None = None
+    discovery_method: DiscoveryPriority | str = DiscoveryPriority.CURRENT_WORKING_DIRECTORY
+    discovery_source: str = "current_working_directory"
+    confidence: float = 1.0
+
+    @computed_field
+    @property
+    def project_type(self) -> ProjectType:
+        if self.project_metadata:
+            return self.project_metadata.project_type
+        if self.workspace_metadata:
+            return self.workspace_metadata.project_type
+        return ProjectType.UNKNOWN
+
+    @computed_field
+    @property
+    def project_name(self) -> str:
+        if self.project_metadata and self.project_metadata.name:
+            return self.project_metadata.name
+        if self.workspace_metadata and self.workspace_metadata.name:
+            return self.workspace_metadata.name
+        return self.workspace_root.name
+
+    @computed_field
+    @property
+    def validation_status(self) -> WorkspaceStatus:
+        if self.workspace_metadata:
+            return self.workspace_metadata.status
+        return WorkspaceStatus.VALID
 
     def is_engine_read_only(self) -> bool:
         """Assert that Engine Root is separated and protected from workspace writes."""

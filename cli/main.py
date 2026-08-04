@@ -9,6 +9,7 @@ from rich.table import Table
 from runtime.loader import RepositoryLoader
 from runtime.resolver import Resolver
 from runtime.validator import ValidationEngine
+from runtime.workspace import WorkspaceManager
 from runtime.context.builder import ContextBuilder
 from runtime.context.serializer import ContextSerializer
 from runtime.execution.engine import WorkflowEngine
@@ -77,14 +78,61 @@ def _table(records):
     console.print(table)
 
 
+@app.command("workspace")
+def workspace(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+) -> None:
+    """Discover and display active workspace metadata and project detection."""
+    manager = WorkspaceManager()
+    ctx = manager.create_context(cwd=repository_root, explicit_workspace=workspace)
+
+    table = Table(title="OniRoute Workspace Discovery")
+    table.add_column("Property", style="bold cyan")
+    table.add_column("Value")
+
+    table.add_row("Workspace Root", str(ctx.workspace_root))
+    table.add_row("Engine Root", str(ctx.engine_root))
+    table.add_row("Project Type", str(ctx.project_type.value if hasattr(ctx.project_type, 'value') else ctx.project_type))
+    method_str = ctx.discovery_method.name.lower() if hasattr(ctx.discovery_method, 'name') else str(ctx.discovery_source)
+    table.add_row("Discovery Method", method_str)
+    status_str = ctx.validation_status.value if hasattr(ctx.validation_status, 'value') else str(ctx.validation_status)
+    table.add_row("Validation Status", status_str)
+
+    console.print(table)
+
+
 @app.command()
-def doctor(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)) -> None:
-    """Load and validate the local OniRoute repository."""
+def doctor(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+) -> None:
+    """Load and validate the local OniRoute repository and workspace."""
     config_path = repository_root / "config/default.yaml"
     if config_path.exists():
         yaml.safe_load(config_path.read_text(encoding="utf-8"))
     registry = RepositoryLoader(repository_root).load()
     report = ValidationEngine(repository_root).validate(registry)
+
+    # Workspace & Engine Discovery Diagnostics
+    manager = WorkspaceManager()
+    ctx = manager.create_context(cwd=repository_root, explicit_workspace=workspace)
+
+    ws_table = Table(title="Workspace & Engine Context")
+    ws_table.add_column("Diagnostic Item", style="bold cyan")
+    ws_table.add_column("Status / Detail")
+
+    ws_table.add_row("Workspace", str(ctx.workspace_root))
+    ws_table.add_row("Engine", str(ctx.engine_root))
+    proj_type_str = ctx.project_type.value if hasattr(ctx.project_type, 'value') else str(ctx.project_type)
+    ws_table.add_row("Project", f"{proj_type_str} ({ctx.project_name})")
+    val_status_str = ctx.validation_status.value if hasattr(ctx.validation_status, 'value') else str(ctx.validation_status)
+    ws_table.add_row("Workspace Status", val_status_str.upper())
+    read_only_confirmed = "CONFIRMED" if ctx.is_engine_read_only() else "FAILED"
+    ws_table.add_row("Read-only Engine", f"[green]{read_only_confirmed}[/]" if ctx.is_engine_read_only() else f"[red]{read_only_confirmed}[/]")
+
+    console.print(ws_table)
+
     table = Table(title="OniRoute Repository")
     table.add_column("Record type"); table.add_column("Count", justify="right")
     for name, count in registry.statistics().items(): table.add_row(name.replace("_", " ").title(), str(count))
