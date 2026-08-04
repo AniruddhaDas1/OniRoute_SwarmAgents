@@ -24,3 +24,5 @@ This directory defines provider-independent metadata, contracts, lifecycle, cont
 - [`registry/README.md`](registry/README.md) — registry discovery, catalog, admission, indexing, and provenance architecture.
 - [`resolution/README.md`](resolution/README.md) — declarative Workflow composition, selection, resolution, branching, fallback, and reuse architecture.
 - [`official/`](official/) — the versioned Official Workflow Library.
+- [`governance/README.md`](governance/README.md) — Workflow governance and freeze policies.
+- [`validation/README.md`](validation/README.md) — v0.5 validation evidence and matrices.
