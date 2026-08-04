@@ -6,7 +6,17 @@ phase: 2.2
 department: engineering
 reports_to: engineering-director
 parent: engineering
-children: []
+children:
+  - devops-delivery-architecture
+  - devops-environment-strategy
+  - devops-infrastructure-coordination
+  - devops-configuration-governance
+  - devops-release-governance
+  - devops-observability
+  - devops-reliability
+  - devops-capacity-planning
+  - devops-incident-readiness
+  - devops-devops-review
 description: Engineering owner of delivery systems and operational readiness.
 mission: Define reliable delivery, deployment, observability, and release direction without implementation.
 responsibilities:
