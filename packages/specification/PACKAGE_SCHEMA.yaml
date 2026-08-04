@@ -1,0 +1,55 @@
+schema_version: "0.1.0"
+type: package_metadata
+required:
+  - package_id
+  - display_name
+  - description
+  - category
+  - package_type
+  - version
+  - authors
+  - organization
+  - license
+  - source
+  - repository
+  - contents
+  - dependencies
+  - compatible_agents
+  - compatible_skills
+  - compatible_workflows
+  - compatible_platforms
+  - minimum_oniroute_version
+  - maximum_oniroute_version
+  - status
+  - trust_level
+  - validation_state
+  - package_size
+  - created
+  - updated
+properties:
+  package_id: {type: string, pattern: '^[a-z0-9][a-z0-9._-]*$'}
+  display_name: {type: string}
+  description: {type: string}
+  category: {type: string}
+  package_type: {type: string, enum: [core, community, enterprise, personal, extension, experimental, template, domain]}
+  version: {type: string, semantic_version: true}
+  authors: {type: array, items: {type: string}}
+  organization: {type: string}
+  license: {type: string}
+  source: {type: object}
+  repository: {type: string}
+  contents: {type: array, items: {type: object}}
+  dependencies: {type: array, items: {type: string}}
+  compatible_agents: {type: array, items: {type: string}}
+  compatible_skills: {type: array, items: {type: string}}
+  compatible_workflows: {type: array, items: {type: string}}
+  compatible_platforms: {type: array, items: {type: string}}
+  minimum_oniroute_version: {type: string, semantic_version: true}
+  maximum_oniroute_version: {type: string, semantic_version: true}
+  status: {type: string, enum: [Draft, Experimental, Verified, Official, Installed, Deprecated, Archived, Removed]}
+  trust_level: {type: string, enum: [Official, Verified, Community, Enterprise, Personal, Experimental, Unknown]}
+  validation_state: {type: string}
+  package_size: {type: integer, minimum: 0}
+  created: {type: string, format: date-time}
+  updated: {type: string, format: date-time}
+
