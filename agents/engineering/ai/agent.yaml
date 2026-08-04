@@ -6,7 +6,17 @@ phase: 2.2
 department: engineering
 reports_to: engineering-director
 parent: engineering
-children: []
+children:
+  - ai-model-evaluation
+  - ai-prompt-architecture
+  - ai-context-strategy
+  - ai-agent-orchestration
+  - ai-tool-integration
+  - ai-safety-alignment
+  - ai-reasoning-strategy
+  - ai-ai-performance
+  - ai-provider-abstraction
+  - ai-ai-review
 description: Engineering owner of provider-independent AI and agent-system design.
 mission: Define portable AI integration and collaboration architecture without vendor-specific implementation.
 responsibilities:
