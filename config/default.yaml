@@ -1,0 +1,4 @@
+repository_root: .
+logging_level: INFO
+validation_mode: standard
+providers: {}
