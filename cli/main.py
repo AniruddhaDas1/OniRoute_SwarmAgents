@@ -8,12 +8,16 @@ from rich.table import Table
 from runtime.loader import RepositoryLoader
 from runtime.resolver import Resolver
 from runtime.validator import ValidationEngine
+from runtime.context.builder import ContextBuilder
+from runtime.context.serializer import ContextSerializer
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
 inspect_app = typer.Typer(help="Inspect one metadata record.")
+context_app = typer.Typer(help="Inspect deterministic context metadata.")
 app.add_typer(list_app, name="list")
 app.add_typer(inspect_app, name="inspect")
+app.add_typer(context_app, name="context")
 console = Console()
 
 
@@ -65,6 +69,26 @@ def inspect_agent(identifier: str, repository_root: Path = typer.Option(Path.cwd
 def inspect_workflow(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)): _inspect("workflow", identifier, repository_root)
 @inspect_app.command("skill")
 def inspect_skill(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)): _inspect("skill", identifier, repository_root)
+
+@inspect_app.command("context")
+def inspect_context(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    registry = RepositoryLoader(repository_root).load(); context = ContextBuilder(registry).workflow(identifier)
+    console.print_json(data=ContextSerializer.to_dict(context))
+
+@context_app.command("workflow")
+def context_workflow(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    registry = RepositoryLoader(repository_root).load(); context = ContextBuilder(registry).workflow(identifier)
+    console.print(f"Context: {context.context_id}  Relationships: {len(context.relationships)}  Artifacts: {len(context.artifacts)}  Dependencies: {len(context.dependencies)}  Estimated size: {context.estimated_size} bytes")
+
+@context_app.command("agent")
+def context_agent(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    context = ContextBuilder(RepositoryLoader(repository_root).load()).agent(identifier)
+    console.print_json(data=ContextSerializer.to_dict(context))
+
+@context_app.command("skill")
+def context_skill(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    context = ContextBuilder(RepositoryLoader(repository_root).load()).skill(identifier)
+    console.print_json(data=ContextSerializer.to_dict(context))
 
 @app.command()
 def search(query: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):

@@ -9,6 +9,10 @@ from runtime.resolver import Resolver
 from runtime.validator import ValidationEngine
 from typer.testing import CliRunner
 from cli.main import app
+from runtime.context.builder import ContextBuilder
+from runtime.context.filter import ContextFilter
+from runtime.context.router import ContextRouter
+from runtime.context.serializer import ContextSerializer
 
 
 ROOT = Path(__file__).parents[2]
@@ -68,3 +72,24 @@ def test_cli_inspection_and_search():
     assert inspected.exit_code == 0, inspected.stdout
     assert "REST API Design" in inspected.stdout
     assert searched.exit_code == 0, searched.stdout
+
+
+def test_context_creation_and_contracts():
+    registry = RepositoryLoader(ROOT).load(); context = ContextBuilder(registry).workflow("rest-api-design")
+    assert context.kind == "workflow"; assert context.context_id == "workflow:rest-api-design"
+    assert ContextSerializer.from_dict(type(context), ContextSerializer.to_dict(context)) == context
+
+
+def test_context_routing_and_filtering():
+    registry = RepositoryLoader(ROOT).load(); resolver = Resolver(registry)
+    plan = ContextRouter(resolver).plan("rest-api-design")
+    assert plan.workflow_id == "rest-api-design"; assert plan.steps
+    context = ContextBuilder(registry).workflow("rest-api-design")
+    filtered = ContextFilter().apply(context, allow={"category"}, summarize=True)
+    assert "category" in filtered.data and "_summary" in filtered.data
+
+
+def test_context_cli_inspection():
+    result = CliRunner().invoke(app, ["context", "workflow", "rest-api-design", "--repository-root", str(ROOT)])
+    assert result.exit_code == 0, result.stdout
+    assert "workflow:rest-api-design" in result.stdout

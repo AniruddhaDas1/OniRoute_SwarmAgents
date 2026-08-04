@@ -12,6 +12,10 @@ The runtime discovers and parses repository metadata, builds in-memory indexes, 
 - `models.py` contains tolerant Pydantic models for frozen heterogeneous metadata.
 - `cli/main.py` provides `oniroute doctor`, list, inspect, and metadata search commands.
 
+## Context lifecycle
+
+`ContextBuilder` creates immutable Workflow, Agent, Skill, Artifact, Repository, and metadata-only Execution contexts. `ContextRouter` emits a routing plan from Workflow to Agent, Skill, Artifact, and next Agent without execution. `ContextFilter` applies allow/block lists, redaction, compression, priority, scope, and a non-AI summarization placeholder. `ContextSerializer` supports dictionaries, JSON, YAML, and Pydantic models. `InMemoryContextStorage` is process-local and non-persistent.
+
 ## Resolution Engine
 
 Resolution answers repository questions by ID, category, tag, owner, participant, artifact, and declared relationship. It does not traverse a Workflow for execution, schedule work, invoke Skills, or call a provider.
