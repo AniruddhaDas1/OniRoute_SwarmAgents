@@ -1,6 +1,6 @@
 # Official Skill Index
 
-The Official OniRoute Knowledge Base contains 88 original, provider-independent Skills. Community repositories are research references only.
+The Official OniRoute Knowledge Base contains 96 original, provider-independent Skills. Community repositories are research references only.
 
 ## Ai
 
@@ -101,6 +101,19 @@ The Official OniRoute Knowledge Base contains 88 original, provider-independent 
 | `official.frontend.routing` | Routing | Frontend | 1.0.0 | OniRoute | `frontend` | `frontend-routing-navigation` | Official | None | None |
 | `official.frontend.state-management` | State Management | Frontend | 1.0.0 | OniRoute | `frontend` | `frontend-state-management` | Official | None | None |
 | `official.frontend.ui-patterns` | UI Patterns | Frontend | 1.0.0 | OniRoute | `frontend` | `frontend-user-experience` | Official | None | None |
+
+## Motion
+
+| Skill ID | Display Name | Domain | Version | Owner | Primary Agent | Primary Sub-Agent | Status | Dependencies | Related Skills |
+|---|---|---|---|---|---|---|---|---|---|
+| `official.motion.motion-fundamentals` | Motion Fundamentals | Motion | 1.0.0 | OniRoute | `motion` | `motion-motion-architecture` | Official | None | Accessibility, Frontend Performance, Testing Fundamentals |
+| `official.motion.animation-principles` | Animation Principles | Motion | 1.0.0 | OniRoute | `motion` | `motion-animation-principles` | Official | None | Accessibility, Frontend Performance, Testing Fundamentals |
+| `official.motion.motion-system-design` | Motion System Design | Motion | 1.0.0 | OniRoute | `motion` | `motion-motion-architecture` | Official | None | Accessibility, Frontend Performance, Testing Fundamentals |
+| `official.motion.interaction-motion` | Interaction Motion | Motion | 1.0.0 | OniRoute | `motion` | `motion-micro-interactions` | Official | None | Accessibility, Frontend Performance, Testing Fundamentals |
+| `official.motion.transitions-and-choreography` | Transitions and Choreography | Motion | 1.0.0 | OniRoute | `motion` | `motion-page-transitions` | Official | None | Accessibility, Frontend Performance, Testing Fundamentals |
+| `official.motion.scroll-and-gesture-motion` | Scroll and Gesture Motion | Motion | 1.0.0 | OniRoute | `motion` | `motion-scroll-animations` | Official | None | Accessibility, Frontend Performance, Testing Fundamentals |
+| `official.motion.motion-accessibility` | Motion Accessibility | Motion | 1.0.0 | OniRoute | `motion` | `motion-motion-accessibility` | Official | Accessibility | Frontend Performance, Testing Fundamentals |
+| `official.motion.motion-performance-and-testing` | Motion Performance and Testing | Motion | 1.0.0 | OniRoute | `motion` | `motion-motion-performance` | Official | Frontend Performance, Frontend Testing, Testing Fundamentals | Accessibility |
 
 ## Platform
 

@@ -1,0 +1,81 @@
+id: official.motion.animation-principles
+name: animation principles
+display_name: Animation Principles
+version: 1.0.0
+description: Timing, easing, hierarchy, continuity, and perceptual communication.
+category: Motion
+tags:
+- motion
+- animation
+- engineering
+- official
+author: OniRoute
+organization: OniRoute
+license: MIT
+source:
+  type: original
+  owner: OniRoute
+  community_repositories_reviewed:
+  - https://github.com/motiondivision/motion
+  - https://github.com/pmndrs/react-spring
+  - https://github.com/Popmotion/popmotion
+  - https://github.com/animate-css/animate.css
+  - https://github.com/radix-ui/primitives
+  - https://github.com/shadcn-ui/ui
+  - https://github.com/emilkowalski/sonner
+status: Official
+compatibility:
+  primary_owner_agent: motion
+  primary_owner_sub_agent: motion-animation-principles
+  secondary_agents:
+  - frontend
+  - architecture
+  - testing
+  consumer_agents:
+  - frontend
+  - architecture
+  - testing
+  - presentation
+consumes_context:
+- Approved interaction and product requirements
+- Architecture and design decisions
+- Accessibility and performance constraints
+produces_context:
+- Motion architecture decisions
+- Review findings and quality guidance
+required_tools: []
+optional_tools: []
+input_contract: Approved requirements, decisions, constraints, and evidence relevant to motion.
+output_contract: Provider-independent motion principles, decisions, risks, and reviewable guidance.
+dependencies:
+  []
+related_skills:
+- official.frontend.accessibility
+- official.frontend.frontend-performance
+- official.foundation.testing-fundamentals
+compatible_agents:
+- motion
+- frontend
+- architecture
+- testing
+compatible_sub_agents:
+- motion-animation-principles
+validation_level: Verified
+quality_score: 100
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+owner: OniRoute
+trust_level: Official
+validation_state: Verified
+lifecycle: Official
+primary_owner_agent: motion
+primary_owner_sub_agent: motion-animation-principles
+secondary_agents:
+- frontend
+- architecture
+- testing
+consumer_agents:
+- frontend
+- architecture
+- testing
+- presentation

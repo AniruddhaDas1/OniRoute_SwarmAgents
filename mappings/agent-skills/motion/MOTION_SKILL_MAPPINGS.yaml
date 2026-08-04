@@ -12,34 +12,34 @@ sub_agents:
   - motion-motion-accessibility
   - motion-motion-review
 official_skills:
+  - official.motion.motion-fundamentals
+  - official.motion.animation-principles
+  - official.motion.motion-system-design
+  - official.motion.interaction-motion
+  - official.motion.transitions-and-choreography
+  - official.motion.scroll-and-gesture-motion
+  - official.motion.motion-accessibility
+  - official.motion.motion-performance-and-testing
   - official.frontend.accessibility
   - official.frontend.frontend-performance
   - official.frontend.frontend-testing
   - official.foundation.testing-fundamentals
 community_skills:
   - community.claude-skills.engineering-skills-performance-profiler
-future_motion_skills:
-  - motion.fundamentals
-  - motion.animation-principles
-  - motion.interaction-patterns
-  - motion.transitions-and-choreography
-  - motion.scroll-and-gesture
-  - motion.accessibility
-  - motion.performance
-  - motion.motion-testing
+future_motion_skills: []
 future_package_skills:
   - package.motion-implementation-guidance
   - package.motion-visual-regression
 priority: High
-confidence: Medium
-status: Audit
+confidence: High
+status: Active
 coverage:
   assessed_capabilities: 28
-  official_covered: 4
+  official_covered: 28
   community_covered: 1
-  partial: 6
-  missing: 22
-  percentage: 21
+  partial: 0
+  missing: 0
+  percentage: 100
 evidence:
   - Existing Official Skill metadata and Resolution Index
   - Existing Community Skill metadata
