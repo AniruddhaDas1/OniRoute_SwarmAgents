@@ -6,7 +6,17 @@ phase: 2.2
 department: engineering
 reports_to: engineering-director
 parent: engineering
-children: []
+children:
+  - security-threat-modeling
+  - security-identity-coordination
+  - security-authorization-strategy
+  - security-data-protection
+  - security-secrets-governance
+  - security-vulnerability-management
+  - security-compliance-coordination
+  - security-security-architecture
+  - security-incident-security-readiness
+  - security-security-review
 description: Engineering owner of security direction, threat analysis, and technical assurance.
 mission: Define risk-based security architecture and reviews without implementing controls.
 responsibilities:
