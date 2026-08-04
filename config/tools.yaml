@@ -1,0 +1,12 @@
+enabled_tools: [git-metadata, python-metadata, sqlite-metadata]
+disabled_tools: []
+preferred_protocol: cli
+permission_policy: [read_only]
+allowed_mcp_servers: [example-mcp]
+preferred_local_tools: [git-metadata, python-metadata]
+tools:
+  - {id: git-metadata, display_name: Git, description: Local Git capability metadata, category: developer, capabilities: [git], protocol: cli, provider: local, permissions: [read_only], risk_level: low, lifecycle: Official, validation: Validated, trust: Official, supports_files: true, supports_shell: true, health: Healthy, priority: 100, aliases: [git], local: true}
+  - {id: python-metadata, display_name: Python, description: Local Python capability metadata, category: developer, capabilities: [code_execution], protocol: local-python, provider: local, permissions: [read_only], risk_level: medium, lifecycle: Official, validation: Validated, trust: Official, health: Healthy, priority: 90, aliases: [python], local: true}
+  - {id: sqlite-metadata, display_name: SQLite, description: Local SQLite capability metadata, category: database, capabilities: [database], protocol: cli, provider: local, permissions: [read_only], risk_level: medium, lifecycle: Official, validation: Validated, trust: Official, supports_files: true, supports_database: true, health: Healthy, priority: 80, aliases: [sqlite], local: true}
+mcp_servers:
+  - {id: example-mcp, display_name: Example MCP Metadata, capabilities: [mcp], available_tools: [], authentication_type: none, transport: stdio, lifecycle: Experimental, health: Unknown, version: 0.1.0}

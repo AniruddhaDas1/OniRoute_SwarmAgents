@@ -12,6 +12,9 @@ from runtime.context.builder import ContextBuilder
 from runtime.context.serializer import ContextSerializer
 from runtime.execution.engine import WorkflowEngine
 from runtime.models import Capability, ModelManager, SelectionRequest
+from runtime.tools import Permission, PermissionPolicy, ToolCapability, ToolCatalog, ToolSelectionRequest
+from runtime.tools.resolver import ToolResolver
+from runtime.tools.selection import ToolSelector
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -38,6 +41,9 @@ def _engine(root: Path) -> WorkflowEngine:
     return _session_engines[key]
 
 def _models(root: Path) -> ModelManager: return ModelManager(root / "config/models.yaml")
+def _tools(root:Path):
+    config=yaml.safe_load((root/"config/tools.yaml").read_text(encoding="utf-8")) or {};registry=ToolCatalog.load(root/"config/tools.yaml");policy=PermissionPolicy({Permission(item) for item in config.get("permission_policy",[])})
+    return registry,ToolResolver(registry),ToolSelector(registry,policy,tuple(config.get("preferred_local_tools",[])))
 
 
 def _table(records):
@@ -164,6 +170,35 @@ def inspect_provider(identifier:str,repository_root:Path=typer.Option(Path.cwd()
 @app.command("recommend-model")
 def recommend_model(capability:list[Capability]=typer.Option(...),local:bool=False,repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
     manager=_models(repository_root); item=manager.select_best_model(SelectionRequest(capabilities=frozenset(capability),local_only=local,local_preference=manager.config.get("local_first",False)))
+    console.print_json(data=item.model_dump(mode="json"))
+
+@app.command("tools")
+def list_tools(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    registry,_,_=_tools(repository_root);table=Table("ID","Name","Protocol","Trust","Health")
+    for item in registry.tools.values():table.add_row(item.id,item.display_name,item.protocol,item.trust,item.health)
+    console.print(table)
+
+@app.command("mcp")
+def list_mcp(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    registry,_,_=_tools(repository_root);table=Table("ID","Name","Transport","Health")
+    for item in registry.mcp_servers.values():table.add_row(item.id,item.display_name,item.transport,item.health)
+    console.print(table)
+
+@inspect_app.command("tool")
+def inspect_tool(identifier:str,repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    _,resolver,_=_tools(repository_root);item=resolver.find_tool(identifier)
+    if not item:raise typer.BadParameter(f"Unknown tool: {identifier}")
+    console.print_json(data=item.model_dump(mode="json"))
+
+@inspect_app.command("mcp")
+def inspect_mcp(identifier:str,repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    _,resolver,_=_tools(repository_root);item=resolver.find_mcp(identifier)
+    if not item:raise typer.BadParameter(f"Unknown MCP server: {identifier}")
+    console.print_json(data=item.model_dump(mode="json"))
+
+@app.command("recommend-tool")
+def recommend_tool(capability:list[ToolCapability]=typer.Option(...),repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    _,_,selector=_tools(repository_root);item=selector.recommend(ToolSelectionRequest(capabilities=frozenset(capability)))
     console.print_json(data=item.model_dump(mode="json"))
 
 if __name__ == "__main__": app()
