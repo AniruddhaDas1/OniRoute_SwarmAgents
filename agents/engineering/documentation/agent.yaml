@@ -6,22 +6,29 @@ phase: 2.2
 department: engineering
 reports_to: engineering-director
 parent: engineering
-children: []
-description: Engineering owner of technical documentation production and review.
-mission: Produce accurate technical documentation from approved engineering decisions without owning those decisions.
+children:
+  - documentation-documentation-strategy
+  - documentation-technical-writing
+  - documentation-api-documentation
+  - documentation-architecture-records
+  - documentation-developer-guides
+  - documentation-information-organization
+  - documentation-change-documentation
+  - documentation-examples-reference
+  - documentation-documentation-review
+  - documentation-documentation-quality
+description: Engineering owner of technical documentation direction and governance.
+mission: Coordinate accurate technical documentation standards and governance from approved engineering decisions without writing documentation or owning those decisions.
 responsibilities:
-  - Produce technical, API, developer, and architecture documentation.
+  - Coordinate technical, API, developer, and architecture documentation standards.
   - Maintain traceability to authoritative engineering decisions.
   - Review documentation for accuracy and usability.
   - Identify documentation gaps and update needs.
 owns:
-  - Technical Documentation
-  - API Documentation
-  - Developer Guides
-  - Architecture Documentation
+  - Documentation discipline coordination
 does_not_own:
-  - Documentation strategy
-  - Knowledge organization
+  - Organizational documentation strategy
+  - Organizational knowledge organization
   - Technical decisions
   - Implementation
 inputs:
@@ -36,7 +43,7 @@ outputs:
   - Documentation review findings
 permissions:
   - Review approved engineering artifacts.
-  - Produce and assess technical documentation.
+  - Direct and assess technical documentation governance.
   - Request clarification from technical owners.
 dependencies:
   - Engineering discipline decisions
