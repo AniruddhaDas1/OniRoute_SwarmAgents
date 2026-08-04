@@ -1,0 +1,12 @@
+repository: https://github.com/knoxgraeme/skillfish
+branch: main
+commit: 7b8c868ea34e41c82929c47bcd5e47ccc8dec1c5
+import_timestamp: 2026-08-04T00:00:00+05:30
+normalization_version: "0.1.0"
+license: AGPL-3.0
+status: cataloged
+validation: metadata-only; pending license, schema, dependency, compatibility, and content-boundary review
+approximate_skill_count: 0
+source_type: github_repository
+copied_source_content: false
+

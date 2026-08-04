@@ -1,0 +1,12 @@
+repository: https://github.com/multica-ai/andrej-karpathy-skills
+branch: main
+commit: 2c606141936f1eeef17fa3043a72095b4765b9c2
+import_timestamp: 2026-08-04T00:00:00+05:30
+normalization_version: "0.1.0"
+license: License review required
+status: cataloged
+validation: metadata-only; pending license, schema, dependency, compatibility, and content-boundary review
+approximate_skill_count: 1
+source_type: github_repository
+copied_source_content: false
+

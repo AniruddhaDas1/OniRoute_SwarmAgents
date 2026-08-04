@@ -1,0 +1,12 @@
+repository: https://github.com/vuejs-ai/skills
+branch: main
+commit: c9d355ff23f654309dd02006be671859df0a134c
+import_timestamp: 2026-08-04T00:00:00+05:30
+normalization_version: "0.1.0"
+license: MIT
+status: cataloged
+validation: metadata-only; pending license, schema, dependency, compatibility, and content-boundary review
+approximate_skill_count: 8
+source_type: github_repository
+copied_source_content: false
+

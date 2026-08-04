@@ -1,0 +1,12 @@
+repository: https://github.com/mattpocock/skills
+branch: main
+commit: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
+import_timestamp: 2026-08-04T00:00:00+05:30
+normalization_version: "0.1.0"
+license: MIT
+status: cataloged
+validation: metadata-only; pending license, schema, dependency, compatibility, and content-boundary review
+approximate_skill_count: 41
+source_type: github_repository
+copied_source_content: false
+

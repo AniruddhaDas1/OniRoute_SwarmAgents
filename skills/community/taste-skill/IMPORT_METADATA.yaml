@@ -1,0 +1,12 @@
+repository: https://github.com/leonxlnx/taste-skill
+branch: main
+commit: e988add20dab0fa97d7a76781c48961c8184288e
+import_timestamp: 2026-08-04T00:00:00+05:30
+normalization_version: "0.1.0"
+license: MIT
+status: cataloged
+validation: metadata-only; pending license, schema, dependency, compatibility, and content-boundary review
+approximate_skill_count: 13
+source_type: github_repository
+copied_source_content: false
+

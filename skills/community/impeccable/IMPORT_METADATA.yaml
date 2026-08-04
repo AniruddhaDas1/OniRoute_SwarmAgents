@@ -1,0 +1,12 @@
+repository: https://github.com/pbakaus/impeccable
+branch: main
+commit: 620ba1fe7d87a39039a8528bfaa319ecfa893cb2
+import_timestamp: 2026-08-04T00:00:00+05:30
+normalization_version: "0.1.0"
+license: Apache-2.0
+status: cataloged
+validation: metadata-only; pending license, schema, dependency, compatibility, and content-boundary review
+approximate_skill_count: 15
+source_type: github_repository
+copied_source_content: false
+

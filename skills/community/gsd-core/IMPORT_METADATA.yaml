@@ -1,0 +1,11 @@
+repository: https://github.com/open-gsd/gsd-core
+branch: next
+commit: ff4a57b78c384e7beddcf3cd18e403cd6f192b5c
+import_timestamp: 2026-08-04T00:00:00+05:30
+normalization_version: "0.1.0"
+license: MIT
+status: cataloged
+validation: metadata-only; pending license, schema, dependency, compatibility, and content-boundary review
+approximate_skill_count: 71
+source_type: github_repository
+copied_source_content: false
