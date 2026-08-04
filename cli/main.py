@@ -27,12 +27,14 @@ context_app = typer.Typer(help="Inspect deterministic context metadata.")
 run_app = typer.Typer(help="Run deterministic local workflows.")
 plan_app = typer.Typer(help="Build deterministic execution plans.")
 models_app = typer.Typer(help="List and test model metadata.", invoke_without_command=True)
+explain_app = typer.Typer(help="Explain Workflow and execution resolution.")
 app.add_typer(list_app, name="list")
 app.add_typer(inspect_app, name="inspect")
 app.add_typer(context_app, name="context")
 app.add_typer(run_app, name="run")
 app.add_typer(plan_app, name="plan")
 app.add_typer(models_app, name="models")
+app.add_typer(explain_app, name="explain")
 _session_engines: dict[str, WorkflowEngine] = {}
 console = Console()
 
@@ -132,6 +134,21 @@ def run_workflow(identifier: str, repository_root: Path = typer.Option(Path.cwd(
     result = _engine(repository_root).run(identifier)
     console.print(f"Execution: {result.execution_id}  Status: [green]{result.status}[/]  Artifacts: {len(result.artifacts)}")
     for step in result.plan.steps: console.print(f"{step.execution_order}. {step.description}: {step.result}")
+
+@explain_app.command("workflow")
+def explain_workflow(identifier:str,repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    engine=_engine(repository_root)
+    plan=engine.plan(identifier);console.print(f"Workflow: {identifier}")
+    for step in plan.steps:console.print(f"{step.execution_order}. Agent={step.agent or '—'} Skill={step.skill or '—'} Context={step.context}")
+    manager=_models(repository_root);model=manager.select_best_model(SelectionRequest());console.print(f"Selected Model={model.id} Provider={model.provider} Protocol={model.protocol} Capabilities={','.join(sorted(x.value for x in model.capabilities))}")
+
+@explain_app.command("execution")
+def explain_execution(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    records=_engine(repository_root).history.all();console.print_json(data=records[-1].model_dump(mode="json") if records else {"status":"No execution history"})
+
+@app.command("trace")
+def trace(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    for event in _engine(repository_root).events.events:console.print(f"{event.timestamp.isoformat()} {event.type} {event.subject_id}")
 
 @app.command()
 def history(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):

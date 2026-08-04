@@ -27,6 +27,7 @@ class ExecutionStep(BaseModel):
     duration_ms: float = 0
     execution_order: int
     result: str | None = None
+    ai_trace: dict[str, Any] | None = None
 
 
 class ExecutionPlan(BaseModel):
@@ -54,3 +55,4 @@ class ExecutionResult(BaseModel):
     started_at: datetime
     completed_at: datetime
     report: dict[str, Any] = Field(default_factory=dict)
+    ai_trace: tuple[dict[str, Any], ...] = ()

@@ -9,6 +9,12 @@ timeouts: {default: 60}
 retries: {mode: "Fail Fast", attempts: 1}
 fallback_chains: {}
 streaming: {enabled: false}
+default_model: local-metadata-placeholder
+approval_defaults: Dry Run
+usage_limits: {max_tokens: 4096}
+retry_limits: {attempts: 1}
+per_workflow_overrides: {}
+per_agent_overrides: {}
 providers: {}
 protocols: {}
 models:

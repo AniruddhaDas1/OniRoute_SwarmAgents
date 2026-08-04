@@ -22,6 +22,8 @@ The local engine loads and resolves Workflow metadata, prepares context, creates
 
 Events cover WorkflowStarted, StepStarted, StepCompleted, StepSkipped, ArtifactGenerated, WorkflowCompleted, and WorkflowFailed. History, events, and artifacts live only in the current process. CLI commands are `oniroute plan workflow <id>`, `oniroute run workflow <id>`, `oniroute history`, and `oniroute events`.
 
+AI-capable steps route through Resolution → Context → UMAL → Invocation Layer → canonical response. Execution records approval, selected model/provider/protocol, capabilities, latency, tokens, status, and response metadata locally. The default approval is Dry Run; Automatic execution must be explicitly configured. Explain and trace commands expose plans, model selection evidence, execution history, and event timelines.
+
 ## Resolution Engine
 
 Resolution answers repository questions by ID, category, tag, owner, participant, artifact, and declared relationship. It does not traverse a Workflow for execution, schedule work, invoke Skills, or call a provider.

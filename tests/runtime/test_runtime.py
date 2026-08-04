@@ -108,7 +108,7 @@ def test_execution_state_artifacts_history_and_events():
     engine = WorkflowEngine(RepositoryLoader(ROOT).load()); result = engine.run("rest-api-design")
     assert result.status == ExecutionStatus.COMPLETED
     assert all(step.status == ExecutionStatus.COMPLETED for step in result.plan.steps)
-    assert any(step.result == DeterministicExecutor.PLACEHOLDER for step in result.plan.steps)
+    assert any(step.ai_trace and step.ai_trace["approval"] == "Dry Run" for step in result.plan.steps)
     assert len(result.artifacts) == 6; assert len(engine.history.all()) == 1
     assert engine.events.events[0].type == "WorkflowStarted"; assert engine.events.events[-1].type == "WorkflowCompleted"
 
@@ -118,4 +118,4 @@ def test_execution_cli_commands():
     planned = runner.invoke(app, ["plan", "workflow", "rest-api-design", "--repository-root", str(ROOT)])
     ran = runner.invoke(app, ["run", "workflow", "rest-api-design", "--repository-root", str(ROOT)])
     assert planned.exit_code == 0, planned.stdout; assert "Resolve declared" in planned.stdout
-    assert ran.exit_code == 0, ran.stdout; assert "Placeholder: AI execution" in ran.stdout
+    assert ran.exit_code == 0, ran.stdout; assert "approval required" in ran.stdout
