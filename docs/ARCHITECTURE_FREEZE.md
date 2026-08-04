@@ -5,17 +5,17 @@
 Version `v0.1` freezes the top-level, documentation-only organization for OniRoute_SwarmAgents. The architecture has three departments with explicit ownership boundaries:
 
 1. **Executive** establishes intent, product outcomes, priorities, governance, context, knowledge, operations, and engineering direction.
-2. **Engineering** converts approved outcomes into provider-independent technical direction across ten disciplines.
+2. **Engineering** converts approved outcomes into provider-independent technical direction across eleven disciplines.
 3. **Platform** supplies technology-specific capability analysis and recommendations through the Engineering Platform Agent.
 
 Agents provide direction, review, coordination, and recommendations. They do not form an executable runtime and do not directly implement software.
 
 ## Agent Count
 
-The frozen architecture contains **29 agents**:
+The amended top-level architecture contains **30 agents**:
 
 - 7 Executive Agents
-- 10 Engineering Agents
+- 11 Engineering Agents
 - 12 Platform Agents
 
 ## Department Count
@@ -78,5 +78,7 @@ Future additions must extend the frozen layers without changing their reporting 
 ## Freeze Version
 
 **v0.1 — Executive, Engineering, and Platform top-level architecture frozen.**
+
+Phase 3.13 introduces the sole approved pre-Phase-4 amendment: the provider-independent Presentation Engineering discipline. The amended top-level count is 30 agents and does not change the three-department reporting model.
 
 Phase 2 is complete. Future work may extend the frozen architecture but must not begin Phase 3 execution concerns in this freeze record.

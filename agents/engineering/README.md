@@ -17,6 +17,7 @@ Engineering Director
 ├── Security
 ├── Testing
 ├── Documentation
+├── Presentation Engineering
 └── Platform
 ```
 
@@ -33,6 +34,7 @@ Every Engineering Agent reports to the [`Engineering Director`](../executive/eng
 - [`Security`](security/README.md) — security architecture, access-control strategy, threats, and secrets.
 - [`Testing`](testing/README.md) — test strategy, quality planning, automation direction, and regression coverage.
 - [`Documentation`](documentation/README.md) — production of technical, API, developer, and architecture documentation.
+- [`Presentation Engineering`](presentation/README.md) — presentation architecture, storytelling, communication, and governance.
 - [`Platform`](platform/README.md) — selection and governance of implementation platforms.
 
 ## Responsibilities Matrix
@@ -48,6 +50,7 @@ Every Engineering Agent reports to the [`Engineering Director`](../executive/eng
 | Security | Security direction and assurance | No feature implementation or operational ownership |
 | Testing | Quality and verification strategy | No feature implementation or production ownership |
 | Documentation | Technical documentation production | No knowledge strategy or technical decision ownership |
+| Presentation Engineering | Presentation architecture and communication governance | No documentation, graphic design, marketing, implementation, or slide generation |
 | Platform | Platform selection and governance | No provider-specific implementation or general architecture ownership |
 
 ## Collaboration Boundaries

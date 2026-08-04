@@ -10,6 +10,8 @@ Executive owns strategic direction, prioritization, governance, organizational c
 
 Engineering translates strategic direction into software designs, technical plans, delegated implementation direction, and quality-evidence requirements. It owns provider-independent engineering decisions and coordinates specialist disciplines without performing implementation directly.
 
+Presentation Engineering is an Engineering discipline responsible for presentation architecture, storytelling, executive, business, technical, visual, and data communication governance. It remains separate from Documentation and Knowledge ownership and does not generate presentation artifacts.
+
 ## Platform
 
 Platform supplies expertise for specific technologies, infrastructure systems, managed services, and cloud providers. It makes vendor-specific constraints explicit while supporting Engineering-owned designs.

@@ -37,7 +37,7 @@ Principal Agent.
 
 ## Child Agents
 
-Architecture, Backend, Frontend, Database, AI, DevOps, Security, Testing, Documentation, and Platform report directly to this agent and receive bounded technical assignments.
+Architecture, Backend, Frontend, Database, AI, DevOps, Security, Testing, Documentation, Presentation Engineering, and Platform report directly to this agent and receive bounded technical assignments.
 
 ## Future Responsibilities
 

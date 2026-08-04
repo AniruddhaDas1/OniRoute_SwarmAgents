@@ -10,15 +10,15 @@ Reporting remains hierarchical and reciprocal: Principal is the external organiz
 
 | Measure | Count |
 |---|---:|
-| Total agents | 274 |
-| Top-level agents | 29 |
-| Total sub-agents | 245 |
+| Total agents | 285 |
+| Top-level agents | 30 |
+| Total sub-agents | 255 |
 | Departments | 3 |
 | Executive agents | 42 (7 top-level, 35 sub-agents) |
-| Engineering agents | 100 (10 top-level, 90 sub-agents) |
+| Engineering agents | 111 (11 top-level, 100 sub-agents) |
 | Platform agents | 132 (12 top-level, 120 sub-agents) |
-| Agent directories | 274 |
-| Agent contract files | 822 (274 README, 274 agent.yaml, 274 SYSTEM) |
+| Agent directories | 285 |
+| Agent contract files | 855 (285 README, 285 agent.yaml, 285 SYSTEM) |
 | Documentation files | 7 |
 | Configuration files | 1 |
 
@@ -62,5 +62,7 @@ The frozen contracts reserve empty `skills`, `workflows`, and `adapters` fields.
 ## Freeze Version
 
 **v0.3 — Phase 3 Sub-Agent Architecture Frozen.**
+
+Phase 3.13 records the sole approved enhancement before Phase 4: Presentation Engineering and its ten bounded sub-agents. The v0.3 freeze remains in force with this amendment.
 
 Phase 4 is not implemented by this record.
