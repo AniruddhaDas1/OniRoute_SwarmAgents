@@ -22,3 +22,4 @@ This directory defines provider-independent metadata, contracts, lifecycle, cont
 - [`specification/WORKFLOW_SECURITY.md`](specification/WORKFLOW_SECURITY.md) — security classification.
 - [`specification/WORKFLOW_APPROVALS.md`](specification/WORKFLOW_APPROVALS.md) — approval gates.
 - [`registry/README.md`](registry/README.md) — registry discovery, catalog, admission, indexing, and provenance architecture.
+- [`resolution/README.md`](resolution/README.md) — declarative Workflow composition, selection, resolution, branching, fallback, and reuse architecture.
