@@ -11,7 +11,7 @@ The Knowledge architecture is production-ready as a frozen resolver contract. Th
 | Component | Count |
 |---|---:|
 | Agents and Sub-Agents | 296 |
-| Official Skills | 88 |
+| Official Skills | 96 |
 | Community Skills | 991 |
 | Registered Knowledge Sources | 9 |
 | Agent mapping records | 285 |

@@ -59,3 +59,7 @@ Every Engineering Agent reports to the [`Engineering Director`](../executive/eng
 ## Collaboration Boundaries
 
 Architecture coordinates system-wide decisions but does not absorb discipline ownership. Discipline agents provide decisions and review findings to the Engineering Director. Platform-specific expertise remains deferred to future Platform Agents, and all implementation remains deferred to future sub-agents.
+
+## Approved Extensions
+
+- ACR-001 Motion Engineering — official Engineering capability at extension version M1.0. Its architecture and Official Skills are implemented; final governance freeze remains subject to Motion research-source registration.
