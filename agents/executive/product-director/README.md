@@ -35,13 +35,13 @@ Product requirement definitions, feature scopes, user stories, acceptance criter
 
 Principal Agent.
 
-## Child Agents (future)
+## Sub-Agents
 
-None defined in Phase 2. Future product-specialist agents may support bounded discovery and analysis.
+Sub-agents and child capabilities are resolved dynamically by Runtime v0.6 through the External Mapping Registry.
 
-## Future Responsibilities
+## Responsibilities
 
-Coordinate structured product discovery and outcome validation after later phases define those capabilities.
+Coordinate structured product discovery and outcome validation within declarative workflow specifications.
 
 ## Related Documentation
 

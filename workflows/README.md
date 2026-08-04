@@ -1,10 +1,10 @@
 # OniRoute Workflow Specification
 
-Workflows are first-class, declarative orchestration contracts. A Workflow describes how bounded Agents collaborate toward an engineering outcome; it is not a prompt, executable program, runtime, or orchestration engine.
+Workflows are first-class, declarative orchestration contracts describing how bounded Agents collaborate toward an engineering outcome. Workflow metadata remains declarative, while workflow planning and execution are performed by Runtime v0.6.
 
 ## Scope
 
-This directory defines provider-independent metadata, contracts, lifecycle, context, artifact, dependency, decision, failure, security, approval, and validation rules. It creates no Workflow instances and makes no claim about execution.
+This directory defines provider-independent metadata, contracts, lifecycle, context, artifact, dependency, decision, failure, security, approval, official workflows, and validation rules. Workflow execution, state transitions, and step invocation are orchestrated by Runtime v0.6.
 
 ## Documents
 

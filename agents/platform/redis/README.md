@@ -73,9 +73,9 @@ Capability analysis, architecture recommendations, limitations, trade-offs, migr
 
 Engineering Platform Agent.
 
-## Future Sub-Agents
+## Sub-Agents
 
-Future Redis sub-agents may perform bounded implementation tasks after a later phase defines their responsibilities.
+Platform sub-agents and child capabilities are resolved dynamically by Runtime v0.6 through the External Mapping Registry.
 
 ## Related Technologies
 

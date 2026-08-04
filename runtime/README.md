@@ -18,15 +18,15 @@ The runtime discovers and parses repository metadata, builds in-memory indexes, 
 
 ## Execution lifecycle
 
-The local engine loads and resolves Workflow metadata, prepares context, creates a deterministic five-step plan, advances Pending → Running → Completed states, emits in-memory events, and produces six metadata artifacts. AI-associated steps return `Placeholder: AI execution not yet implemented` and continue. Plans use stable IDs and execution order; elapsed duration and event timestamps are observational only.
+The local engine loads and resolves Workflow metadata, prepares context, creates a deterministic plan, advances Pending → Running → Completed states, emits in-memory events, and produces metadata artifacts. AI-associated steps route through Resolution → Context Engine → UMAL → Invocation Layer → canonical response, recording AI trace data (model, provider, tokens, latency, status). Plans use stable IDs and execution order; elapsed duration and event timestamps are observational.
 
-Events cover WorkflowStarted, StepStarted, StepCompleted, StepSkipped, ArtifactGenerated, WorkflowCompleted, and WorkflowFailed. History, events, and artifacts live only in the current process. CLI commands are `oniroute plan workflow <id>`, `oniroute run workflow <id>`, `oniroute history`, and `oniroute events`.
+Events cover WorkflowStarted, StepStarted, StepCompleted, StepSkipped, ArtifactGenerated, WorkflowCompleted, and WorkflowFailed. History, events, and artifacts live in the execution process memory. CLI commands include `oniroute plan workflow <id>`, `oniroute run workflow <id>`, `oniroute history`, and `oniroute events`.
 
-AI-capable steps route through Resolution → Context → UMAL → Invocation Layer → canonical response. Execution records approval, selected model/provider/protocol, capabilities, latency, tokens, status, and response metadata locally. The default approval is Dry Run; Automatic execution must be explicitly configured. Explain and trace commands expose plans, model selection evidence, execution history, and event timelines.
+AI-capable steps route through Resolution → Context Engine → UMAL → Invocation Layer → canonical response. Execution records governance approval, selected model/provider/protocol, capabilities, latency, usage tokens, status, and response metadata locally. The default approval is Dry Run; Live execution is policy-controlled and provider-agnostic. Explain and trace commands expose plans, model selection evidence, execution history, and event timelines.
 
 ## Resolution Engine
 
-Resolution answers repository questions by ID, category, tag, owner, participant, artifact, and declared relationship. It does not traverse a Workflow for execution, schedule work, invoke Skills, or call a provider.
+Resolution answers repository questions by ID, category, tag, owner, participant, artifact, and declared relationship. It builds the identity and relationship map used by the Context Engine and Execution Engine.
 
 ## Graph model
 
@@ -38,7 +38,8 @@ The in-memory graph uses typed metadata nodes and labeled directed edges for par
 - `oniroute inspect agent|skill|workflow <id>`
 - `oniroute search <query>`
 - `oniroute doctor`
+- `oniroute run workflow <id>`
 
-## Boundaries
+## Execution & Security Boundaries
 
-This foundation does not execute Agents, Skills, or Workflows. It has no LLM providers, orchestration, context engine, task execution, MCP, plugins, adapters, API keys, persistence, or remote access. Future phases may extend validation and resolution without weakening these boundaries.
+Runtime v0.6 supports repository loading, integrity validation, dependency graph resolution, context optimization (ICOE v1.1), workflow execution planning and execution, provider-agnostic AI invocation (UMAL), governance policy control, and execution tracing. AI execution is policy-controlled and provider-independent. Tool access remains policy-governed and separated from runtime execution logic.

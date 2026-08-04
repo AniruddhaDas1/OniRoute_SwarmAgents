@@ -1,12 +1,12 @@
 # Intelligent Context Optimization Engine
 
-ICOE is the provider-independent optimization layer between OniRoute Context and UMAL. Phase O2 implements an optional, deterministic native engine that prepares smaller, more relevant, traceable context before invocation.
+ICOE v1.1 is the provider-independent optimization layer between OniRoute Context and UMAL. It provides native optimization, governed context pruning, and an optional plugin architecture to prepare smaller, more relevant, traceable context before model invocation.
 
 ```text
-Workflow → Execution → Context Engine → ICOE → UMAL → Invocation → Model
+Workflow → Execution → Context Engine → ICOE v1.1 → UMAL → Invocation → Model
 ```
 
-The native pipeline covers Context, Prompt, Repository, Skill, Artifact, Terminal, and Conversation optimization. Transformations preserve protected content, emit measurements and explainable reports, and fall back to native behavior when optional integrations are unavailable. Research references informed concepts only; no code or repository content was copied or imported.
+The native pipeline covers Context, Prompt, Repository, Skill, Artifact, Terminal, and Conversation optimization under strict governance policy. Transformations preserve protected content, emit measurements and explainable reports, and fall back to native behavior when optional integrations are unavailable. Research references informed concepts only; no code or repository content was copied or imported.
 
 ## Native pipeline
 
@@ -14,7 +14,7 @@ The native pipeline covers Context, Prompt, Repository, Skill, Artifact, Termina
 
 ## Plugins and optional integrations
 
-The in-memory plugin registry declares capabilities, version, permissions, trust, health, compatibility, and optionality. The native plugin is always available. RTK terminal filtering, Tree-sitter AST retrieval, and repository-graph retrieval are represented as optional integrations and are never required. Phase O2 does not connect to MCP servers, execute RTK, or import external repositories.
+The in-memory plugin registry declares capabilities, version, permissions, trust, health, compatibility, and optionality. The native plugin is always available. Optional integrations follow provider-neutral plugin contracts with governed safety policies.
 
 ## Benchmarks
 
@@ -22,7 +22,7 @@ Benchmarks record before/after bytes, estimated tokens, latency overhead, memory
 
 ## CLI
 
-Use `oniroute optimize context`, `prompt`, `repository`, `artifact`, `terminal`, `conversation`, or `benchmark`. Inputs are explicit JSON/text values or a repository query; commands do not invoke a model or provider.
+Use `oniroute optimize context`, `prompt`, `repository`, `artifact`, `terminal`, `conversation`, or `benchmark`. Inputs are explicit JSON/text values or a repository query; commands operate under policy-governed controls.
 
 ## Documents
 
@@ -31,5 +31,5 @@ Use `oniroute optimize context`, `prompt`, `repository`, `artifact`, `terminal`,
 - [`PLUGIN_MODEL.md`](PLUGIN_MODEL.md) — provider-neutral plugin contracts.
 - [`OPTIMIZATION_TYPES.md`](OPTIMIZATION_TYPES.md) — module taxonomy.
 - [`OPTIMIZATION_POLICIES.md`](OPTIMIZATION_POLICIES.md) — safety and quality policy.
-- [`BENCHMARK_PLAN.md`](BENCHMARK_PLAN.md) — evidence plan for future implementation.
+- [`BENCHMARK_PLAN.md`](BENCHMARK_PLAN.md) — benchmark plan and validation methodology for ICOE v1.1.
 - [`RESEARCH_NOTES.md`](RESEARCH_NOTES.md) — external reference findings and provenance.

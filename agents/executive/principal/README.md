@@ -35,13 +35,13 @@ Strategic direction, priority decisions, approvals, conflict resolutions, and de
 
 Human and product context.
 
-## Child Agents (future)
+## Sub-Agents
 
-No additional child agents are defined in Phase 2. The six executive directors currently report directly to this agent.
+Executive directors and sub-agents are resolved dynamically by Runtime v0.6.
 
-## Future Responsibilities
+## Responsibilities
 
-Participate in formal approval and escalation mechanisms after their contracts are introduced in later phases.
+Participate in formal approval and escalation mechanisms integrated with Runtime v0.6 Governance Layer.
 
 ## Related Documentation
 

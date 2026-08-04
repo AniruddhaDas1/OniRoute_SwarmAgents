@@ -1,5 +1,7 @@
 # Knowledge Audit Report
 
+> **Editor's Note (v1.0 / Runtime v0.6):** This statement reflected the repository status at the time of the report and has since been superseded by Runtime v0.6 / OniRoute v1.0.
+
 ## Scope
 
 Read-only production audit of 285 Agents, 88 Official Skills, 991 Community Skills, Package architecture, Knowledge Source architecture, schemas, mappings, ownership, provenance, and duplicate risk.

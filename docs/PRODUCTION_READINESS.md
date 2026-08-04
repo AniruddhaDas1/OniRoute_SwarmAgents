@@ -1,5 +1,7 @@
 # Production Readiness
 
+> **Editor's Note (v1.0 / Runtime v0.6):** This statement reflected the repository status at the time of the report and has since been superseded by Runtime v0.6 / OniRoute v1.0.
+
 ## Executive Summary
 
 The Knowledge System has strong architecture, provenance, schema consistency, and Official ownership, but it is not production-ready. Coverage and mapping quality are insufficient, Package and Workflow layers have no instances, and validation evidence is mostly declarative.

@@ -35,13 +35,13 @@ Documentation strategies, knowledge taxonomies, best-practice guidance, source-o
 
 Principal Agent.
 
-## Child Agents (future)
+## Sub-Agents
 
-None defined in Phase 2. Future knowledge-specialist agents may support bounded curation and registry stewardship.
+Sub-agents and child capabilities are resolved dynamically by Runtime v0.6 through the Knowledge Registry and External Mapping Registry.
 
-## Future Responsibilities
+## Responsibilities
 
-Govern a knowledge registry and lifecycle processes after later phases define their contracts.
+Govern the Knowledge Registry, Knowledge Sources, and knowledge lifecycle processes in Runtime v0.6.
 
 ## Related Documentation
 

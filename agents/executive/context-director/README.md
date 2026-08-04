@@ -35,13 +35,13 @@ Context packages, relevance summaries, source maps, context constraints, and mem
 
 Principal Agent.
 
-## Child Agents (future)
+## Sub-Agents
 
-None defined in Phase 2. Future context-specialist agents may support bounded retrieval, compression, and memory analysis.
+Sub-agents and child capabilities are resolved dynamically by Runtime v0.6 and ICOE v1.1.
 
-## Future Responsibilities
+## Responsibilities
 
-Govern context exchange and memory lifecycle contracts after later phases define them.
+Govern context exchange, memory lifecycle contracts, and optimization budgets integrated with the Context Engine and ICOE v1.1.
 
 ## Related Documentation
 

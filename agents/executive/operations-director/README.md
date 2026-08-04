@@ -35,13 +35,13 @@ Execution plans, schedules, dependency maps, status summaries, risk reports, and
 
 Principal Agent.
 
-## Child Agents (future)
+## Sub-Agents
 
-None defined in Phase 2. Future operations-specialist agents may support bounded planning and tracking functions.
+Sub-agents and child capabilities are resolved dynamically by Runtime v0.6 execution engine.
 
-## Future Responsibilities
+## Responsibilities
 
-Coordinate formal execution and observability mechanisms after their contracts are defined.
+Coordinate execution tracing, observational telemetry, and workflow run management in Runtime v0.6.
 
 ## Related Documentation
 

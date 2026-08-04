@@ -40,4 +40,4 @@ The other Documentation sub-agents under the Documentation Agent.
 
 ## Future Skills
 
-Reserved for a later phase; none are assigned.
+Resolved dynamically by Runtime v0.6; no explicit static bindings required in declarative agent metadata.

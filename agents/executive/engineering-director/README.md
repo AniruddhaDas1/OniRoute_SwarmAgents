@@ -39,9 +39,9 @@ Principal Agent.
 
 Architecture, Backend, Frontend, Database, AI, DevOps, Security, Testing, Documentation, Presentation Engineering, Motion, and Platform report directly to this agent and receive bounded technical assignments.
 
-## Future Responsibilities
+## Responsibilities
 
-Coordinate future Engineering sub-agents through their owning discipline agents and integrate delegated recommendations and delivery evidence.
+Coordinate Engineering sub-agents through their owning discipline agents and integrate delegated recommendations and delivery evidence into Runtime v0.6 execution flows.
 
 ## Related Documentation
 

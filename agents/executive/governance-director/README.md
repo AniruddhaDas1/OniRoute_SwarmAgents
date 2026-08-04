@@ -35,13 +35,13 @@ Standards, policies, compliance assessments, quality-gate decisions, exception r
 
 Principal Agent.
 
-## Child Agents (future)
+## Sub-Agents
 
-None defined in Phase 2. Future governance-specialist agents may support bounded policy and compliance analysis.
+Sub-agents and child capabilities are resolved dynamically by Runtime v0.6 through the External Mapping Registry.
 
-## Future Responsibilities
+## Responsibilities
 
-Maintain formal policy registries and automated gate contracts after later phases authorize them.
+Maintain formal policy registries, compliance controls, and automated gate contracts integrated with the Governance Layer.
 
 ## Related Documentation
 

@@ -4,12 +4,12 @@ These instructions apply to future Codex sessions contributing to this repositor
 
 ## Project intent
 
-Organization Level Swarm Coding AI Agents is an architecture-first framework. Preserve clear boundaries between organizational design, agent definitions, configuration, and future execution systems.
+Organization Level Swarm Coding AI Agents is an architecture-first framework. Preserve clear boundaries between organizational design, agent definitions, configuration, and the Runtime execution engine.
 
 ## Contribution rules
 
 - Build in explicit phases; keep each change small and logically scoped.
-- Do not create prompts, skills, or workflows until a later phase explicitly authorizes them.
+- Keep Agent definitions declarative; skills, workflows, and prompts are resolved dynamically by Runtime v0.6.
 - Prefer production-quality documentation and explain architectural decisions in `docs/`.
 - Keep modules provider-independent and avoid embedding project-specific behavior in reusable agents.
 - Every agent directory must contain a professional `README.md` and an `agent.yaml`.
