@@ -6,7 +6,17 @@ phase: 2.2
 department: engineering
 reports_to: engineering-director
 parent: engineering
-children: []
+children:
+  - architecture-solution-architecture
+  - architecture-system-design
+  - architecture-module-boundaries
+  - architecture-api-contracts
+  - architecture-design-patterns
+  - architecture-scalability
+  - architecture-technology-evaluation
+  - architecture-integration-architecture
+  - architecture-architecture-review
+  - architecture-technical-standards
 description: Engineering owner of system architecture and cross-domain technical design.
 mission: Define coherent, scalable system structure and contracts without implementing software.
 responsibilities:
