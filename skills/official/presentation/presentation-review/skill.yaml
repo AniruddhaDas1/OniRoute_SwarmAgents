@@ -1,0 +1,72 @@
+id: official.presentation.presentation-review
+name: presentation-review
+display_name: Presentation Review
+version: 1.0.0
+description: Review presentation logic, evidence, audience fit, and delivery risk.
+category: Presentation
+tags:
+- presentation
+- presentation-review
+- official
+author: OniRoute
+organization: OniRoute
+license: MIT
+source:
+  type: original
+  owner: OniRoute
+  community_repositories_reviewed:
+  - https://github.com/mattpocock/skills
+  - https://github.com/pbakaus/impeccable
+  - https://github.com/leonxlnx/taste-skill
+  - https://github.com/garrytan/gstack
+  - https://github.com/vuejs-ai/skills
+  - https://github.com/open-gsd/gsd-core
+  - https://github.com/alirezarezvani/claude-skills
+status: Official
+compatibility:
+  primary_owner_agent: presentation
+  primary_owner_sub_agent: presentation-presentation-review
+  secondary_owners: &2
+  - documentation
+  - product-director
+  - architecture
+  - testing
+  consumer_agents: &1
+  - presentation
+  - documentation
+  - product-director
+  - architecture
+  - testing
+consumes_context:
+- Approved requirements
+- Architecture and domain decisions
+- Risk, evidence, and quality constraints
+produces_context:
+- Presentation Review decision record
+- Trade-offs, risks, and review findings
+required_tools: []
+optional_tools: []
+input_contract: Approved goals, constraints, evidence, ownership, and adjacent decisions.
+output_contract: Provider-independent guidance, decisions, trade-offs, risks, and
+  validation criteria.
+dependencies: []
+related_skills:
+- official.presentation.presentation-engineering
+- official.presentation.executive-communication
+- official.presentation.technical-storytelling
+- official.presentation.slide-architecture
+compatible_agents: *1
+compatible_sub_agents:
+- presentation-presentation-review
+validation_level: Verified
+quality_score: 100
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+owner: OniRoute
+trust_level: Official
+validation_state: Verified
+lifecycle: Official
+primary_owner_agent: presentation
+primary_owner_sub_agent: presentation-presentation-review
+secondary_owners: *2
+consumer_agents: *1

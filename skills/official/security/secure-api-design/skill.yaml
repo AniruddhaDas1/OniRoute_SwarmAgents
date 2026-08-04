@@ -1,0 +1,73 @@
+id: official.security.secure-api-design
+name: secure-api-design
+display_name: Secure API Design
+version: 1.0.0
+description: Integrate abuse resistance, identity, authorization, validation, and
+  disclosure controls into API decisions.
+category: Security
+tags:
+- security
+- secure-api-design
+- official
+author: OniRoute
+organization: OniRoute
+license: MIT
+source:
+  type: original
+  owner: OniRoute
+  community_repositories_reviewed:
+  - https://github.com/mattpocock/skills
+  - https://github.com/pbakaus/impeccable
+  - https://github.com/leonxlnx/taste-skill
+  - https://github.com/garrytan/gstack
+  - https://github.com/vuejs-ai/skills
+  - https://github.com/open-gsd/gsd-core
+  - https://github.com/alirezarezvani/claude-skills
+status: Official
+compatibility:
+  primary_owner_agent: security
+  primary_owner_sub_agent: security-security-architecture
+  secondary_owners: &2
+  - architecture
+  - backend
+  - devops
+  - testing
+  consumer_agents: &1
+  - security
+  - architecture
+  - backend
+  - devops
+  - testing
+consumes_context:
+- Approved requirements
+- Architecture and domain decisions
+- Risk, evidence, and quality constraints
+produces_context:
+- Secure API Design decision record
+- Trade-offs, risks, and review findings
+required_tools: []
+optional_tools: []
+input_contract: Approved goals, constraints, evidence, ownership, and adjacent decisions.
+output_contract: Provider-independent guidance, decisions, trade-offs, risks, and
+  validation criteria.
+dependencies: []
+related_skills:
+- official.security.threat-modeling
+- official.security.secrets-management
+- official.security.identity-management
+- official.security.access-control-models
+compatible_agents: *1
+compatible_sub_agents:
+- security-security-architecture
+validation_level: Verified
+quality_score: 100
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+owner: OniRoute
+trust_level: Official
+validation_state: Verified
+lifecycle: Official
+primary_owner_agent: security
+primary_owner_sub_agent: security-security-architecture
+secondary_owners: *2
+consumer_agents: *1

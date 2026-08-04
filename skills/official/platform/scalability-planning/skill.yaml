@@ -1,0 +1,74 @@
+id: official.platform.scalability-planning
+name: scalability-planning
+display_name: Scalability Planning
+version: 1.0.0
+description: Plan growth responses from workload models, limits, and measurable thresholds.
+category: Platform
+tags:
+- platform
+- scalability-planning
+- official
+author: OniRoute
+organization: OniRoute
+license: MIT
+source:
+  type: original
+  owner: OniRoute
+  community_repositories_reviewed:
+  - https://github.com/mattpocock/skills
+  - https://github.com/pbakaus/impeccable
+  - https://github.com/leonxlnx/taste-skill
+  - https://github.com/garrytan/gstack
+  - https://github.com/vuejs-ai/skills
+  - https://github.com/open-gsd/gsd-core
+  - https://github.com/alirezarezvani/claude-skills
+status: Official
+compatibility:
+  primary_owner_agent: architecture
+  primary_owner_sub_agent: architecture-scalability
+  secondary_owners: &2
+  - platform
+  - backend
+  - devops
+  - security
+  - testing
+  consumer_agents: &1
+  - architecture
+  - platform
+  - backend
+  - devops
+  - security
+  - testing
+consumes_context:
+- Approved requirements
+- Architecture and domain decisions
+- Risk, evidence, and quality constraints
+produces_context:
+- Scalability Planning decision record
+- Trade-offs, risks, and review findings
+required_tools: []
+optional_tools: []
+input_contract: Approved goals, constraints, evidence, ownership, and adjacent decisions.
+output_contract: Provider-independent guidance, decisions, trade-offs, risks, and
+  validation criteria.
+dependencies: []
+related_skills:
+- official.platform.technology-evaluation
+- official.platform.platform-compatibility
+- official.platform.migration-planning
+- official.platform.vendor-neutral-architecture
+compatible_agents: *1
+compatible_sub_agents:
+- architecture-scalability
+validation_level: Verified
+quality_score: 100
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+owner: OniRoute
+trust_level: Official
+validation_state: Verified
+lifecycle: Official
+primary_owner_agent: architecture
+primary_owner_sub_agent: architecture-scalability
+secondary_owners: *2
+consumer_agents: *1

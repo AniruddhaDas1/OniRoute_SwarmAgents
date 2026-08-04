@@ -1,0 +1,74 @@
+id: official.analytics.analytical-thinking
+name: analytical-thinking
+display_name: Analytical Thinking
+version: 1.0.0
+description: Structure questions, evidence, alternatives, uncertainty, and conclusions.
+category: Analytics
+tags:
+- analytics
+- analytical-thinking
+- official
+author: OniRoute
+organization: OniRoute
+license: MIT
+source:
+  type: original
+  owner: OniRoute
+  community_repositories_reviewed:
+  - https://github.com/mattpocock/skills
+  - https://github.com/pbakaus/impeccable
+  - https://github.com/leonxlnx/taste-skill
+  - https://github.com/garrytan/gstack
+  - https://github.com/vuejs-ai/skills
+  - https://github.com/open-gsd/gsd-core
+  - https://github.com/alirezarezvani/claude-skills
+status: Official
+compatibility:
+  primary_owner_agent: architecture
+  primary_owner_sub_agent: architecture-architecture-review
+  secondary_owners: &2
+  - platform
+  - backend
+  - devops
+  - security
+  - testing
+  consumer_agents: &1
+  - architecture
+  - platform
+  - backend
+  - devops
+  - security
+  - testing
+consumes_context:
+- Approved requirements
+- Architecture and domain decisions
+- Risk, evidence, and quality constraints
+produces_context:
+- Analytical Thinking decision record
+- Trade-offs, risks, and review findings
+required_tools: []
+optional_tools: []
+input_contract: Approved goals, constraints, evidence, ownership, and adjacent decisions.
+output_contract: Provider-independent guidance, decisions, trade-offs, risks, and
+  validation criteria.
+dependencies: []
+related_skills:
+- official.analytics.dashboard-design
+- official.analytics.kpi-design
+- official.analytics.data-storytelling
+- official.analytics.business-metrics
+compatible_agents: *1
+compatible_sub_agents:
+- architecture-architecture-review
+validation_level: Verified
+quality_score: 100
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+owner: OniRoute
+trust_level: Official
+validation_state: Verified
+lifecycle: Official
+primary_owner_agent: architecture
+primary_owner_sub_agent: architecture-architecture-review
+secondary_owners: *2
+consumer_agents: *1

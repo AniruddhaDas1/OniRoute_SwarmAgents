@@ -1,0 +1,74 @@
+id: official.platform.migration-planning
+name: migration-planning
+display_name: Migration Planning
+version: 1.0.0
+description: Plan staged transitions with coexistence, validation, rollback, and retirement.
+category: Platform
+tags:
+- platform
+- migration-planning
+- official
+author: OniRoute
+organization: OniRoute
+license: MIT
+source:
+  type: original
+  owner: OniRoute
+  community_repositories_reviewed:
+  - https://github.com/mattpocock/skills
+  - https://github.com/pbakaus/impeccable
+  - https://github.com/leonxlnx/taste-skill
+  - https://github.com/garrytan/gstack
+  - https://github.com/vuejs-ai/skills
+  - https://github.com/open-gsd/gsd-core
+  - https://github.com/alirezarezvani/claude-skills
+status: Official
+compatibility:
+  primary_owner_agent: architecture
+  primary_owner_sub_agent: architecture-solution-architecture
+  secondary_owners: &2
+  - platform
+  - backend
+  - devops
+  - security
+  - testing
+  consumer_agents: &1
+  - architecture
+  - platform
+  - backend
+  - devops
+  - security
+  - testing
+consumes_context:
+- Approved requirements
+- Architecture and domain decisions
+- Risk, evidence, and quality constraints
+produces_context:
+- Migration Planning decision record
+- Trade-offs, risks, and review findings
+required_tools: []
+optional_tools: []
+input_contract: Approved goals, constraints, evidence, ownership, and adjacent decisions.
+output_contract: Provider-independent guidance, decisions, trade-offs, risks, and
+  validation criteria.
+dependencies: []
+related_skills:
+- official.platform.technology-evaluation
+- official.platform.platform-compatibility
+- official.platform.vendor-neutral-architecture
+- official.platform.scalability-planning
+compatible_agents: *1
+compatible_sub_agents:
+- architecture-solution-architecture
+validation_level: Verified
+quality_score: 100
+created: '2026-08-04T00:00:00+05:30'
+updated: '2026-08-04T00:00:00+05:30'
+owner: OniRoute
+trust_level: Official
+validation_state: Verified
+lifecycle: Official
+primary_owner_agent: architecture
+primary_owner_sub_agent: architecture-solution-architecture
+secondary_owners: *2
+consumer_agents: *1
