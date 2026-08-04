@@ -1,0 +1,45 @@
+catalog_version: "1.0.0"
+workflow_count: 20
+classification: Official
+workflows:
+  - workflow_id: system-architecture-design
+    reference: ../../official/system-architecture-design/workflow.yaml
+  - workflow_id: rest-api-design
+    reference: ../../official/rest-api-design/workflow.yaml
+  - workflow_id: backend-service-design
+    reference: ../../official/backend-service-design/workflow.yaml
+  - workflow_id: authentication-architecture
+    reference: ../../official/authentication-architecture/workflow.yaml
+  - workflow_id: frontend-feature-design
+    reference: ../../official/frontend-feature-design/workflow.yaml
+  - workflow_id: ui-component-design
+    reference: ../../official/ui-component-design/workflow.yaml
+  - workflow_id: responsive-ui-planning
+    reference: ../../official/responsive-ui-planning/workflow.yaml
+  - workflow_id: database-design
+    reference: ../../official/database-design/workflow.yaml
+  - workflow_id: schema-evolution
+    reference: ../../official/schema-evolution/workflow.yaml
+  - workflow_id: security-architecture-review
+    reference: ../../official/security-architecture-review/workflow.yaml
+  - workflow_id: threat-modeling
+    reference: ../../official/threat-modeling/workflow.yaml
+  - workflow_id: test-strategy
+    reference: ../../official/test-strategy/workflow.yaml
+  - workflow_id: regression-planning
+    reference: ../../official/regression-planning/workflow.yaml
+  - workflow_id: release-planning
+    reference: ../../official/release-planning/workflow.yaml
+  - workflow_id: incident-readiness-review
+    reference: ../../official/incident-readiness-review/workflow.yaml
+  - workflow_id: ai-solution-design
+    reference: ../../official/ai-solution-design/workflow.yaml
+  - workflow_id: prompt-architecture-review
+    reference: ../../official/prompt-architecture-review/workflow.yaml
+  - workflow_id: technical-documentation-planning
+    reference: ../../official/technical-documentation-planning/workflow.yaml
+  - workflow_id: technical-presentation-planning
+    reference: ../../official/technical-presentation-planning/workflow.yaml
+  - workflow_id: cross-team-engineering-review
+    reference: ../../official/cross-team-engineering-review/workflow.yaml
+

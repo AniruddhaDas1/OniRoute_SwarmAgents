@@ -1,0 +1,34 @@
+workflow_id: rest-api-design
+display_name: "REST API Design"
+description: "Official declarative workflow for REST API Design."
+category: Backend
+version: "1.0.0"
+status: Official
+lifecycle: Official
+owner: Backend Architect
+maintainers: [Backend Architect]
+authors: [Backend Architect]
+tags: [official, rest-api-design]
+compatible_agents: [Backend Architect]
+compatible_skills: [API Design Specialist]
+compatible_packages: []
+compatible_platforms: [provider-independent]
+compatible_oniroute_version: "5.x"
+entry_agent: Backend Architect
+exit_agent: Backend Architect
+required_inputs: [engineering-outcome, constraints]
+expected_outputs: [API Specification, Test Plan]
+produced_artifacts: [API Specification, Test Plan]
+dependencies: []
+decision_points: [Architecture Review]
+approval_points: [Architecture Review]
+failure_states: [Blocked, Rejected, Failed]
+success_criteria: [contract-complete, review-evidence-recorded]
+context_requirements: {input: declared, provenance: required}
+security_classification: Internal
+validation_state: Validated
+quality_score: 100
+license: MIT
+source: {registry: OniRoute, kind: official}
+created: "2026-08-04T00:00:00Z"
+updated: "2026-08-04T00:00:00Z"

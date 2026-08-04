@@ -1,0 +1,34 @@
+workflow_id: prompt-architecture-review
+display_name: "Prompt Architecture Review"
+description: "Official declarative workflow for Prompt Architecture Review."
+category: AI
+version: "1.0.0"
+status: Official
+lifecycle: Official
+owner: AI Architect
+maintainers: [AI Architect]
+authors: [AI Architect]
+tags: [official, prompt-architecture-review]
+compatible_agents: [AI Architect]
+compatible_skills: [Prompt Review Specialist]
+compatible_packages: []
+compatible_platforms: [provider-independent]
+compatible_oniroute_version: "5.x"
+entry_agent: AI Architect
+exit_agent: AI Architect
+required_inputs: [engineering-outcome, constraints]
+expected_outputs: [Review Notes, Decision Record]
+produced_artifacts: [Review Notes, Decision Record]
+dependencies: []
+decision_points: [Security Review]
+approval_points: [Security Review]
+failure_states: [Blocked, Rejected, Failed]
+success_criteria: [contract-complete, review-evidence-recorded]
+context_requirements: {input: declared, provenance: required}
+security_classification: Internal
+validation_state: Validated
+quality_score: 100
+license: MIT
+source: {registry: OniRoute, kind: official}
+created: "2026-08-04T00:00:00Z"
+updated: "2026-08-04T00:00:00Z"

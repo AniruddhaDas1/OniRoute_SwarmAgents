@@ -12,3 +12,5 @@ Registry indexing projects admitted metadata into these logical facets:
 - **Decision Gates:** declared decision kinds and authorities.
 
 Every index entry must retain a reference to its source registry record and version. Indexing does not inspect implementation, infer undeclared behavior, resolve dependencies, or define a storage or retrieval engine.
+
+Wave 1 index entries are declared in [`WORKFLOW_INDEX.yaml`](WORKFLOW_INDEX.yaml). The file is a metadata manifest, not an executable index.

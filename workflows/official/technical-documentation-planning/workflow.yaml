@@ -1,0 +1,34 @@
+workflow_id: technical-documentation-planning
+display_name: "Technical Documentation Planning"
+description: "Official declarative workflow for Technical Documentation Planning."
+category: Documentation
+version: "1.0.0"
+status: Official
+lifecycle: Official
+owner: Documentation Architect
+maintainers: [Documentation Architect]
+authors: [Documentation Architect]
+tags: [official, technical-documentation-planning]
+compatible_agents: [Documentation Architect]
+compatible_skills: [Technical Writer]
+compatible_packages: []
+compatible_platforms: [provider-independent]
+compatible_oniroute_version: "5.x"
+entry_agent: Documentation Architect
+exit_agent: Documentation Architect
+required_inputs: [engineering-outcome, constraints]
+expected_outputs: [Documentation, Requirements]
+produced_artifacts: [Documentation, Requirements]
+dependencies: []
+decision_points: [Product Review]
+approval_points: [Product Review]
+failure_states: [Blocked, Rejected, Failed]
+success_criteria: [contract-complete, review-evidence-recorded]
+context_requirements: {input: declared, provenance: required}
+security_classification: Internal
+validation_state: Validated
+quality_score: 100
+license: MIT
+source: {registry: OniRoute, kind: official}
+created: "2026-08-04T00:00:00Z"
+updated: "2026-08-04T00:00:00Z"

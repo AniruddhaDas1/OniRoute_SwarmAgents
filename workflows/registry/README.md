@@ -21,5 +21,8 @@ The Workflow Registry is the canonical catalog boundary for discovering, classif
 - [`WORKFLOW_CLASSIFICATION.md`](WORKFLOW_CLASSIFICATION.md) — classifications and categories.
 - [`WORKFLOW_TAGGING.md`](WORKFLOW_TAGGING.md) — tag governance.
 - [`WORKFLOW_PROVENANCE.md`](WORKFLOW_PROVENANCE.md) — immutable origin and history.
+- [`WORKFLOW_INDEX.yaml`](WORKFLOW_INDEX.yaml) — Wave 1 Official Workflow index.
+- [`WORKFLOW_STATISTICS.md`](WORKFLOW_STATISTICS.md) — catalog distribution statistics.
+- [`WORKFLOW_MAPPINGS.md`](WORKFLOW_MAPPINGS.md) — ownership and artifact discovery mappings.
 
 The registry defines no storage service, search implementation, CLI, prompt, adapter, package, execution engine, or provider integration.

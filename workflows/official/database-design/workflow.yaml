@@ -1,0 +1,34 @@
+workflow_id: database-design
+display_name: "Database Design"
+description: "Official declarative workflow for Database Design."
+category: Database
+version: "1.0.0"
+status: Official
+lifecycle: Official
+owner: Database Architect
+maintainers: [Database Architect]
+authors: [Database Architect]
+tags: [official, database-design]
+compatible_agents: [Database Architect]
+compatible_skills: [Data Modeling Specialist]
+compatible_packages: []
+compatible_platforms: [provider-independent]
+compatible_oniroute_version: "5.x"
+entry_agent: Database Architect
+exit_agent: Database Architect
+required_inputs: [engineering-outcome, constraints]
+expected_outputs: [Database Design, Architecture]
+produced_artifacts: [Database Design, Architecture]
+dependencies: []
+decision_points: [Architecture Review]
+approval_points: [Architecture Review]
+failure_states: [Blocked, Rejected, Failed]
+success_criteria: [contract-complete, review-evidence-recorded]
+context_requirements: {input: declared, provenance: required}
+security_classification: Internal
+validation_state: Validated
+quality_score: 100
+license: MIT
+source: {registry: OniRoute, kind: official}
+created: "2026-08-04T00:00:00Z"
+updated: "2026-08-04T00:00:00Z"

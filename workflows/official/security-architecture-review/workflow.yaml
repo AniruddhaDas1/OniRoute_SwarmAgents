@@ -1,0 +1,34 @@
+workflow_id: security-architecture-review
+display_name: "Security Architecture Review"
+description: "Official declarative workflow for Security Architecture Review."
+category: Security
+version: "1.0.0"
+status: Official
+lifecycle: Official
+owner: Security Architect
+maintainers: [Security Architect]
+authors: [Security Architect]
+tags: [official, security-architecture-review]
+compatible_agents: [Security Architect]
+compatible_skills: [Security Review Specialist]
+compatible_packages: []
+compatible_platforms: [provider-independent]
+compatible_oniroute_version: "5.x"
+entry_agent: Security Architect
+exit_agent: Security Architect
+required_inputs: [engineering-outcome, constraints]
+expected_outputs: [Review Notes, Decision Record]
+produced_artifacts: [Review Notes, Decision Record]
+dependencies: []
+decision_points: [Security Review]
+approval_points: [Security Review]
+failure_states: [Blocked, Rejected, Failed]
+success_criteria: [contract-complete, review-evidence-recorded]
+context_requirements: {input: declared, provenance: required}
+security_classification: Internal
+validation_state: Validated
+quality_score: 100
+license: MIT
+source: {registry: OniRoute, kind: official}
+created: "2026-08-04T00:00:00Z"
+updated: "2026-08-04T00:00:00Z"

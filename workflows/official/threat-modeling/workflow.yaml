@@ -1,0 +1,34 @@
+workflow_id: threat-modeling
+display_name: "Threat Modeling"
+description: "Official declarative workflow for Threat Modeling."
+category: Security
+version: "1.0.0"
+status: Official
+lifecycle: Official
+owner: Security Architect
+maintainers: [Security Architect]
+authors: [Security Architect]
+tags: [official, threat-modeling]
+compatible_agents: [Security Architect]
+compatible_skills: [Threat Analysis Specialist]
+compatible_packages: []
+compatible_platforms: [provider-independent]
+compatible_oniroute_version: "5.x"
+entry_agent: Security Architect
+exit_agent: Security Architect
+required_inputs: [engineering-outcome, constraints]
+expected_outputs: [Threat Model, Review Notes]
+produced_artifacts: [Threat Model, Review Notes]
+dependencies: []
+decision_points: [Security Review]
+approval_points: [Security Review]
+failure_states: [Blocked, Rejected, Failed]
+success_criteria: [contract-complete, review-evidence-recorded]
+context_requirements: {input: declared, provenance: required}
+security_classification: Internal
+validation_state: Validated
+quality_score: 100
+license: MIT
+source: {registry: OniRoute, kind: official}
+created: "2026-08-04T00:00:00Z"
+updated: "2026-08-04T00:00:00Z"

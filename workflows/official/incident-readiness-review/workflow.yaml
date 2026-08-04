@@ -1,0 +1,34 @@
+workflow_id: incident-readiness-review
+display_name: "Incident Readiness Review"
+description: "Official declarative workflow for Incident Readiness Review."
+category: DevOps
+version: "1.0.0"
+status: Official
+lifecycle: Official
+owner: Operations Architect
+maintainers: [Operations Architect]
+authors: [Operations Architect]
+tags: [official, incident-readiness-review]
+compatible_agents: [Operations Architect]
+compatible_skills: [Incident Readiness Specialist]
+compatible_packages: []
+compatible_platforms: [provider-independent]
+compatible_oniroute_version: "5.x"
+entry_agent: Operations Architect
+exit_agent: Operations Architect
+required_inputs: [engineering-outcome, constraints]
+expected_outputs: [Runbook, Review Notes]
+produced_artifacts: [Runbook, Review Notes]
+dependencies: []
+decision_points: [Operations Approval]
+approval_points: [Operations Approval]
+failure_states: [Blocked, Rejected, Failed]
+success_criteria: [contract-complete, review-evidence-recorded]
+context_requirements: {input: declared, provenance: required}
+security_classification: Internal
+validation_state: Validated
+quality_score: 100
+license: MIT
+source: {registry: OniRoute, kind: official}
+created: "2026-08-04T00:00:00Z"
+updated: "2026-08-04T00:00:00Z"

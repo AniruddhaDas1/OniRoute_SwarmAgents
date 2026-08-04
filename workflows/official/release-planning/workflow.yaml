@@ -1,0 +1,34 @@
+workflow_id: release-planning
+display_name: "Release Planning"
+description: "Official declarative workflow for Release Planning."
+category: DevOps
+version: "1.0.0"
+status: Official
+lifecycle: Official
+owner: Release Architect
+maintainers: [Release Architect]
+authors: [Release Architect]
+tags: [official, release-planning]
+compatible_agents: [Release Architect]
+compatible_skills: [Release Planning Specialist]
+compatible_packages: []
+compatible_platforms: [provider-independent]
+compatible_oniroute_version: "5.x"
+entry_agent: Release Architect
+exit_agent: Release Architect
+required_inputs: [engineering-outcome, constraints]
+expected_outputs: [Deployment Plan, Runbook]
+produced_artifacts: [Deployment Plan, Runbook]
+dependencies: []
+decision_points: [Release Approval]
+approval_points: [Release Approval]
+failure_states: [Blocked, Rejected, Failed]
+success_criteria: [contract-complete, review-evidence-recorded]
+context_requirements: {input: declared, provenance: required}
+security_classification: Internal
+validation_state: Validated
+quality_score: 100
+license: MIT
+source: {registry: OniRoute, kind: official}
+created: "2026-08-04T00:00:00Z"
+updated: "2026-08-04T00:00:00Z"

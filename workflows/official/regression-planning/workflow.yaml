@@ -1,0 +1,34 @@
+workflow_id: regression-planning
+display_name: "Regression Planning"
+description: "Official declarative workflow for Regression Planning."
+category: Testing
+version: "1.0.0"
+status: Official
+lifecycle: Official
+owner: Quality Architect
+maintainers: [Quality Architect]
+authors: [Quality Architect]
+tags: [official, regression-planning]
+compatible_agents: [Quality Architect]
+compatible_skills: [Regression Specialist]
+compatible_packages: []
+compatible_platforms: [provider-independent]
+compatible_oniroute_version: "5.x"
+entry_agent: Quality Architect
+exit_agent: Quality Architect
+required_inputs: [engineering-outcome, constraints]
+expected_outputs: [Test Plan, Report]
+produced_artifacts: [Test Plan, Report]
+dependencies: []
+decision_points: [Release Approval]
+approval_points: [Release Approval]
+failure_states: [Blocked, Rejected, Failed]
+success_criteria: [contract-complete, review-evidence-recorded]
+context_requirements: {input: declared, provenance: required}
+security_classification: Internal
+validation_state: Validated
+quality_score: 100
+license: MIT
+source: {registry: OniRoute, kind: official}
+created: "2026-08-04T00:00:00Z"
+updated: "2026-08-04T00:00:00Z"
