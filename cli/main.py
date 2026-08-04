@@ -6,15 +6,26 @@ from rich.console import Console
 from rich.table import Table
 
 from runtime.loader import RepositoryLoader
+from runtime.resolver import Resolver
 from runtime.validator import ValidationEngine
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
+list_app = typer.Typer(help="List repository metadata.")
+inspect_app = typer.Typer(help="Inspect one metadata record.")
+app.add_typer(list_app, name="list")
+app.add_typer(inspect_app, name="inspect")
 console = Console()
 
 
-@app.callback()
-def main() -> None:
-    """OniRoute local runtime commands."""
+def _resolver(root: Path) -> Resolver:
+    return Resolver(RepositoryLoader(root).load())
+
+
+def _table(records):
+    table = Table("ID", "Kind", "Name")
+    for record in records:
+        table.add_row(record.id, record.kind, str(record.data.get("display_name") or record.data.get("name") or record.data.get("id") or ""))
+    console.print(table)
 
 
 @app.command()
@@ -26,18 +37,37 @@ def doctor(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_ok
     registry = RepositoryLoader(repository_root).load()
     report = ValidationEngine(repository_root).validate(registry)
     table = Table(title="OniRoute Repository")
-    table.add_column("Record type")
-    table.add_column("Count", justify="right")
-    for name, count in registry.statistics().items():
-        table.add_row(name.replace("_", " ").title(), str(count))
+    table.add_column("Record type"); table.add_column("Count", justify="right")
+    for name, count in registry.statistics().items(): table.add_row(name.replace("_", " ").title(), str(count))
     console.print(table)
     console.print(f"Validation: [{'green' if report.valid else 'red'}]{'PASS' if report.valid else 'FAIL'}[/]")
     console.print(f"Errors: {len(report.errors)}  Warnings: {len(report.warnings)}  Duplicates: {len(registry.duplicates)}")
-    for issue in report.issues:
-        console.print(f"[{issue.severity}] {issue.code}: {issue.message}")
-    if not report.valid:
-        raise typer.Exit(1)
+    if not report.valid: raise typer.Exit(1)
 
 
-if __name__ == "__main__":
-    app()
+@list_app.command("agents")
+def list_agents(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)): _table([*_resolver(repository_root).registry.agents.values(), *_resolver(repository_root).registry.sub_agents.values()])
+
+@list_app.command("skills")
+def list_skills(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)): _table(_resolver(repository_root).registry.skills.values())
+
+@list_app.command("workflows")
+def list_workflows(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)): _table(_resolver(repository_root).registry.workflows.values())
+
+def _inspect(kind: str, identifier: str, root: Path):
+    resolver = _resolver(root); record = getattr(resolver, f"find_{kind}")(identifier)
+    if record is None: raise typer.BadParameter(f"Unknown {kind}: {identifier}")
+    console.print_json(data=record.data)
+
+@inspect_app.command("agent")
+def inspect_agent(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)): _inspect("agent", identifier, repository_root)
+@inspect_app.command("workflow")
+def inspect_workflow(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)): _inspect("workflow", identifier, repository_root)
+@inspect_app.command("skill")
+def inspect_skill(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)): _inspect("skill", identifier, repository_root)
+
+@app.command()
+def search(query: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    _table(_resolver(repository_root).search(query))
+
+if __name__ == "__main__": app()

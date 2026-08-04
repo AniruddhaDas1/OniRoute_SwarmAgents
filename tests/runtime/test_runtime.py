@@ -7,6 +7,8 @@ from runtime.registry import RegistryBuilder
 from runtime.models import MetadataRecord
 from runtime.resolver import Resolver
 from runtime.validator import ValidationEngine
+from typer.testing import CliRunner
+from cli.main import app
 
 
 ROOT = Path(__file__).parents[2]
@@ -50,3 +52,19 @@ def test_read_only_resolver():
     resolver = Resolver(RepositoryLoader(ROOT).load())
     assert resolver.find_workflow("rest-api-design") is not None
     assert resolver.search_by_category("Backend")
+
+
+def test_relationship_graph_creation():
+    resolver = Resolver(RepositoryLoader(ROOT).load())
+    assert resolver.graph.number_of_nodes() >= 20
+    assert len(resolver.graph.nodes) == len(set(resolver.graph.nodes))
+    assert resolver.workflow_relationships("rest-api-design")
+
+
+def test_cli_inspection_and_search():
+    runner = CliRunner()
+    inspected = runner.invoke(app, ["inspect", "workflow", "rest-api-design", "--repository-root", str(ROOT)])
+    searched = runner.invoke(app, ["search", "Backend", "--repository-root", str(ROOT)])
+    assert inspected.exit_code == 0, inspected.stdout
+    assert "REST API Design" in inspected.stdout
+    assert searched.exit_code == 0, searched.stdout
