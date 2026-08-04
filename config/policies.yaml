@@ -1,0 +1,16 @@
+allowed_models: [local-metadata-placeholder]
+blocked_models: []
+allowed_providers: [custom]
+blocked_providers: []
+allowed_protocols: [local-process, openai-compatible, ollama]
+capability_restrictions: []
+context_limit: 32768
+token_limit: 4096
+allowed_tools: [git-metadata, python-metadata, sqlite-metadata]
+denied_tools: []
+permission_defaults: [read_only]
+approval_defaults: Automatic
+approval_overrides: {}
+budget_limits: {invocations: 100, estimated_tokens: 100000, tool_invocations: 100, runtime_ms: 3600000}
+security_rules: {filesystem: deny, shell: deny, network: deny, database: deny, browser: deny, sensitive: deny, mcp: deny}
+risk_threshold: 40

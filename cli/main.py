@@ -19,6 +19,7 @@ from runtime.invocation.adapters import OllamaAdapter, OpenAICompatibleAdapter
 from runtime.invocation.dispatcher import InvocationDispatcher
 from runtime.invocation.engine import InvocationEngine
 from runtime.invocation.request import InvocationRequest
+from runtime.governance import AuditEngine,BudgetLimits,BudgetTracker,GovernanceRequest,PolicyEngine
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -28,6 +29,7 @@ run_app = typer.Typer(help="Run deterministic local workflows.")
 plan_app = typer.Typer(help="Build deterministic execution plans.")
 models_app = typer.Typer(help="List and test model metadata.", invoke_without_command=True)
 explain_app = typer.Typer(help="Explain Workflow and execution resolution.")
+policy_app = typer.Typer(help="Inspect governance policy.",invoke_without_command=True)
 app.add_typer(list_app, name="list")
 app.add_typer(inspect_app, name="inspect")
 app.add_typer(context_app, name="context")
@@ -35,6 +37,7 @@ app.add_typer(run_app, name="run")
 app.add_typer(plan_app, name="plan")
 app.add_typer(models_app, name="models")
 app.add_typer(explain_app, name="explain")
+app.add_typer(policy_app, name="policy")
 _session_engines: dict[str, WorkflowEngine] = {}
 console = Console()
 
@@ -52,6 +55,9 @@ def _models(root: Path) -> ModelManager: return ModelManager(root / "config/mode
 def _tools(root:Path):
     config=yaml.safe_load((root/"config/tools.yaml").read_text(encoding="utf-8")) or {};registry=ToolCatalog.load(root/"config/tools.yaml");policy=PermissionPolicy({Permission(item) for item in config.get("permission_policy",[])})
     return registry,ToolResolver(registry),ToolSelector(registry,policy,tuple(config.get("preferred_local_tools",[])))
+
+def _governance(root:Path):
+    config=yaml.safe_load((root/"config/policies.yaml").read_text(encoding="utf-8")) or {};audit=AuditEngine();budgets=BudgetTracker(BudgetLimits(**config.get("budget_limits",{})));return config,PolicyEngine(config,budgets,audit)
 
 
 def _table(records):
@@ -149,6 +155,31 @@ def explain_execution(repository_root:Path=typer.Option(Path.cwd(),exists=True,f
 @app.command("trace")
 def trace(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
     for event in _engine(repository_root).events.events:console.print(f"{event.timestamp.isoformat()} {event.type} {event.subject_id}")
+
+@policy_app.callback()
+def policy_summary(ctx:typer.Context,repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    if ctx.invoked_subcommand is not None:return
+    config,_=_governance(repository_root);console.print_json(data={"allowed_models":config.get("allowed_models"),"allowed_tools":config.get("allowed_tools"),"approval_defaults":config.get("approval_defaults"),"risk_threshold":config.get("risk_threshold")})
+
+@policy_app.command("workflow")
+def policy_workflow(identifier:str,repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    config,engine=_governance(repository_root);result=engine.evaluate(GovernanceRequest(kind="workflow",workflow=identifier));console.print_json(data={"workflow":identifier,"decision":result.model_dump(mode="json"),"configuration":{"approval":config.get("approval_defaults"),"token_limit":config.get("token_limit")}})
+
+@app.command("audit")
+def audit(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    _,engine=_governance(repository_root);console.print_json(data=[item.model_dump(mode="json") for item in engine.audit.records])
+
+@app.command("approvals")
+def approvals(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    config,_=_governance(repository_root);console.print_json(data={"default":config.get("approval_defaults"),"overrides":config.get("approval_overrides",{})})
+
+@app.command("permissions")
+def permissions(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    config,_=_governance(repository_root);console.print_json(data={"defaults":config.get("permission_defaults"),"security_rules":config.get("security_rules",{})})
+
+@app.command("budget")
+def budget(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    config,engine=_governance(repository_root);console.print_json(data={"limits":config.get("budget_limits",{}),"usage":engine.budgets.snapshot()})
 
 @app.command()
 def history(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
