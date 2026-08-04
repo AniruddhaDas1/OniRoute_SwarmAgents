@@ -1,0 +1,47 @@
+schema_version: 0.1.0
+agent: motion
+sub_agents:
+  - motion-motion-architecture
+  - motion-animation-principles
+  - motion-page-transitions
+  - motion-micro-interactions
+  - motion-scroll-animations
+  - motion-gesture-animations
+  - motion-svg-animation
+  - motion-motion-performance
+  - motion-motion-accessibility
+  - motion-motion-review
+official_skills:
+  - official.frontend.accessibility
+  - official.frontend.frontend-performance
+  - official.frontend.frontend-testing
+  - official.foundation.testing-fundamentals
+community_skills:
+  - community.claude-skills.engineering-skills-performance-profiler
+future_motion_skills:
+  - motion.fundamentals
+  - motion.animation-principles
+  - motion.interaction-patterns
+  - motion.transitions-and-choreography
+  - motion.scroll-and-gesture
+  - motion.accessibility
+  - motion.performance
+  - motion.motion-testing
+future_package_skills:
+  - package.motion-implementation-guidance
+  - package.motion-visual-regression
+priority: High
+confidence: Medium
+status: Audit
+coverage:
+  assessed_capabilities: 28
+  official_covered: 4
+  community_covered: 1
+  partial: 6
+  missing: 22
+  percentage: 21
+evidence:
+  - Existing Official Skill metadata and Resolution Index
+  - Existing Community Skill metadata
+  - ACR-001 Phase M1 Motion contracts
+  - Repository license and metadata review dated 2026-08-04
