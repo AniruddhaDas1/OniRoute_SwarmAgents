@@ -1,0 +1,58 @@
+schema_version: "0.1.0"
+type: skill_metadata
+required:
+  - id
+  - name
+  - display_name
+  - version
+  - description
+  - category
+  - tags
+  - author
+  - organization
+  - license
+  - source
+  - status
+  - compatibility
+  - consumes_context
+  - produces_context
+  - required_tools
+  - optional_tools
+  - input_contract
+  - output_contract
+  - dependencies
+  - related_skills
+  - compatible_agents
+  - compatible_sub_agents
+  - validation_level
+  - quality_score
+  - created
+  - updated
+properties:
+  id: {type: string, pattern: '^[a-z0-9][a-z0-9._-]*$'}
+  name: {type: string}
+  display_name: {type: string}
+  version: {type: string, semantic_version: true}
+  description: {type: string}
+  category: {type: string}
+  tags: {type: array, items: {type: string}}
+  author: {type: string}
+  organization: {type: string}
+  license: {type: string}
+  source: {type: object}
+  status: {type: string, enum: [Draft, Experimental, Community, Verified, Official, Deprecated, Archived]}
+  compatibility: {type: object}
+  consumes_context: {type: array, items: {type: string}}
+  produces_context: {type: array, items: {type: string}}
+  required_tools: {type: array, items: {type: string}}
+  optional_tools: {type: array, items: {type: string}}
+  input_contract: {type: string}
+  output_contract: {type: string}
+  dependencies: {type: array, items: {type: string}}
+  related_skills: {type: array, items: {type: string}}
+  compatible_agents: {type: array, items: {type: string}}
+  compatible_sub_agents: {type: array, items: {type: string}}
+  validation_level: {type: string}
+  quality_score: {type: number, minimum: 0, maximum: 100}
+  created: {type: string, format: date-time}
+  updated: {type: string, format: date-time}
