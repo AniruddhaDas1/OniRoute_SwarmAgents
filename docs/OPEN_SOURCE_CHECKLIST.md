@@ -8,4 +8,4 @@
 - [x] No committed credentials or mandatory SaaS dependency.
 - [ ] Confirm repository security-advisory contact before release.
 - [ ] Perform final third-party license/provenance review for every imported community artifact.
-- [ ] Choose and tag the public release version.
+- [x] Choose release candidate version `1.0.0rc1` / `v1.0.0-rc1` (do not tag or publish in this phase).
