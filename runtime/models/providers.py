@@ -1,0 +1,1 @@
+PROVIDERS = ("openai", "anthropic", "google", "ollama", "vllm", "lm-studio", "mlx", "localai", "llama-cpp", "koboldcpp", "tgi", "groq", "together", "fireworks", "deepseek", "mistral", "cohere", "hugging-face", "openrouter", "custom")

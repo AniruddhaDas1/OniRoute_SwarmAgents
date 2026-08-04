@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from runtime.models import RepositoryRegistry
+from runtime.core_models import RepositoryRegistry
 
 from .artifacts import ArtifactGenerator
 from .events import EventBus

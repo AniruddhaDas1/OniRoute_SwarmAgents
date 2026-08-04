@@ -1,0 +1,29 @@
+preferred_provider: custom
+preferred_protocol: local-process
+local_first: true
+fallback_order: [custom]
+disabled_providers: []
+disabled_models: []
+capability_overrides: {}
+models:
+  - id: local-metadata-placeholder
+    display_name: Local Metadata Placeholder
+    provider: custom
+    protocol: local-process
+    capabilities: [reasoning, coding, planning, analysis, classification, summarization, structured_output, json_output, conversation]
+    context_window: 32768
+    max_output: 4096
+    supports_streaming: false
+    supports_vision: false
+    supports_audio: false
+    supports_tools: false
+    supports_embeddings: false
+    supports_structured_output: true
+    supports_images: false
+    supports_reasoning: true
+    supports_json: true
+    status: Healthy
+    priority: 100
+    cost_class: local
+    local: true
+    aliases: [default-local]

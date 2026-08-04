@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .models import MetadataRecord, RepositoryRegistry
+from .core_models import MetadataRecord, RepositoryRegistry
 
 
 class RegistryBuilder:

@@ -6,7 +6,7 @@ from typing import Any
 import yaml
 
 from .exceptions import LoadError
-from .models import MetadataRecord, RepositoryRegistry
+from .core_models import MetadataRecord, RepositoryRegistry
 from .registry import RegistryBuilder
 
 

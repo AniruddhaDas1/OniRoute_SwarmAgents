@@ -28,10 +28,7 @@ class RepositoryRegistry(BaseModel):
     duplicates: dict[str, list[Path]] = Field(default_factory=dict)
 
     def statistics(self) -> dict[str, int]:
-        return {name: len(getattr(self, name)) for name in (
-            "agents", "sub_agents", "skills", "workflows", "knowledge_sources",
-            "packages", "mappings", "registry_records"
-        )}
+        return {name: len(getattr(self, name)) for name in ("agents", "sub_agents", "skills", "workflows", "knowledge_sources", "packages", "mappings", "registry_records")}
 
 
 class ValidationIssue(BaseModel):
@@ -43,15 +40,9 @@ class ValidationIssue(BaseModel):
 
 class ValidationReport(BaseModel):
     issues: list[ValidationIssue] = Field(default_factory=list)
-
     @property
-    def valid(self) -> bool:
-        return not any(issue.severity == "error" for issue in self.issues)
-
+    def valid(self) -> bool: return not any(issue.severity == "error" for issue in self.issues)
     @property
-    def errors(self) -> list[ValidationIssue]:
-        return [issue for issue in self.issues if issue.severity == "error"]
-
+    def errors(self) -> list[ValidationIssue]: return [issue for issue in self.issues if issue.severity == "error"]
     @property
-    def warnings(self) -> list[ValidationIssue]:
-        return [issue for issue in self.issues if issue.severity == "warning"]
+    def warnings(self) -> list[ValidationIssue]: return [issue for issue in self.issues if issue.severity == "warning"]

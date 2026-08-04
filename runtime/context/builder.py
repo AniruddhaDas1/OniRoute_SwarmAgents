@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from runtime.models import MetadataRecord, RepositoryRegistry
+from runtime.core_models import MetadataRecord, RepositoryRegistry
 from runtime.resolver import Resolver
 
 from .models import AgentContext, ArtifactContext, ContextObject, ExecutionContext, RepositoryContext, SkillContext, WorkflowContext

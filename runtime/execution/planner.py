@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from runtime.context.builder import ContextBuilder
 from runtime.context.router import ContextRouter
-from runtime.models import RepositoryRegistry
+from runtime.core_models import RepositoryRegistry
 from runtime.resolver import Resolver
 
 from .models import ExecutionPlan, ExecutionStep

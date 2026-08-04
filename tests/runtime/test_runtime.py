@@ -4,7 +4,7 @@ import yaml
 
 from runtime.loader import RepositoryLoader
 from runtime.registry import RegistryBuilder
-from runtime.models import MetadataRecord
+from runtime.core_models import MetadataRecord
 from runtime.resolver import Resolver
 from runtime.validator import ValidationEngine
 from typer.testing import CliRunner

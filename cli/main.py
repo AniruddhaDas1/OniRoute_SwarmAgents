@@ -11,6 +11,7 @@ from runtime.validator import ValidationEngine
 from runtime.context.builder import ContextBuilder
 from runtime.context.serializer import ContextSerializer
 from runtime.execution.engine import WorkflowEngine
+from runtime.models import Capability, ModelManager, SelectionRequest
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -35,6 +36,8 @@ def _engine(root: Path) -> WorkflowEngine:
     key = str(root.resolve())
     if key not in _session_engines: _session_engines[key] = WorkflowEngine(RepositoryLoader(root).load())
     return _session_engines[key]
+
+def _models(root: Path) -> ModelManager: return ModelManager(root / "config/models.yaml")
 
 
 def _table(records):
@@ -129,5 +132,38 @@ def events(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_ok
     table = Table("Type", "Execution", "Subject")
     for event in _engine(repository_root).events.events: table.add_row(event.type, event.execution_id, event.subject_id)
     console.print(table)
+
+@app.command("models")
+def list_models(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    table=Table("ID","Name","Provider","Protocol","Status")
+    for item in _models(repository_root).registry.models.values():table.add_row(item.id,item.display_name,item.provider,item.protocol,item.status)
+    console.print(table)
+
+@app.command("providers")
+def list_providers(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    table=Table("ID","Name","Status","Local")
+    for item in _models(repository_root).registry.providers.values():table.add_row(item.id,item.display_name,item.status,"yes" if item.local else "no")
+    console.print(table)
+
+@app.command("capabilities")
+def list_capabilities():
+    for item in Capability:console.print(item.value)
+
+@inspect_app.command("model")
+def inspect_model(identifier:str,repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    item=_models(repository_root).resolver.find_model(identifier)
+    if not item:raise typer.BadParameter(f"Unknown model: {identifier}")
+    console.print_json(data=item.model_dump(mode="json"))
+
+@inspect_app.command("provider")
+def inspect_provider(identifier:str,repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    item=_models(repository_root).resolver.find_provider(identifier)
+    if not item:raise typer.BadParameter(f"Unknown provider: {identifier}")
+    console.print_json(data=item.model_dump(mode="json"))
+
+@app.command("recommend-model")
+def recommend_model(capability:list[Capability]=typer.Option(...),local:bool=False,repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    manager=_models(repository_root); item=manager.select_best_model(SelectionRequest(capabilities=frozenset(capability),local_only=local,local_preference=manager.config.get("local_first",False)))
+    console.print_json(data=item.model_dump(mode="json"))
 
 if __name__ == "__main__": app()

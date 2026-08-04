@@ -6,7 +6,7 @@ from typing import Any
 import yaml
 import networkx as nx
 
-from .models import RepositoryRegistry, ValidationIssue, ValidationReport
+from .core_models import RepositoryRegistry, ValidationIssue, ValidationReport
 
 
 class ValidationEngine:
