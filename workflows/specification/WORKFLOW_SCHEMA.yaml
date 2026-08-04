@@ -1,0 +1,72 @@
+schema_version: "0.1.0"
+type: workflow_metadata
+required:
+  - workflow_id
+  - display_name
+  - description
+  - category
+  - version
+  - status
+  - lifecycle
+  - owner
+  - maintainers
+  - authors
+  - created
+  - updated
+  - tags
+  - compatible_agents
+  - compatible_skills
+  - compatible_packages
+  - compatible_platforms
+  - compatible_oniroute_version
+  - entry_agent
+  - exit_agent
+  - required_inputs
+  - expected_outputs
+  - produced_artifacts
+  - dependencies
+  - decision_points
+  - approval_points
+  - failure_states
+  - success_criteria
+  - context_requirements
+  - security_classification
+  - validation_state
+  - quality_score
+  - license
+  - source
+properties:
+  workflow_id: {type: string, pattern: '^[a-z0-9][a-z0-9._-]*$'}
+  display_name: {type: string}
+  description: {type: string}
+  category: {type: string}
+  version: {type: string, semantic_version: true}
+  status: {type: string, enum: [Draft, Experimental, Reviewed, Verified, Official, Deprecated, Archived, Removed]}
+  lifecycle: {type: string, enum: [Draft, Experimental, Reviewed, Verified, Official, Deprecated, Archived, Removed]}
+  owner: {type: string}
+  maintainers: {type: array, items: {type: string}}
+  authors: {type: array, items: {type: string}}
+  created: {type: string, format: date-time}
+  updated: {type: string, format: date-time}
+  tags: {type: array, items: {type: string}}
+  compatible_agents: {type: array, items: {type: string}}
+  compatible_skills: {type: array, items: {type: string}}
+  compatible_packages: {type: array, items: {type: string}}
+  compatible_platforms: {type: array, items: {type: string}}
+  compatible_oniroute_version: {type: string}
+  entry_agent: {type: string}
+  exit_agent: {type: string}
+  required_inputs: {type: array, items: {type: object}}
+  expected_outputs: {type: array, items: {type: object}}
+  produced_artifacts: {type: array, items: {type: object}}
+  dependencies: {type: array, items: {type: object}}
+  decision_points: {type: array, items: {type: object}}
+  approval_points: {type: array, items: {type: object}}
+  failure_states: {type: array, items: {type: object}}
+  success_criteria: {type: array, items: {type: string}}
+  context_requirements: {type: object}
+  security_classification: {type: string}
+  validation_state: {type: string}
+  quality_score: {type: number, minimum: 0, maximum: 100}
+  license: {type: string}
+  source: {type: object}
