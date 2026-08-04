@@ -5,6 +5,12 @@ fallback_order: [custom]
 disabled_providers: []
 disabled_models: []
 capability_overrides: {}
+timeouts: {default: 60}
+retries: {mode: "Fail Fast", attempts: 1}
+fallback_chains: {}
+streaming: {enabled: false}
+providers: {}
+protocols: {}
 models:
   - id: local-metadata-placeholder
     display_name: Local Metadata Placeholder
@@ -27,3 +33,4 @@ models:
     cost_class: local
     local: true
     aliases: [default-local]
+    endpoint: http://127.0.0.1:11434

@@ -15,6 +15,10 @@ from runtime.models import Capability, ModelManager, SelectionRequest
 from runtime.tools import Permission, PermissionPolicy, ToolCapability, ToolCatalog, ToolSelectionRequest
 from runtime.tools.resolver import ToolResolver
 from runtime.tools.selection import ToolSelector
+from runtime.invocation.adapters import OllamaAdapter, OpenAICompatibleAdapter
+from runtime.invocation.dispatcher import InvocationDispatcher
+from runtime.invocation.engine import InvocationEngine
+from runtime.invocation.request import InvocationRequest
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -22,11 +26,13 @@ inspect_app = typer.Typer(help="Inspect one metadata record.")
 context_app = typer.Typer(help="Inspect deterministic context metadata.")
 run_app = typer.Typer(help="Run deterministic local workflows.")
 plan_app = typer.Typer(help="Build deterministic execution plans.")
+models_app = typer.Typer(help="List and test model metadata.", invoke_without_command=True)
 app.add_typer(list_app, name="list")
 app.add_typer(inspect_app, name="inspect")
 app.add_typer(context_app, name="context")
 app.add_typer(run_app, name="run")
 app.add_typer(plan_app, name="plan")
+app.add_typer(models_app, name="models")
 _session_engines: dict[str, WorkflowEngine] = {}
 console = Console()
 
@@ -139,8 +145,9 @@ def events(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_ok
     for event in _engine(repository_root).events.events: table.add_row(event.type, event.execution_id, event.subject_id)
     console.print(table)
 
-@app.command("models")
-def list_models(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+@models_app.callback()
+def list_models(ctx:typer.Context,repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    if ctx.invoked_subcommand is not None:return
     table=Table("ID","Name","Provider","Protocol","Status")
     for item in _models(repository_root).registry.models.values():table.add_row(item.id,item.display_name,item.provider,item.protocol,item.status)
     console.print(table)
@@ -200,5 +207,15 @@ def inspect_mcp(identifier:str,repository_root:Path=typer.Option(Path.cwd(),exis
 def recommend_tool(capability:list[ToolCapability]=typer.Option(...),repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
     _,_,selector=_tools(repository_root);item=selector.recommend(ToolSelectionRequest(capabilities=frozenset(capability)))
     console.print_json(data=item.model_dump(mode="json"))
+
+@app.command("invoke")
+def invoke(prompt:str=typer.Option(...),model:str|None=typer.Option(None),provider:str|None=typer.Option(None),capability:list[Capability]=typer.Option([]),repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
+    manager=_models(repository_root);dispatcher=InvocationDispatcher();endpoint=manager.config.get("endpoint","http://127.0.0.1:11434")
+    dispatcher.register("openai-compatible",OpenAICompatibleAdapter(endpoint));dispatcher.register("ollama",OllamaAdapter(endpoint));dispatcher.register("local-process",OllamaAdapter(endpoint))
+    result=InvocationEngine(manager,dispatcher).invoke(InvocationRequest(prompt=prompt),SelectionRequest(capabilities=frozenset(capability),provider=provider),model_id=model)
+    console.print(result.text)
+
+@models_app.command("test")
+def models_test(): console.print("Model catalog and adapter interfaces available; no network probe performed.")
 
 if __name__ == "__main__": app()
