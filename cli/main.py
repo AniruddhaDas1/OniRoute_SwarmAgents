@@ -10,19 +10,31 @@ from runtime.resolver import Resolver
 from runtime.validator import ValidationEngine
 from runtime.context.builder import ContextBuilder
 from runtime.context.serializer import ContextSerializer
+from runtime.execution.engine import WorkflowEngine
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
 inspect_app = typer.Typer(help="Inspect one metadata record.")
 context_app = typer.Typer(help="Inspect deterministic context metadata.")
+run_app = typer.Typer(help="Run deterministic local workflows.")
+plan_app = typer.Typer(help="Build deterministic execution plans.")
 app.add_typer(list_app, name="list")
 app.add_typer(inspect_app, name="inspect")
 app.add_typer(context_app, name="context")
+app.add_typer(run_app, name="run")
+app.add_typer(plan_app, name="plan")
+_session_engines: dict[str, WorkflowEngine] = {}
 console = Console()
 
 
 def _resolver(root: Path) -> Resolver:
     return Resolver(RepositoryLoader(root).load())
+
+
+def _engine(root: Path) -> WorkflowEngine:
+    key = str(root.resolve())
+    if key not in _session_engines: _session_engines[key] = WorkflowEngine(RepositoryLoader(root).load())
+    return _session_engines[key]
 
 
 def _table(records):
@@ -93,5 +105,29 @@ def context_skill(identifier: str, repository_root: Path = typer.Option(Path.cwd
 @app.command()
 def search(query: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
     _table(_resolver(repository_root).search(query))
+
+@plan_app.command("workflow")
+def plan_workflow(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    plan = _engine(repository_root).plan(identifier); table = Table("Order", "Step", "Agent", "Skill", "Status")
+    for step in plan.steps: table.add_row(str(step.execution_order), step.description, step.agent or "—", step.skill or "—", step.status)
+    console.print(table)
+
+@run_app.command("workflow")
+def run_workflow(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    result = _engine(repository_root).run(identifier)
+    console.print(f"Execution: {result.execution_id}  Status: [green]{result.status}[/]  Artifacts: {len(result.artifacts)}")
+    for step in result.plan.steps: console.print(f"{step.execution_order}. {step.description}: {step.result}")
+
+@app.command()
+def history(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    table = Table("Execution", "Workflow", "Status")
+    for item in _engine(repository_root).history.all(): table.add_row(item.execution_id, item.workflow_id, item.status)
+    console.print(table)
+
+@app.command()
+def events(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+    table = Table("Type", "Execution", "Subject")
+    for event in _engine(repository_root).events.events: table.add_row(event.type, event.execution_id, event.subject_id)
+    console.print(table)
 
 if __name__ == "__main__": app()

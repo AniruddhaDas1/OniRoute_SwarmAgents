@@ -13,6 +13,9 @@ from runtime.context.builder import ContextBuilder
 from runtime.context.filter import ContextFilter
 from runtime.context.router import ContextRouter
 from runtime.context.serializer import ContextSerializer
+from runtime.execution.engine import WorkflowEngine
+from runtime.execution.executor import DeterministicExecutor
+from runtime.execution.state import ExecutionStatus
 
 
 ROOT = Path(__file__).parents[2]
@@ -93,3 +96,26 @@ def test_context_cli_inspection():
     result = CliRunner().invoke(app, ["context", "workflow", "rest-api-design", "--repository-root", str(ROOT)])
     assert result.exit_code == 0, result.stdout
     assert "workflow:rest-api-design" in result.stdout
+
+
+def test_execution_planning_is_deterministic():
+    engine = WorkflowEngine(RepositoryLoader(ROOT).load())
+    first = engine.plan("rest-api-design"); second = engine.plan("rest-api-design")
+    assert first == second; assert [step.execution_order for step in first.steps] == [1, 2, 3, 4, 5]
+
+
+def test_execution_state_artifacts_history_and_events():
+    engine = WorkflowEngine(RepositoryLoader(ROOT).load()); result = engine.run("rest-api-design")
+    assert result.status == ExecutionStatus.COMPLETED
+    assert all(step.status == ExecutionStatus.COMPLETED for step in result.plan.steps)
+    assert any(step.result == DeterministicExecutor.PLACEHOLDER for step in result.plan.steps)
+    assert len(result.artifacts) == 6; assert len(engine.history.all()) == 1
+    assert engine.events.events[0].type == "WorkflowStarted"; assert engine.events.events[-1].type == "WorkflowCompleted"
+
+
+def test_execution_cli_commands():
+    runner = CliRunner()
+    planned = runner.invoke(app, ["plan", "workflow", "rest-api-design", "--repository-root", str(ROOT)])
+    ran = runner.invoke(app, ["run", "workflow", "rest-api-design", "--repository-root", str(ROOT)])
+    assert planned.exit_code == 0, planned.stdout; assert "Resolve declared" in planned.stdout
+    assert ran.exit_code == 0, ran.stdout; assert "Placeholder: AI execution" in ran.stdout

@@ -16,6 +16,12 @@ The runtime discovers and parses repository metadata, builds in-memory indexes, 
 
 `ContextBuilder` creates immutable Workflow, Agent, Skill, Artifact, Repository, and metadata-only Execution contexts. `ContextRouter` emits a routing plan from Workflow to Agent, Skill, Artifact, and next Agent without execution. `ContextFilter` applies allow/block lists, redaction, compression, priority, scope, and a non-AI summarization placeholder. `ContextSerializer` supports dictionaries, JSON, YAML, and Pydantic models. `InMemoryContextStorage` is process-local and non-persistent.
 
+## Execution lifecycle
+
+The local engine loads and resolves Workflow metadata, prepares context, creates a deterministic five-step plan, advances Pending → Running → Completed states, emits in-memory events, and produces six metadata artifacts. AI-associated steps return `Placeholder: AI execution not yet implemented` and continue. Plans use stable IDs and execution order; elapsed duration and event timestamps are observational only.
+
+Events cover WorkflowStarted, StepStarted, StepCompleted, StepSkipped, ArtifactGenerated, WorkflowCompleted, and WorkflowFailed. History, events, and artifacts live only in the current process. CLI commands are `oniroute plan workflow <id>`, `oniroute run workflow <id>`, `oniroute history`, and `oniroute events`.
+
 ## Resolution Engine
 
 Resolution answers repository questions by ID, category, tag, owner, participant, artifact, and declared relationship. It does not traverse a Workflow for execution, schedule work, invoke Skills, or call a provider.
