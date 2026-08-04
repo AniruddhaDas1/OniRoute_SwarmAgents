@@ -6,7 +6,17 @@ phase: 2.2
 department: engineering
 reports_to: engineering-director
 parent: engineering
-children: []
+children:
+  - database-data-modeling
+  - database-schema-design
+  - database-query-design
+  - database-transaction-management
+  - database-index-strategy
+  - database-migration-strategy
+  - database-performance-optimization
+  - database-backup-recovery
+  - database-data-governance
+  - database-database-review
 description: Engineering owner of persistent data design and query performance.
 mission: Define reliable, evolvable data models and migrations without implementing them.
 responsibilities:
