@@ -18,7 +18,7 @@ dev = ["pytest>=9", "build>=1.2"]
 oniroute = "cli.main:app"
 
 [tool.setuptools]
-packages = ["runtime", "runtime.context", "runtime.execution", "runtime.models", "runtime.tools", "runtime.invocation", "runtime.governance", "runtime.optimization", "cli"]
+packages = ["runtime", "runtime.context", "runtime.execution", "runtime.models", "runtime.tools", "runtime.invocation", "runtime.governance", "runtime.optimization", "runtime.workspace", "cli"]
 
 [tool.setuptools.data-files]
 "." = ["AUTHORS", "NOTICE"]
