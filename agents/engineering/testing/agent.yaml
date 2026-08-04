@@ -6,7 +6,17 @@ phase: 2.2
 department: engineering
 reports_to: engineering-director
 parent: engineering
-children: []
+children:
+  - testing-test-strategy
+  - testing-test-architecture
+  - testing-unit-testing-governance
+  - testing-integration-testing
+  - testing-system-verification
+  - testing-regression-planning
+  - testing-automation-governance
+  - testing-coverage-analysis
+  - testing-test-data-coordination
+  - testing-testing-review
 description: Engineering owner of verification strategy and quality planning.
 mission: Define risk-based, traceable quality evidence without implementing tests.
 responsibilities:
