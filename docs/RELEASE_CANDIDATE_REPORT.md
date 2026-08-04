@@ -17,7 +17,7 @@
 
 ## Packaging
 
-The wheel builds as `oniroute_swarmagents-1.0.0rc1-py3-none-any.whl` and contains 81 expected runtime, CLI, license, entry-point, and distribution-metadata files. It contains no caches, editor files, Git data, temporary content, or development egg-info. The sdist builds as `oniroute_swarmagents-1.0.0rc1.tar.gz`; its setuptools-generated `.egg-info` directory is standard required source-distribution metadata. Package discovery is explicitly limited to runtime subpackages and CLI.
+The wheel builds as `oniroute_swarmagents-1.0.0rc1-py3-none-any.whl` and contains 95 expected runtime, CLI, license, entry-point, and distribution-metadata files. It contains no caches, editor files, Git data, temporary content, or development egg-info. The sdist builds as `oniroute_swarmagents-1.0.0rc1.tar.gz`; its setuptools-generated `.egg-info` directory is standard required source-distribution metadata. Package discovery is explicitly limited to runtime subpackages and CLI.
 
 ## Documentation and repository health
 
