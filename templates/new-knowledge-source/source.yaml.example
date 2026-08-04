@@ -5,5 +5,5 @@ source_type: documentation
 trust: Unknown
 lifecycle: Draft
 validation: Unvalidated
-license: MIT
+license: Apache-2.0
 provenance: {}

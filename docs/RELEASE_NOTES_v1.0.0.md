@@ -1,8 +1,8 @@
-# OniRoute v1.0.0 Release Candidate
+# OniRoute v1.0.0
 
 ## Highlights
 
-OniRoute is a local-first, provider-independent engineering organization framework with a frozen v0.6 runtime and a complete public documentation/contribution surface.
+OniRoute is a local-first, provider-independent engineering organization framework with a frozen v0.6 runtime and a complete public documentation and contribution surface. Version 1.0.0 is licensed under Apache-2.0.
 
 ## Major capabilities
 
@@ -22,7 +22,7 @@ Provider metadata includes OpenAI, Anthropic, Google, OpenRouter, Groq, Together
 
 ## Known limitations
 
-Tool/MCP execution is not implemented; most state is process-local; streaming adapters currently yield one completed chunk; and imported community licenses require final human review.
+Tool/MCP execution is not implemented; most state is process-local; streaming adapters currently yield one completed chunk; unknown-license and copyleft Community sources remain excluded or reference-only.
 
 ## Upgrade notes
 

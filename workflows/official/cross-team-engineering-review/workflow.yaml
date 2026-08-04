@@ -28,7 +28,7 @@ context_requirements: {input: declared, provenance: required}
 security_classification: Internal
 validation_state: Validated
 quality_score: 100
-license: MIT
+license: Apache-2.0
 source: {registry: OniRoute, kind: official}
 created: "2026-08-04T00:00:00Z"
 updated: "2026-08-04T00:00:00Z"

@@ -97,6 +97,6 @@ Read [Contributing](docs/CONTRIBUTING.md), the [Developer Guide](docs/DEVELOPER_
 
 ## License and acknowledgements
 
-Released under the [MIT License](LICENSE). Community Skill sources retain their recorded provenance and licensing metadata; see the community catalogs and [Open Source Checklist](docs/OPEN_SOURCE_CHECKLIST.md).
+Released under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE), [AUTHORS](AUTHORS), and [Third-Party Notices](docs/THIRD_PARTY_NOTICES.md). Community Skill sources retain their recorded provenance and licensing metadata.
 
 Thanks to the open-source Python ecosystem, community Skill authors, and contributors whose attributed work is represented in the repository.

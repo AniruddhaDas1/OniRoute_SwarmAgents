@@ -1,6 +1,6 @@
 # Final Production Readiness Assessment
 
-Overall score: **92/100 — Release Candidate ready for compliance review**.
+Overall score: **92/100 — Historical release-candidate readiness review**. Final stable certification is recorded in `docs/V1_RELEASE_CERTIFICATE.md`.
 
 | Area | Score |
 |---|---:|

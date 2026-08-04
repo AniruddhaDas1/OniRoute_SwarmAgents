@@ -2,7 +2,7 @@
 
 ## Passing checks
 
-- [x] Root MIT license and SPDX-compatible `MIT` project metadata are present.
+- [x] Root Apache License 2.0 and SPDX `Apache-2.0` project metadata are present.
 - [x] README, installation, release, versioning, contribution, security, support, discussion, and conduct guidance are present.
 - [x] Third-party notices enumerate nine community metadata sources.
 - [x] Community and research provenance is preserved; no copied implementation or prompts were found.
@@ -11,14 +11,14 @@
 - [x] Fresh wheel/sdist build and content inspection completed.
 - [x] `git diff --check` passes for this audit change.
 
-## Blocking before v1.0.0
+## Release decisions
 
-- [ ] Decide whether AGPL-3.0 `knoxgraeme/skillfish` remains catalog-only or can be distributed under a documented legal policy.
-- [ ] Confirm the license for `multica-ai/andrej-karpathy-skills` or exclude the source from release references.
-- [ ] Confirm Popmotion's license before any reuse; keep it reference-only until then.
-- [ ] Enable GitHub private security advisories or publish a monitored maintainer security contact.
-- [ ] Rebuild wheel and sdist from the final clean release commit and archive their manifests and hashes with the release.
+- [x] AGPL-3.0 `knoxgraeme/skillfish` is catalog/reference metadata only; no AGPL content is imported.
+- [x] `multica-ai/andrej-karpathy-skills` is excluded from admission because its license is undetermined.
+- [x] Popmotion remains reference-only; no implementation content is reused.
+- [ ] Enable GitHub private security advisories before making the repository public.
+- [ ] Rebuild wheel and sdist from the final release commit and archive their manifests and hashes with the GitHub release.
 
 ## Recommendation
 
-Proceed to Phase 7.5 Final Release Validation only after the blocking items are resolved or explicitly accepted by maintainers. Do not publish a stable v1.0.0 artifact while any blocking item remains unchecked.
+Phase 7.5 performs final validation. Repository publication must enable the private security advisory channel and use artifacts rebuilt from the final commit.

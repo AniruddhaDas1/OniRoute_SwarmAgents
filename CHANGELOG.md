@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0-rc1 — Release Candidate
+## 1.0.0 — First Stable Release
 
 - Consolidated the frozen organizational, Skill, Workflow, Knowledge, and package architecture.
 - Added the local v0.6 Runtime Foundation, Resolution, Context, Execution, UMAL, Invocation, Tool/MCP, and Governance layers.
@@ -8,6 +8,7 @@
 - Added Official Workflow Library Wave 1 and preserved community Skill provenance.
 - Added Motion Engineering ACR-001 as a frozen extension.
 - Added public documentation, examples, contribution templates, CI validation, and release guidance.
+- Completed open-source compliance, Community metadata verification, Apache-2.0 migration, and release certification.
 
 ### Breaking changes
 
@@ -15,7 +16,7 @@ The v0.6 runtime is the first executable local runtime and is not compatible wit
 
 ### Known limitations
 
-State is process-local; Tool/MCP execution is not implemented; OpenAI-compatible and Ollama are the reference invocation adapters; imported community license review remains a release prerequisite.
+State is process-local; Tool/MCP execution is not implemented; OpenAI-compatible and Ollama are the reference invocation adapters; review-gated Community sources remain reference-only or excluded.
 
 ### Future change process
 

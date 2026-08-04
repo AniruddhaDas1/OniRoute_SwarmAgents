@@ -1,8 +1,8 @@
-# Release Candidate Report
+# Historical Release Candidate Report
 
 ## Candidate
 
-`1.0.0rc1` / `v1.0.0-rc1`
+`1.0.0rc1` / `v1.0.0-rc1` (superseded by stable `1.0.0`)
 
 ## Validation
 
@@ -17,7 +17,7 @@
 
 ## Packaging
 
-The wheel builds as `oniroute_swarmagents-1.0.0rc1-py3-none-any.whl` and contains 95 expected runtime, CLI, license, entry-point, and distribution-metadata files. It contains no caches, editor files, Git data, temporary content, or development egg-info. The sdist builds as `oniroute_swarmagents-1.0.0rc1.tar.gz`; its setuptools-generated `.egg-info` directory is standard required source-distribution metadata. Package discovery is explicitly limited to runtime subpackages and CLI.
+The RC wheel contained 95 expected runtime, CLI, license, entry-point, and distribution-metadata files. The RC sdist contained standard setuptools metadata. This historical evidence is superseded by the Apache-2.0 stable artifacts documented in `docs/VERSION_1_0_CERTIFICATION.md`.
 
 ## Documentation and repository health
 
@@ -29,4 +29,4 @@ Cold repository load: 5.44 s; graph build: 84.6 ms; Context creation: 84.2 ms; W
 
 ## Readiness decision
 
-**Release Candidate: YES for internal validation and packaging review. Public v1.0: NOT YET READY.** The remaining blocker is third-party licensing/attribution review for the AGPL-3.0 Skillfish import and the source marked License review required. No GitHub tag or release was created.
+**Historical result: RC suitable for internal validation.** Stable v1.0.0 decisions and artifact evidence are recorded in the Phase 7.5 certification documents. No GitHub tag or release was created by the RC phase.

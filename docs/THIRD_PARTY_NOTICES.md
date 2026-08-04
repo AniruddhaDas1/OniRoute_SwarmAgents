@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-OniRoute itself is released under MIT; see `LICENSE`.
+OniRoute itself is released under Apache-2.0; see `LICENSE`, `NOTICE`, and `AUTHORS`.
 
 The repository preserves imported community Skill metadata and provenance. Top-level sources recorded in `skills/community/*/IMPORT_METADATA.yaml` are:
 
@@ -18,4 +18,4 @@ The repository preserves imported community Skill metadata and provenance. Top-l
 
 Each normalized record retains its repository, source path, commit/blob provenance, license field, and source URL where available. Imported files are not relicensed by this repository. The records are metadata-only; no community source implementation, prompts, examples, or documentation are represented as OniRoute-owned content. Review Required sources are not approved for content redistribution.
 
-Motion Engineering ACR-001 is an OniRoute-owned frozen extension; its repository-level attribution and license remain governed by the root MIT license unless a source-specific notice says otherwise.
+Motion Engineering ACR-001 is original OniRoute work governed by the root Apache-2.0 license unless a source-specific notice says otherwise.

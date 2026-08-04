@@ -1,0 +1,15 @@
+OniRoute SwarmAgents
+Copyright 2026 Aniruddha Das and OniRoute contributors
+
+Original Author: Aniruddha Das
+Original Organization: OniRoute
+
+Official OniRoute architecture, Official Skills, Official Workflows, Official
+Runtime, Motion Engineering, Intelligent Context Optimization Engine,
+documentation, and governance are original OniRoute work.
+
+Community repository records contain independently authored metadata,
+provenance, references, and licensing information only. They do not include
+upstream implementation, prompts, documentation bodies, examples, tests,
+scripts, workflows, or assets. See docs/THIRD_PARTY_NOTICES.md and
+docs/LICENSE_DECISION_RECORD.md for source-specific attribution and decisions.

@@ -11,7 +11,7 @@ tags:
 - official
 author: OniRoute
 organization: OniRoute
-license: MIT
+license: Apache-2.0
 source:
   type: original
   owner: OniRoute

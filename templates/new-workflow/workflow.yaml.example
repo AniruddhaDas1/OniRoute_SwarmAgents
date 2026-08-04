@@ -28,7 +28,7 @@ context_requirements: {}
 security_classification: Internal
 validation_state: Unvalidated
 quality_score: 0
-license: MIT
+license: Apache-2.0
 source: {type: original}
 created: 1970-01-01T00:00:00Z
 updated: 1970-01-01T00:00:00Z

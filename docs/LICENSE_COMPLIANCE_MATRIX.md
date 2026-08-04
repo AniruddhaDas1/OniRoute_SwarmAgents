@@ -4,7 +4,7 @@ Distribution status means whether material is bundled in this repository, not wh
 
 | Name | License | Usage | Distribution status | Decision | Attribution | Notices | Risk |
 |---|---|---|---|---|---|---|---|
-| OniRoute | MIT (SPDX: MIT) | Project source and docs | Distributed | Approved | Copyright and MIT text | `LICENSE` | Low |
+| OniRoute | Apache-2.0 | Project source and docs | Distributed | Approved | Aniruddha Das and OniRoute contributors | `LICENSE`, `NOTICE`, `AUTHORS` | Low |
 | setuptools | MIT | PEP 517 build backend | Build-time only | Approved | Package metadata | Dependency metadata | Low |
 | Typer | MIT | Runtime dependency | Installed by consumers | Approved | Package metadata | Dependency metadata | Low |
 | Pydantic | MIT | Runtime dependency | Installed by consumers | Approved | Package metadata | Dependency metadata | Low |

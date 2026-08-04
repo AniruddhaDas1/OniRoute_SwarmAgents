@@ -2,9 +2,9 @@
 
 ## Result
 
-**RC packaging audit: conditional pass; public v1.0 release: blocked pending human review.**
+**Historical RC audit updated by Phase 7.5: stable release decisions recorded.**
 
-- Root project license: MIT, present in `LICENSE`.
+- Root project license: Apache-2.0, present in `LICENSE`; attribution is present in `NOTICE` and `AUTHORS`.
 - Community sources reviewed: 9 top-level import metadata records.
 - Clearly declared MIT: claude-skills, gsd-core, gstack, mattpocock, taste-skill, vuejs-ai.
 - Clearly declared Apache-2.0: impeccable.
@@ -13,4 +13,4 @@
 - Normalized imported metadata was not changed.
 - Source repositories, authorship, commit pins, paths, and source URLs remain recorded in metadata.
 
-Before public v1.0 publication, maintainers must confirm license texts/NOTICE requirements for every imported artifact, decide whether AGPL content can be distributed under the release policy, and complete the unresolved upstream review. This RC does not publish or tag.
+For v1.0.0, AGPL Skillfish and unknown-license Karpathy content are not imported. Skillfish remains reference-only and Karpathy remains excluded. Community metadata retains upstream license declarations and is not relicensed.

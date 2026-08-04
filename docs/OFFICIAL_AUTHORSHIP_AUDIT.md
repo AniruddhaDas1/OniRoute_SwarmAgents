@@ -1,6 +1,6 @@
 # Official Authorship Audit
 
-All Official Skill manifests identify their source as `type: original`, use OniRoute as author/owner, and license the work under MIT. Official README files describe the guidance as original, provider-independent, and non-executable. Official `references.md` files state that repositories were reviewed for concepts only and that no wording, prompts, examples, code, or repository structures were copied.
+All Official Skill manifests identify their source as `type: original`, use OniRoute as author/owner, and are released under Apache-2.0. Official README files describe the guidance as original, provider-independent, and non-executable. Official `references.md` files state that repositories were reviewed for concepts only and that no wording, prompts, examples, code, or repository structures were copied.
 
 The Community tree does not contain upstream Skill bodies, so Official wording cannot have been mechanically copied from Community content stored in this repository. Official Skills use a consistent OniRoute structure and original bounded guidance rather than the upstream paths recorded by Community metadata. Official examples are deferred placeholders, not copied examples.
 
