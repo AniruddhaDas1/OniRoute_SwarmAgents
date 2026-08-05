@@ -3,17 +3,20 @@
 Consumes EngineeringContractReport and generates source code, configuration, tests, documentation, and assets.
 """
 
+from runtime.engineering.certification import AutonomousEngineeringCertificationEngine
 from runtime.engineering.engine import EngineeringWorkerEngine
 from runtime.engineering.exceptions import (
     EngineeringBoundaryViolation,
     EngineeringExecutionError,
     EngineeringWorkerError,
 )
-from runtime.engineering.models import EngineeringResult
+from runtime.engineering.models import EngineeringCertificationReport, EngineeringResult
 
 __all__ = [
     "EngineeringWorkerEngine",
     "EngineeringResult",
+    "AutonomousEngineeringCertificationEngine",
+    "EngineeringCertificationReport",
     "EngineeringWorkerError",
     "EngineeringBoundaryViolation",
     "EngineeringExecutionError",

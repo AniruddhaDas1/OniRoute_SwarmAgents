@@ -61,7 +61,7 @@ from runtime.blueprint import ProjectBlueprintEngine, ProjectBlueprintReport, Pr
 from runtime.allocation import ImplementationAllocationEngine, ImplementationAllocationReport, ImplementationAllocationError
 from runtime.contracts import EngineeringContractEngine, EngineeringContractReport, EngineeringContractError
 from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssemblyCertificationReport, ProjectAssemblyError
-from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError
+from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError, AutonomousEngineeringCertificationEngine, EngineeringCertificationReport
 from runtime.review import QualityGateEngine, QualityReport, QualityGateError
 from runtime.healing import SelfHealingEngine, RepairPlanner, RepairPlan, UpdatedEngineeringResult, SelfHealingError
 from runtime.validation import VerificationEngine, AcceptanceEngine, VerificationResult, AcceptanceReport, ValidationAcceptanceError
@@ -85,6 +85,8 @@ __all__ = [
     "EngineeringWorkerEngine",
     "EngineeringResult",
     "EngineeringWorkerError",
+    "AutonomousEngineeringCertificationEngine",
+    "EngineeringCertificationReport",
     "QualityGateEngine",
     "QualityReport",
     "QualityGateError",

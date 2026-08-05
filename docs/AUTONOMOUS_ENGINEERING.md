@@ -1,24 +1,36 @@
-# Phase P5 — Autonomous Engineering Architecture
+# Autonomous Engineering Subsystem Specification (Phase P5)
 
 ## 1. Subsystem Overview
 
-**Autonomous Engineering (Phase P5)** is the code execution and implementation generation stage of OniRoute v1.2.
+The **Autonomous Engineering Subsystem (Phase P5)** executes production-quality code generation, cross-agent review, self-healing remediation, deterministic verification, and release acceptance certification for OniRoute v1.2.
 
 ```
-EngineeringContractReport (P4.G4/P4.G5) ──► Engineering Worker Engine (P5.E1) ──► EngineeringResult ──► Cross-Agent Review (P5.E2)
+EngineeringContractReport (P4.G4/P4.G5)
+        │
+        ▼
+Phase P5.E1: EngineeringWorkerEngine ──► EngineeringResult
+        │
+        ▼
+Phase P5.E2: QualityGateEngine ─────────► QualityReport
+        │
+        ▼
+Phase P5.E3: RepairPlanner & SelfHealingEngine ──► UpdatedEngineeringResult
+        │
+        ▼
+Phase P5.E4: VerificationEngine & AcceptanceEngine ──► VerificationResult & AcceptanceReport
+        │
+        ▼
+Phase P5.E5: AutonomousEngineeringCertificationEngine ──► EngineeringCertificationReport (FROZEN)
 ```
-
-Phase P5.E1 is the **FIRST phase permitted to**:
-- Invoke LLMs and model providers via Unified Model Abstraction Layer (UMAL)
-- Call Model Context Protocol (MCP) tools
-- Create and modify source code, configuration, documentation, tests, and assets in target workspace
-- Write implementation artifacts to storage
 
 ---
 
-## 2. Core Safety Boundaries
+## 2. Pipeline Subsystem Phases
 
-1. **Strict Contract Scoping**: Engineering workers generate code **ONLY** for targets allocated in the input [`EngineeringContractReport`](file:///Users/aniruddhadas/Ani/Coding%20Projects/Google%20Antigravity/Development%20Products/Open%20Source%20Projects/OniRoute_SwarmAgents/runtime/contracts/models.py#L35).
-2. **Engine Root Read-Only Enforcement**: Any write attempt into engine root files raises an [`EngineeringBoundaryViolation`](file:///Users/aniruddhadas/Ani/Coding%20Projects/Google%20Antigravity/Development%20Products/Open%20Source%20Projects/OniRoute_SwarmAgents/runtime/engineering/exceptions.py#L12).
-3. **Workspace Path Sandboxing**: Paths attempting directory traversal outside workspace root are rejected.
-4. **Immutable Output Result**: Generates frozen [`EngineeringResult`](file:///Users/aniruddhadas/Ani/Coding%20Projects/Google%20Antigravity/Development%20Products/Open%20Source%20Projects/OniRoute_SwarmAgents/runtime/engineering/models.py#L9) per contract.
+| Phase ID | Name | Core Engine | Primary Input Contract | Output Contract | Workspace Action |
+|---|---|---|---|---|---|
+| **P5.E1** | Autonomous Engineering Worker | `EngineeringWorkerEngine` | `EngineeringContractReport` | `EngineeringResult` | Code Generation |
+| **P5.E2** | Quality Gate (Cross-Agent Review) | `QualityGateEngine` | `EngineeringResult` | `QualityReport` | Read-Only Audit |
+| **P5.E3** | Self-Healing | `RepairPlanner`, `SelfHealingEngine` | `QualityReport`, `RepairPlan` | `UpdatedEngineeringResult` | Targeted Repair |
+| **P5.E4** | Validation & Acceptance | `VerificationEngine`, `AcceptanceEngine` | `UpdatedEngineeringResult` | `VerificationResult`, `AcceptanceReport` | Read-Only Verification |
+| **P5.E5** | Certification & Freeze | `AutonomousEngineeringCertificationEngine` | `AcceptanceReport` | `EngineeringCertificationReport` | Certified & Frozen |
