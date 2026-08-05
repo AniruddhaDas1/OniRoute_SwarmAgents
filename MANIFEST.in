@@ -1,9 +1,18 @@
-include LICENSE README.md AUTHORS NOTICE CHANGELOG.md VERSION
+include LICENSE README.md AUTHORS NOTICE CHANGELOG.md VERSION AGENTS.md oniroute.spec Dockerfile
 recursive-include config *.yaml *.md
 recursive-include agents *.yaml *.md
-recursive-include skills *.yaml *.md
+recursive-include skills *.yaml *.md LICENSE
 recursive-include workflows *.yaml *.md
 recursive-include templates *
+recursive-include docs *.md *.png
+recursive-include examples *.md *.sh
+recursive-include knowledge *.md *.yaml
+recursive-include mappings *.md *.yaml
+recursive-include optimization *.md
+recursive-include packages *.md *.yaml
+recursive-include runtime *.md *.py
+recursive-include scripts *.py *.sh
+recursive-include Formula *.rb
 prune tests
 prune .github
 prune .venv

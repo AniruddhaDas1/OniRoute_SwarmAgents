@@ -20,6 +20,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
           
       - name: Install dependencies
         run: pip install check-manifest
@@ -30,9 +31,9 @@ jobs:
       - name: Test CLI commands
         run: |
           oniroute version
-          oniroute doctor || true
-          oniroute init || true
-          oniroute config --validate || true
+          oniroute doctor
+          oniroute init
+          oniroute config --validate
           
       - name: Check MANIFEST.in completeness
         run: check-manifest

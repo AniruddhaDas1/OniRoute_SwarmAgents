@@ -16,7 +16,7 @@ jobs:
       - run: python -m pytest -q
       - run: oniroute doctor
       - name: Validate YAML
-        run: python -c "from pathlib import Path; import yaml; [yaml.safe_load(p.read_text()) for p in Path('.').rglob('*.yaml') if '.git' not in p.parts]"
+        run: python -c "from pathlib import Path; import yaml; [yaml.safe_load(p.read_text()) for p in Path('.').rglob('*.yaml') if '.git' not in p.parts and '.venv' not in p.parts]"
       - name: Validate Markdown links and whitespace
         run: |
           python - <<'PY'
@@ -24,9 +24,9 @@ jobs:
           from pathlib import Path
           missing=[]
           for path in Path('.').rglob('*.md'):
-              if '.git' in path.parts: continue
+              if '.git' in path.parts or '.venv' in path.parts: continue
               for target in re.findall(r'\[[^]]+\]\(([^)]+)\)', path.read_text(errors='ignore')):
-                  if '://' in target or target.startswith('#'): continue
+                  if '://' in target or target.startswith('#') or target.startswith('mailto:'): continue
                   clean=target.split('#',1)[0]
                   if clean and not (path.parent/clean).resolve().exists(): missing.append(f'{path}: {target}')
           if missing: raise SystemExit('\n'.join(missing))
