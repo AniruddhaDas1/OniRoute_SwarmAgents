@@ -11,6 +11,7 @@ from runtime.resolver import Resolver
 from runtime.validator import ValidationEngine
 from runtime.workspace import ArtifactRouter, ReportStorage, WorkspaceManager, WorkspaceStorage
 from runtime.workspace import SessionStorage, ExecutionHistoryStorage, TraceStorage, LogStorage
+from runtime.workspace import WorkspaceContext, WorkspaceIntelligence, WorkspaceState
 from runtime.context.builder import ContextBuilder
 from runtime.context.serializer import ContextSerializer
 from runtime.execution.engine import WorkflowEngine
@@ -1744,8 +1745,53 @@ def intent_cmd(
         raise typer.Exit(1)
 
 
+@app.command("workspace-context")
+def workspace_context_cmd(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+) -> None:
+    """Analyze and display detailed Workspace Context intelligence."""
+    intelligence = WorkspaceIntelligence()
+    ctx = intelligence.analyze_workspace(cwd=repository_root, explicit_workspace=workspace)
+
+    if json_output:
+        console.print_json(data=ctx.model_dump(mode="json"))
+        return
+
+    table = Table(title=f"Workspace Context: {ctx.workspace_id}")
+    table.add_column("Category", style="bold cyan")
+    table.add_column("Property")
+    table.add_column("Value")
+
+    table.add_row("Workspace", "Workspace Root", str(ctx.workspace_root))
+    table.add_row("Workspace", "Repository Root", str(ctx.repository_root))
+    table.add_row("Workspace", "Engine Root", str(ctx.engine_root))
+
+    proj_type_str = ctx.project_type.value if hasattr(ctx.project_type, "value") else str(ctx.project_type)
+    table.add_row("Project", "Project Type", proj_type_str)
+    table.add_row("Project", "Primary Language", ctx.primary_language)
+    table.add_row("Project", "Framework Hint", ctx.framework_hint or "None")
+    table.add_row("Project", "Workspace State", ctx.workspace_state.value if hasattr(ctx.workspace_state, "value") else str(ctx.workspace_state))
+
+    table.add_row("Git", "Git Available", "YES" if ctx.git_available else "NO")
+    table.add_row("Git", "Repository Root", str(ctx.repository_root))
+
+    table.add_row("Manifests", "Build Tool", ctx.build_tool or "None")
+    table.add_row("Manifests", "Package Manager", ctx.package_manager or "None")
+    table.add_row("Manifests", "Detected Manifests", ", ".join(ctx.detected_manifests) if ctx.detected_manifests else "None")
+    table.add_row("Manifests", "Has .oniroute", "YES" if ctx.has_oniroute_dir else "NO")
+
+    val_style = "[green]PASS[/]" if ctx.validation.valid else "[red]FAIL[/]"
+    table.add_row("Validation", "Validation Status", val_style)
+    table.add_row("Validation", "Read-only Engine", "CONFIRMED" if ctx.read_only_validation else "FAILED")
+    table.add_row("Validation", "Validation Issues", str(len(ctx.validation.issues)))
+
+    console.print(table)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
-    "workspace", "doctor", "history", "events", "list", "inspect",
+    "workspace", "workspace-context", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
@@ -1781,6 +1827,9 @@ def main(args: list[str] | None = None) -> None:
             analyzer = IntentAnalyzer()
             intent_report = analyzer.analyze(raw_prompt, explicit_workspace=explicit_ws)
 
+            ws_intel = WorkspaceIntelligence()
+            ws_context = ws_intel.analyze_workspace(cwd=Path.cwd(), explicit_workspace=explicit_ws)
+
             if intent_report.confidence_score < 0.80:
                 console.print(f"[yellow]Warning:[/] Intent confidence score is low ({intent_report.confidence_score:.2f}).")
                 if intent_report.unknown_items:
@@ -1790,7 +1839,10 @@ def main(args: list[str] | None = None) -> None:
             mission_request = intake.process_intake(
                 raw_prompt,
                 explicit_workspace=explicit_ws,
-                parameters={"intent_report": intent_report.model_dump(mode="json")},
+                parameters={
+                    "intent_report": intent_report.model_dump(mode="json"),
+                    "workspace_context": ws_context.model_dump(mode="json"),
+                },
             )
             resolver = MissionResolver()
             resolved_mission = resolver.resolve_mission(mission_request)

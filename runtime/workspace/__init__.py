@@ -48,6 +48,7 @@ from .models import (
     WorkspaceStorageSpec,
     WorkspaceStatus,
 )
+from .intelligence import WorkspaceContext, WorkspaceIntelligence, WorkspaceState
 from .project import ProjectDetector
 from .session_storage import SessionStorage
 from .storage import WorkspaceStorage
@@ -81,12 +82,15 @@ __all__ = [
     "ValidationIssue",
     "ValidationState",
     "WorkspaceBoundaryViolation",
+    "WorkspaceContext",
+    "WorkspaceIntelligence",
     "WorkspaceLifecycle",
     "WorkspaceManager",
     "WorkspaceManagerContract",
     "WorkspaceMetadata",
     "WorkspaceResolver",
     "WorkspaceResolverContract",
+    "WorkspaceState",
     "WorkspaceStatus",
     "WorkspaceStorage",
     "WorkspaceStorageError",
