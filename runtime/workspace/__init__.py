@@ -56,8 +56,13 @@ from .session_storage import SessionStorage
 from .storage import WorkspaceStorage
 from .trace_storage import TraceStorage
 from .validation import WorkspaceValidator
+from runtime.scaffold import WorkspaceScaffoldEngine, WorkspaceScaffoldReport, WorkspaceScaffoldError
 
 __all__ = [
+    "WorkspaceScaffoldEngine",
+    "WorkspaceScaffoldReport",
+    "WorkspaceScaffoldError",
+    "WorkspaceValidator",
     "ArtifactCategory",
     "ArtifactCollisionError",
     "ArtifactDestination",

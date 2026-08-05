@@ -65,6 +65,7 @@ from runtime.skills import (
 )
 from runtime.deployment import MissionDeploymentPlan, MissionDeploymentPlanner
 from runtime.swarm import AutonomousExecutionEngine, ExecutionTaskQueue, RuntimeExecutionSnapshot, SwarmCoordinationEngine, SwarmExecutionResult, SwarmInitializationEngine
+from runtime.scaffold import WorkspaceScaffoldEngine, WorkspaceScaffoldReport, WorkspaceScaffoldError
 
 
 
@@ -2933,13 +2934,110 @@ def coordinate_command(
     console.print(csn_table)
 
 
+@app.command("scaffold")
+def scaffold_command(
+    snapshot_path: Path | None = typer.Option(
+        None, "--snapshot", "-s", help="Path to RuntimeExecutionSnapshot JSON file."
+    ),
+    workspace_path: Path | None = typer.Option(
+        None, "--workspace", "-w", help="Target workspace path to scaffold."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output raw JSON WorkspaceScaffoldReport."
+    ),
+) -> None:
+    """Scaffold target project workspace deterministically from a RuntimeExecutionSnapshot."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        snapshot: Optional[RuntimeExecutionSnapshot] = None
+
+        if snapshot_path is not None:
+            snap_file = snapshot_path.resolve()
+            if not snap_file.exists():
+                console.print(f"[red]Snapshot Error:[/] Snapshot file '{snap_file}' does not exist.")
+                sys.exit(1)
+            raw_data = json.loads(snap_file.read_text(encoding="utf-8"))
+            snapshot = RuntimeExecutionSnapshot.model_validate(raw_data)
+        else:
+            ws_intel = WorkspaceIntelligence()
+            ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+            repo_intel = RepositoryIntelligence()
+            repo_context = repo_intel.analyze_repository(ws_context)
+
+            intent_report = IntentReport(
+                raw_request="Scaffold target project workspace",
+                primary_intent="scaffold",
+                extracted_domain="engineering",
+                confidence_score=1.0,
+            )
+            plan_gen = EngineeringPlanGenerator()
+            exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+            registry = Resolver().load_registry()
+            resolver = Resolver()
+            discovery_engine = SkillDiscoveryEngine(registry, resolver)
+            ranking_engine = SkillRankingEngine(registry, resolver)
+            bundling_engine = SkillBundlingEngine(registry, resolver)
+            builder_engine = AgentProfileBuilderEngine(registry, resolver)
+            deployment_planner = MissionDeploymentPlanner()
+
+            sel_report = discovery_engine.discover_skills(exec_plan)
+            rnk_report = ranking_engine.rank_skills(sel_report, exec_plan)
+            bnd_report = bundling_engine.bundle_skills(rnk_report, exec_plan, sel_report)
+            prf_report = builder_engine.build_profiles(bnd_report, exec_plan)
+            deployment_plan = deployment_planner.create_deployment_plan(exec_plan, prf_report)
+
+            init_engine = SwarmInitializationEngine()
+            snapshot = init_engine.initialize_swarm(deployment_plan)
+
+        engine = WorkspaceScaffoldEngine()
+        scaffold_report = engine.scaffold_workspace(snapshot, workspace_override=ws_path)
+
+        if json_output:
+            console.print_json(data=scaffold_report.model_dump(mode="json"))
+            return
+
+        console.print(f"[bold green]✓ Workspace Scaffold Complete[/] ({scaffold_report.scaffold_id})")
+
+        overview_table = Table(title="Workspace Scaffold Summary")
+        overview_table.add_column("Property", style="bold cyan")
+        overview_table.add_column("Value", style="bold yellow")
+        overview_table.add_row("Scaffold ID", scaffold_report.scaffold_id)
+        overview_table.add_row("Workspace ID", scaffold_report.workspace_id)
+        overview_table.add_row("Workspace Root", scaffold_report.workspace_root)
+        overview_table.add_row("Technology Stack", scaffold_report.technology_stack)
+        overview_table.add_row("Scaffold Hash", scaffold_report.scaffold_hash[:16] + "...")
+        overview_table.add_row("Directories Initialized", str(len(scaffold_report.created_directories)))
+        overview_table.add_row("Files Scaffolded", str(len(scaffold_report.created_files)))
+        console.print(overview_table)
+
+        dir_table = Table(title="Initialized Workspace Directories")
+        dir_table.add_column("Directory Path", style="bold green")
+        for d in scaffold_report.created_directories:
+            dir_table.add_row(d)
+        console.print(dir_table)
+
+        file_table = Table(title="Scaffolded Configuration & Build Files")
+        file_table.add_column("File Path", style="bold cyan")
+        file_table.add_column("Status", style="bold yellow")
+        for f in scaffold_report.created_files:
+            status = scaffold_report.configuration_summary.get(f, "created")
+            file_table.add_row(f, status)
+        console.print(file_table)
+
+    except Exception as exc:
+        console.print(f"[red]Scaffold Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
-    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold",
     "--help", "-h", "--version"
 }
 
