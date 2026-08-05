@@ -51,7 +51,15 @@ from runtime.agent.recovery import (
     ReviewDecision,
 )
 from runtime.organization import CapabilityResolver, ExecutionBlueprintAssembler, OrganizationAssembler
-from runtime.skills import SkillDiscoveryEngine, SkillRankingEngine, SkillSelectionReport, RankedSkillReport
+from runtime.skills import (
+    SkillDiscoveryEngine,
+    SkillRankingEngine,
+    SkillBundlingEngine,
+    SkillSelectionReport,
+    RankedSkillReport,
+    ExecutionSkillBundleReport,
+    ExecutionSkillBundle,
+)
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -2100,15 +2108,109 @@ def rank_skills_command(
     console.print(summary_table)
 
 
+@app.command("bundles")
+@skills_app.command("bundles")
+def bundles_command(
+    request: list[str] = typer.Argument(None, help="Natural language request or plan prompt."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+) -> None:
+    """Group ranked skills into execution-ready ExecutionSkillBundles."""
+    raw_prompt = " ".join(request) if request else "Build application"
+    if request and "--json" in request:
+        json_output = True
+        raw_prompt = " ".join([r for r in request if r != "--json"])
+        if not raw_prompt.strip():
+            raw_prompt = "Build application"
+
+    intent_analyzer = IntentAnalyzer()
+    intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=workspace)
+
+    ws_intelligence = WorkspaceIntelligence()
+    ws_ctx = ws_intelligence.analyze_workspace(cwd=repository_root, explicit_workspace=workspace)
+
+    repo_intelligence = RepositoryIntelligence()
+    repo_ctx = repo_intelligence.analyze_repository(ws_ctx)
+
+    generator = EngineeringPlanGenerator()
+    plan = generator.generate_plan(intent_report, ws_ctx, repo_ctx)
+
+    loader = RepositoryLoader(repository_root)
+    registry = loader.load()
+    resolver = Resolver(registry)
+
+    discovery_engine = SkillDiscoveryEngine(registry, resolver)
+    selection_report = discovery_engine.discover_skills(plan)
+
+    ranking_engine = SkillRankingEngine(registry, resolver)
+    ranked_report = ranking_engine.rank_skills(selection_report, plan)
+
+    bundling_engine = SkillBundlingEngine(registry, resolver)
+    bundle_report = bundling_engine.bundle_skills(ranked_report, plan, selection_report)
+
+    if json_output:
+        console.print_json(data=bundle_report.model_dump(mode="json"))
+        return
+
+    console.print(
+        f"\n[bold cyan]Execution Skill Bundle Report:[/] {bundle_report.report_id} "
+        f"(Ranked Report: {bundle_report.ranked_report_id}, Plan: {bundle_report.execution_plan_id})"
+    )
+
+    # 1. Bundles Table
+    bundles_table = Table(title="Execution Skill Bundles")
+    bundles_table.add_column("Bundle ID", style="bold cyan")
+    bundles_table.add_column("Discipline", style="bold yellow")
+    bundles_table.add_column("Priority", style="bold green")
+    bundles_table.add_column("Skills Count", justify="right")
+    bundles_table.add_column("Deliverables")
+    bundles_table.add_column("Dependencies")
+    bundles_table.add_column("Coverage", justify="right")
+
+    for bundle in bundle_report.bundles:
+        prio_str = bundle.priority.value if hasattr(bundle.priority, "value") else str(bundle.priority)
+        deliv_str = ", ".join(bundle.expected_deliverables) if bundle.expected_deliverables else "None"
+        deps_str = ", ".join(bundle.dependency_bundles) if bundle.dependency_bundles else "None"
+        bundles_table.add_row(
+            bundle.bundle_id,
+            bundle.engineering_discipline,
+            prio_str,
+            str(len(bundle.ranked_skills)),
+            deliv_str,
+            deps_str,
+            f"{bundle.coverage:.1f}%",
+        )
+    console.print(bundles_table)
+
+    # 2. Bundle Ordering & Validation Summary Table
+    summary_table = Table(title="Bundle Execution Ordering & Integrity")
+    summary_table.add_column("Metric", style="bold cyan")
+    summary_table.add_column("Value")
+
+    summary_table.add_row("Recommended Bundle Ordering", ", ".join(bundle_report.bundle_ordering))
+    summary_table.add_row("Total Bundles Assembled", str(len(bundle_report.bundles)))
+    summary_table.add_row("Total Skills Bundled", str(sum(len(b.ranked_skills) for b in bundle_report.bundles)))
+    summary_table.add_row(
+        "Validation Status",
+        "PASSED" if bundle_report.evidence.get("validation", {}).get("no_orphan_skills") else "FAILED",
+    )
+    summary_table.add_row("Coverage Percentage", f"{bundle_report.coverage.coverage_percent}%")
+    summary_table.add_row("Bundling Confidence", f"{bundle_report.confidence * 100:.1f}%")
+
+    console.print(summary_table)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
-    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills",
+    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles",
     "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact",
     "--help", "-h", "--version"
 }
+
 
 
 

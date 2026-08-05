@@ -120,3 +120,44 @@ class RankedSkillReport(BaseModel):
     evidence: Dict[str, Any] = Field(default_factory=dict, description="Ranking evidence and metadata")
     timestamp: str = Field(description="ISO 8601 UTC timestamp")
 
+
+class ExecutionSkillBundle(BaseModel):
+    """Immutable bundle grouping ranked skills by engineering discipline."""
+
+    model_config = ConfigDict(frozen=True)
+
+    bundle_id: str = Field(description="Unique bundle identifier")
+    name: str = Field(description="Human-readable bundle name")
+    engineering_discipline: str = Field(description="Associated engineering discipline")
+    ranked_skills: List[RankedSkill] = Field(default_factory=list, description="Ranked skills assigned to this bundle")
+    knowledge_references: List[str] = Field(default_factory=list, description="Consolidated knowledge references")
+    package_references: List[str] = Field(default_factory=list, description="Consolidated package references")
+    workflow_references: List[str] = Field(default_factory=list, description="Consolidated workflow references")
+    registry_references: List[str] = Field(default_factory=list, description="Skill registry IDs in bundle")
+    execution_constraints: List[str] = Field(default_factory=list, description="Disciplined execution constraints")
+    expected_deliverables: List[str] = Field(default_factory=list, description="Expected deliverables for this bundle")
+    dependency_bundles: List[str] = Field(default_factory=list, description="Prerequisite bundle IDs")
+    priority: SkillPriority = Field(description="Highest priority level among bundled skills")
+    coverage: float = Field(description="Discipline coverage percentage (0.0 to 100.0)")
+    evidence: Dict[str, Any] = Field(default_factory=dict, description="Bundle evidence and metadata")
+    timestamp: str = Field(description="ISO 8601 UTC timestamp")
+
+
+class ExecutionSkillBundleReport(BaseModel):
+    """Immutable report containing grouped execution skill bundles and bundle ordering."""
+
+    model_config = ConfigDict(frozen=True)
+
+    report_id: str = Field(description="Unique bundle report identifier")
+    execution_plan_id: str = Field(description="Associated EngineeringExecutionPlan identifier")
+    ranked_report_id: str = Field(description="Associated RankedSkillReport identifier")
+    selection_report_id: str = Field(description="Associated SkillSelectionReport identifier")
+    bundles: List[ExecutionSkillBundle] = Field(default_factory=list, description="All execution skill bundles")
+    bundle_ordering: List[str] = Field(default_factory=list, description="Recommended topological bundle execution order")
+    bundle_dependencies: Dict[str, List[str]] = Field(default_factory=dict, description="Bundle dependency mapping")
+    coverage: SkillCoverage = Field(description="Preserved skill coverage metrics")
+    confidence: float = Field(description="Overall bundling confidence score")
+    evidence: Dict[str, Any] = Field(default_factory=dict, description="Bundling evidence and validation results")
+    timestamp: str = Field(description="ISO 8601 UTC timestamp")
+
+
