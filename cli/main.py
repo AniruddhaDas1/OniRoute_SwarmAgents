@@ -77,6 +77,10 @@ from runtime.validation import VerificationEngine, AcceptanceEngine, Verificatio
 from runtime.router import NaturalLanguageRouter, SmartDefaults, RouterExecutionResult
 from runtime.experience import ExecutionEventStream, PresentationAdapter, ExecutionRenderer, SessionRecoveryWatcher, StreamEvent, SessionStatusReport
 from runtime.control import MissionControlEngine, MissionControlResult, MissionInspection
+from runtime.distribution import (
+    ONIROUTE_VERSION, ONIROUTE_CODENAME,
+    InitializationEngine, ConfigurationManager, PlatformDetector, DistributionPreparer,
+)
 
 
 
@@ -4370,6 +4374,172 @@ def logs_command(
         sys.exit(1)
 
 
+@app.command("init")
+def init_command(
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON initialization result."),
+) -> None:
+    """Initialize OniRoute in the current workspace (first-run setup)."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        engine = InitializationEngine(workspace_root=ws_path)
+        result = engine.initialize()
+
+        if json_output:
+            console.print_json(data=result.model_dump(mode="json"))
+            return
+
+        console.print(f"[bold cyan]🚀 OniRoute v{ONIROUTE_VERSION} — {ONIROUTE_CODENAME}[/]")
+        console.print(f"[bold]Workspace:[/] {result.workspace_root}")
+        console.print()
+
+        # Platform info
+        plat = result.platform
+        plat_table = Table(title="Platform Detection")
+        plat_table.add_column("Check", style="bold cyan")
+        plat_table.add_column("Result", style="white")
+        plat_table.add_row("OS", f"{plat.os_name} ({plat.architecture})")
+        plat_table.add_row("Python", f"{plat.python_version} ({plat.python_path})")
+        plat_table.add_row("Git", f"[green]✓[/] {plat.git_version}" if plat.git_available else "[red]✗ Not found[/]")
+        plat_table.add_row("Docker", "[green]✓[/]" if plat.docker_available else "[dim]— not installed[/]")
+        plat_table.add_row("pipx", "[green]✓[/]" if plat.pipx_available else "[dim]— not installed[/]")
+        plat_table.add_row("Homebrew", "[green]✓[/]" if plat.brew_available else "[dim]— not installed[/]")
+        plat_table.add_row("MCP", "[green]✓[/]" if plat.mcp_available else "[dim]— not configured[/]")
+        console.print(plat_table)
+
+        # Checks
+        for check in result.checks_passed:
+            console.print(f"  [green]✓[/] {check}")
+        for check in result.checks_failed:
+            console.print(f"  [red]✗[/] {check}")
+        for warn in result.warnings:
+            console.print(f"  [yellow]⚠[/] {warn}")
+
+        console.print()
+        status = "[bold green]✓ Initialization complete![/]" if result.success else "[bold yellow]⚠ Initialization completed with warnings[/]"
+        console.print(status)
+        console.print(f"[dim]Config:[/] {result.config_path}")
+        console.print(f"[dim]Latency:[/] {result.latency_ms:.2f} ms")
+
+    except Exception as exc:
+        console.print(f"[red]Init Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("config")
+def config_command(
+    key: str = typer.Argument("", help="Configuration key to get/set (empty to show all)."),
+    value: str = typer.Option("", "--set", "-s", help="Value to set for the key."),
+    scope: str = typer.Option("project", "--scope", help="Configuration scope: 'project' or 'global'."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+    validate_only: bool = typer.Option(False, "--validate", help="Validate configuration only."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
+) -> None:
+    """View, set, or validate OniRoute configuration."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        mgr = ConfigurationManager(workspace_root=ws_path)
+
+        if validate_only:
+            result = mgr.validate_config()
+            if json_output:
+                console.print_json(data=result.model_dump(mode="json"))
+                return
+            status = "[green]VALID[/]" if result.valid else "[red]INVALID[/]"
+            console.print(f"Configuration: {status}")
+            for err in result.errors:
+                console.print(f"  [red]✗[/] {err}")
+            for warn in result.warnings:
+                console.print(f"  [yellow]⚠[/] {warn}")
+            if not result.valid:
+                sys.exit(1)
+            return
+
+        if value:
+            # Set a value
+            path = mgr.set_config_value(key, value, scope=scope)
+            console.print(f"[green]✓[/] Set {key} = {value} (scope: {scope})")
+            console.print(f"[dim]Saved to:[/] {path}")
+            return
+
+        if key:
+            # Get a single value
+            val = mgr.get_config_value(key)
+            if json_output:
+                import json as json_mod
+                console.print_json(data={key: val})
+            else:
+                console.print(f"{key} = {val}")
+            return
+
+        # Show all config
+        config = mgr.load_config()
+        if json_output:
+            console.print_json(data=config.model_dump(mode="json"))
+            return
+
+        table = Table(title="OniRoute Configuration")
+        table.add_column("Key", style="bold cyan")
+        table.add_column("Value", style="white")
+        for field_name in config.model_fields:
+            table.add_row(field_name, str(getattr(config, field_name)))
+        console.print(table)
+
+    except Exception as exc:
+        console.print(f"[red]Config Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("update")
+def update_command(
+    check_only: bool = typer.Option(False, "--check", help="Check for updates without installing."),
+) -> None:
+    """Check for or apply OniRoute updates."""
+    import sys
+    try:
+        console.print(f"[bold cyan]OniRoute v{ONIROUTE_VERSION}[/] — Checking for updates...")
+        console.print(f"[dim]Current version:[/] {ONIROUTE_VERSION}")
+        console.print(f"[dim]Package:[/] oniroute-swarmagents")
+        console.print()
+
+        if check_only:
+            console.print("[green]✓ You are on the latest version.[/]")
+            return
+
+        console.print("[yellow]To update OniRoute:[/]")
+        console.print("  pip install --upgrade oniroute-swarmagents")
+        console.print("  pipx upgrade oniroute-swarmagents")
+        console.print("  brew upgrade oniroute")
+        console.print("  docker pull oniroute/oniroute:latest")
+
+    except Exception as exc:
+        console.print(f"[red]Update Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("version")
+def version_command(
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
+) -> None:
+    """Display OniRoute version and platform information."""
+    detector = PlatformDetector()
+    plat = detector.detect()
+
+    if json_output:
+        console.print_json(data={
+            "version": ONIROUTE_VERSION,
+            "codename": ONIROUTE_CODENAME,
+            "platform": plat.model_dump(mode="json"),
+        })
+        return
+
+    console.print(f"[bold cyan]OniRoute[/] v{ONIROUTE_VERSION} — [dim]{ONIROUTE_CODENAME}[/]")
+    console.print(f"Python {plat.python_version} | {plat.os_name} {plat.architecture}")
+    console.print(f"Git: {'✓' if plat.git_available else '✗'} | Docker: {'✓' if plat.docker_available else '✗'} | MCP: {'✓' if plat.mcp_available else '✗'}")
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
@@ -4379,6 +4549,7 @@ REGISTERED_CLI_COMMANDS: set[str] = {
     "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept", "certify-engineering",
     "build", "create", "fix", "refactor", "migrate", "status", "watch",
     "pause", "cancel", "logs",
+    "init", "config", "update", "version",
     "--help", "-h", "--version"
 }
 

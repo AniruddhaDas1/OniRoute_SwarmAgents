@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0
+
+- Platform distribution layer (P6.D4)
+- Cross-platform installation (pip, pipx, Homebrew, Docker, standalone)
+- First-run experience (oniroute init)
+- Configuration management (global, project, env overrides, secrets)
+- CLI distribution commands (init, config, update, version, doctor)
+- GitHub Actions release automation
+- Distribution validation CI
+- Comprehensive test coverage for distribution
+
 ## 1.0.0 — First Stable Release
 
 - Consolidated the frozen organizational, Skill, Workflow, Knowledge, and package architecture.
