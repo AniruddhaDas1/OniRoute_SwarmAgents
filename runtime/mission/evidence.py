@@ -23,6 +23,9 @@ class MissionEvidence(BaseModel):
     model_selection: dict[str, Any] = Field(default_factory=dict, description="UMAL model selection decision evidence")
     execution: dict[str, Any] = Field(default_factory=dict, description="Invocation & runtime telemetry evidence")
     artifacts: list[dict[str, Any]] = Field(default_factory=list, description="Artifact Router destination evidence")
+    repository: dict[str, Any] = Field(default_factory=dict, description="Repository analysis evidence")
+    knowledge: dict[str, Any] = Field(default_factory=dict, description="Knowledge resolution evidence")
+    validation: dict[str, Any] = Field(default_factory=dict, description="Mission validation evidence")
 
     def record_stage(self, stage: str, data: dict[str, Any]) -> MissionEvidence:
         """Return a new MissionEvidence instance with updated stage evidence (immutable update)."""

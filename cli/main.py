@@ -30,7 +30,7 @@ from runtime.optimization.conversation_optimizer import optimize_conversation
 from runtime.optimization.prompt_optimizer import optimize_prompt
 from runtime.optimization.repository_optimizer import lookup_symbols
 from runtime.optimization.terminal_optimizer import summarize_terminal
-from runtime.mission import MissionIntake, MissionIntakeError
+from runtime.mission import MissionIntake, MissionIntakeError, MissionResolutionError, MissionResolver
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -599,12 +599,51 @@ def optimize_explain(repository_root: Path = typer.Option(Path.cwd(), exists=Tru
     console.print_json(data={"pipeline":"Context Engine -> ICOE -> UMAL -> Invocation","policy":policy,"native_plugin":"Healthy","optional_plugins":{"rtk":"Unavailable","ast":"Unavailable","repository-graph":"Unavailable"},"bypass":"oniroute run workflow <id> --no-optimization"})
 
 
+@app.command("mission")
+def mission_cmd(
+    command: list[str] = typer.Argument(None, help="Natural language mission command."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+) -> None:
+    """Inspect and resolve a Mission without planning or execution."""
+    raw_prompt = " ".join(command) if command else "Inspect workspace mission status"
+    try:
+        intake = MissionIntake()
+        mission_request = intake.process_intake(raw_prompt, explicit_workspace=workspace)
+        resolver = MissionResolver()
+        resolved_mission = resolver.resolve_mission(mission_request)
+
+        if json_output:
+            console.print_json(data=resolved_mission.model_dump(mode="json"))
+            return
+
+        table = Table(title=f"Resolved Mission: {resolved_mission.mission_id}")
+        table.add_column("Property", style="bold cyan")
+        table.add_column("Value")
+
+        table.add_row("Mission ID", resolved_mission.mission_id)
+        table.add_row("Name", resolved_mission.name)
+        table.add_row("Primary Goal", resolved_mission.requirements.primary_goal)
+        table.add_row("Intent Category", resolved_mission.requirements.intent_category)
+        table.add_row("Workspace Root", str(resolved_mission.context.workspace_root))
+        table.add_row("Project Type", str(resolved_mission.context.project_type))
+        table.add_row("Status", str(resolved_mission.status.current_state.value if hasattr(resolved_mission.status.current_state, "value") else resolved_mission.status.current_state))
+        table.add_row("Read-only Engine", "CONFIRMED" if resolved_mission.context.read_only_engine_confirmed else "FAILED")
+        table.add_row("Evidence Stages Recorded", str(len(resolved_mission.report.evidence_summary) if resolved_mission.report else 0))
+
+        console.print(table)
+    except (MissionIntakeError, MissionResolutionError) as exc:
+        console.print(f"[red]Mission Resolution Error:[/] {getattr(exc, 'message', str(exc))}")
+        raise typer.Exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "recommend-model", "tools",
-    "mcp", "recommend-tool", "invoke", "search", "--help", "-h", "--version"
+    "mcp", "recommend-tool", "invoke", "search", "mission", "--help", "-h", "--version"
 }
 
 
@@ -632,11 +671,13 @@ def main(args: list[str] | None = None) -> None:
         try:
             intake = MissionIntake()
             mission_request = intake.parse_cli_command(cmd_args, explicit_workspace=explicit_ws)
-            console.print_json(data=mission_request.model_dump(mode="json"))
-            return
-        except MissionIntakeError as exc:
-            console.print(f"[red]Mission Intake Error:[/] {exc.message}")
-            raise typer.Exit(1)
+            resolver = MissionResolver()
+            resolved_mission = resolver.resolve_mission(mission_request)
+            console.print_json(data=resolved_mission.model_dump(mode="json"))
+            sys.exit(0)
+        except (MissionIntakeError, MissionResolutionError) as exc:
+            console.print(f"[red]Mission Error:[/] {getattr(exc, 'message', str(exc))}")
+            sys.exit(1)
 
     app(args=raw_args)
 

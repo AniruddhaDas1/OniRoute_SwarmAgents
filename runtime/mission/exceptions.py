@@ -37,3 +37,24 @@ class MalformedRequestError(MissionIntakeError):
     """Raised when request parameters or payload are malformed."""
 
     pass
+
+
+class MissionResolutionError(Exception):
+    """Base exception for all Mission Resolution failures."""
+
+    def __init__(self, message: str, details: dict | None = None) -> None:
+        super().__init__(message)
+        self.message = message
+        self.details = details or {}
+
+
+class InvalidMissionStateError(MissionResolutionError):
+    """Raised when attempting an invalid mission state transition."""
+
+    pass
+
+
+class MissionValidationError(MissionResolutionError):
+    """Raised when mission validation rules are violated."""
+
+    pass

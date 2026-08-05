@@ -73,3 +73,16 @@ class MissionIntakeContract(ABC):
     def parse_cli_command(self, raw_args: list[str], explicit_workspace: Any = None) -> MissionRequest:
         """Normalize raw CLI command arguments into a canonical MissionRequest."""
         ...
+
+
+class MissionResolverContract(ABC):
+    """Abstract contract for Mission Resolution (ACR-004 Phase O3)."""
+
+    @abstractmethod
+    def resolve_mission(
+        self,
+        request: MissionRequest,
+        workspace_manager: Any = None,
+    ) -> Mission:
+        """Transform a canonical MissionRequest into a fully validated Mission."""
+        ...
