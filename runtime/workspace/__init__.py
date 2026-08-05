@@ -60,6 +60,7 @@ from runtime.scaffold import WorkspaceScaffoldEngine, WorkspaceScaffoldReport, W
 from runtime.blueprint import ProjectBlueprintEngine, ProjectBlueprintReport, ProjectBlueprintError
 from runtime.allocation import ImplementationAllocationEngine, ImplementationAllocationReport, ImplementationAllocationError
 from runtime.contracts import EngineeringContractEngine, EngineeringContractReport, EngineeringContractError
+from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssemblyCertificationReport, ProjectAssemblyError
 
 __all__ = [
     "WorkspaceScaffoldEngine",
@@ -74,6 +75,9 @@ __all__ = [
     "EngineeringContractEngine",
     "EngineeringContractReport",
     "EngineeringContractError",
+    "ProjectAssemblyCertificationEngine",
+    "ProjectAssemblyCertificationReport",
+    "ProjectAssemblyError",
     "WorkspaceValidator",
     "ArtifactCategory",
     "ArtifactCollisionError",
