@@ -190,6 +190,11 @@ class AgentSession(BaseModel):
     role_title: str = Field(..., description="Human-readable role title")
     blueprint_id: str = Field(..., description="Execution Blueprint this session was instantiated from")
     capability_ids: list[str] = Field(default_factory=list, description="Capability IDs this session is responsible for")
+    required_skills: list[str] = Field(default_factory=list, description="Skill references inherited from OrganizationMember")
+    knowledge_references: list[str] = Field(default_factory=list, description="Knowledge source references")
+    package_references: list[str] = Field(default_factory=list, description="Package references inherited from member")
+    workflow_references: list[str] = Field(default_factory=list, description="Workflow template references")
+    execution_constraints: list[dict[str, Any]] = Field(default_factory=list, description="Execution constraints from blueprint")
     state: RuntimeState = Field(default=RuntimeState.INITIALIZED, description="Current lifecycle state")
     status: ExecutionStatus = Field(default=ExecutionStatus.PENDING, description="High-level execution status")
     artifacts: list[ArtifactRecord] = Field(default_factory=list, description="Artifacts produced by this session")
@@ -201,6 +206,7 @@ class AgentSession(BaseModel):
         default_factory=lambda: datetime.now(timezone.utc).isoformat(),
         description="ISO-8601 UTC session creation timestamp",
     )
+
 
 
 # ---------------------------------------------------------------------------

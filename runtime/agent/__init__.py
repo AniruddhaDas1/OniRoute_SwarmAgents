@@ -1,4 +1,4 @@
-"""OniRoute Agent Runtime package (ACR-006 Phase R1) — Architecture only."""
+"""OniRoute Agent Runtime package (ACR-006 Phase R1 & R2)."""
 
 from .contracts import (
     ArtifactCollectorContract,
@@ -8,11 +8,12 @@ from .contracts import (
     RuntimeInitializerContract,
     SessionManagerContract,
 )
+from .event_recorder import EventRecorder
 from .models import (
+    ALLOWED_RUNTIME_TRANSITIONS,
     AgentSession,
     ArtifactRecord,
     ArtifactType,
-    ALLOWED_RUNTIME_TRANSITIONS,
     ExecutionEvent,
     ExecutionResult,
     ExecutionStatus,
@@ -23,6 +24,10 @@ from .models import (
     RuntimeState,
     can_runtime_transition,
 )
+from .runtime_initializer import RuntimeInitializer
+from .session_coordinator import SessionCoordinator
+from .session_manager import SessionManager
+from .session_registry import SessionRegistry
 
 __all__ = [
     # Runtime States & Transitions
@@ -52,4 +57,10 @@ __all__ = [
     "ArtifactCollectorContract",
     "EventRecorderContract",
     "ExecutionReporterContract",
+    # Implementations
+    "RuntimeInitializer",
+    "SessionManager",
+    "SessionRegistry",
+    "EventRecorder",
+    "SessionCoordinator",
 ]

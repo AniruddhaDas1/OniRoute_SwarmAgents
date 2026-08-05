@@ -38,6 +38,7 @@ from runtime.mission import (
     MissionResolutionError,
     MissionResolver,
 )
+from runtime.agent import SessionCoordinator
 from runtime.organization import CapabilityResolver, ExecutionBlueprintAssembler, OrganizationAssembler
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
@@ -888,11 +889,76 @@ def blueprint_command(
         raise typer.Exit(1)
 
 
+@app.command("session")
+def session_command(
+    command: list[str] = typer.Argument(None, help="Natural language mission command for session initialization."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON RuntimeReport."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+) -> None:
+    """Initialize agent sessions from a sealed Execution Blueprint without execution."""
+    if command and "--json" in command:
+        json_output = True
+        command = [c for c in command if c != "--json"]
+    raw_prompt = " ".join(command) if command else "Initialize sessions for workspace"
+
+    try:
+        intake = MissionIntake()
+        mission_request = intake.process_intake(raw_prompt, explicit_workspace=workspace)
+        resolver = MissionResolver()
+        resolved_mission = resolver.resolve_mission(mission_request)
+        orchestrator = MissionOrchestrator()
+        exec_request = orchestrator.orchestrate_mission(resolved_mission)
+        bp_assembler = ExecutionBlueprintAssembler(repository_root=repository_root)
+        blueprint = bp_assembler.assemble_blueprint(exec_request, repository_root=repository_root)
+        coordinator = SessionCoordinator()
+        context, sessions, report = coordinator.initialize_sessions(blueprint)
+
+        if json_output:
+            console.print_json(data=report.model_dump(mode="json"))
+            return
+
+        table = Table(title=f"Agent Sessions: {blueprint.blueprint_id}")
+        table.add_column("Session ID", style="bold cyan")
+        table.add_column("Member ID", style="bold yellow")
+        table.add_column("Role", style="bold green")
+        table.add_column("State")
+        table.add_column("Capabilities")
+        table.add_column("Events")
+
+        for session in sessions:
+            table.add_row(
+                session.session_id,
+                session.member_id,
+                session.role_title,
+                session.state.value.upper(),
+                str(len(session.capability_ids)),
+                str(len(session.events)),
+            )
+
+        console.print(table)
+
+        summary_table = Table(title="Session Initialization Runtime Report")
+        summary_table.add_column("Metric", style="bold green")
+        summary_table.add_column("Value")
+        summary_table.add_row("Blueprint ID", report.blueprint_id)
+        summary_table.add_row("Mission ID", report.mission_id)
+        summary_table.add_row("Total Sessions", str(report.total_sessions))
+        summary_table.add_row("Total Events", str(report.total_events))
+        summary_table.add_row("Initialization Status", "READY" if report.total_sessions > 0 else "EMPTY")
+
+        console.print(summary_table)
+
+    except (MissionIntakeError, MissionResolutionError, MissionOrchestrationError) as exc:
+        console.print(f"[red]Session Initialization Error:[/] {getattr(exc, 'message', str(exc))}")
+        raise typer.Exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
-    "providers", "capabilities", "capability", "organization", "blueprint", "recommend-model", "tools",
+    "providers", "capabilities", "capability", "organization", "blueprint", "session", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "--help", "-h", "--version"
 }
 
