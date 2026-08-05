@@ -1271,13 +1271,187 @@ def recovery_command(
     console.print(f"[dim]Summary:[/] {report.summary}")
 
 
+# ---------------------------------------------------------------------------
+# Collaboration CLI commands (ACR-007 Phase C2)
+# ---------------------------------------------------------------------------
+
+@app.command("collaborate")
+def collaborate_command(
+    prompt: str = typer.Argument("Establish collaboration session", help="Objective or topic for collaboration."),
+    blueprint_id: str = typer.Option("bp-collab-001", "--blueprint-id", help="ExecutionBlueprint ID."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
+) -> None:
+    """Initialize a collaboration session with conversation, threads, and message bus routing."""
+    from runtime.agent.models import AgentSession, RuntimeState
+    from runtime.collaboration import MessageBus, Message, MessageType
+
+    bus = MessageBus(blueprint_id=blueprint_id)
+
+    # Register demonstration agent sessions
+    s1 = AgentSession(
+        session_id="sess-lead-001", member_id="mem-lead", role_id="role-architect",
+        role_title="Lead Architect", blueprint_id=blueprint_id, state=RuntimeState.RUNNING,
+    )
+    s2 = AgentSession(
+        session_id="sess-dev-001", member_id="mem-dev", role_id="role-backend",
+        role_title="Backend Developer", blueprint_id=blueprint_id, state=RuntimeState.RUNNING,
+        metadata={"department": "engineering"},
+    )
+    s3 = AgentSession(
+        session_id="sess-qa-001", member_id="mem-qa", role_id="role-qa",
+        role_title="QA Engineer", blueprint_id=blueprint_id, state=RuntimeState.RUNNING,
+        metadata={"department": "engineering"},
+    )
+    bus.register_sessions([s1, s2, s3])
+
+    # Create conversation and thread
+    conv = bus.create_conversation(
+        title=f"Collaboration: {prompt}",
+        mission_id="msn-collab-001",
+        participants=[s1.session_id, s2.session_id, s3.session_id],
+    )
+    th = bus.create_thread(
+        topic=f"Initial Discussion: {prompt}",
+        participant_session_ids=[s1.session_id, s2.session_id],
+        conversation_id=conv.conversation_id,
+    )
+
+    # Publish initial message
+    msg = Message(
+        message_id="msg-init-001",
+        conversation_id=conv.conversation_id,
+        thread_id=th.thread_id,
+        sender_session_id=s1.session_id,
+        sender_member_id=s1.member_id,
+        recipient_sessions=["role:backend"],
+        message_type=MessageType.TASK,
+        subject="Task Assignment",
+        content=f"Please begin initial architecture work for '{prompt}'.",
+    )
+    bus.publish_message(msg)
+
+    session_snap = bus.get_collaboration_session()
+
+    if json_output:
+        console.print_json(data=session_snap.model_dump(mode="json"))
+        return
+
+    table = Table(title=f"Collaboration Session: {session_snap.collaboration_id}")
+    table.add_column("Property", style="bold cyan")
+    table.add_column("Value")
+    table.add_row("Blueprint ID", session_snap.blueprint_id)
+    table.add_row("Active Conversations", str(len(session_snap.active_conversations)))
+    table.add_row("Open Threads", str(len(session_snap.open_threads)))
+    table.add_row("Total Participants", str(len(session_snap.participants)))
+    table.add_row("Participants", ", ".join(session_snap.participants))
+    table.add_row("Total Messages", str(session_snap.statistics.get("total_messages", 0)))
+    table.add_row("Timeline Events", str(len(session_snap.timeline.events)))
+    console.print(table)
+
+
+@app.command("conversation")
+def conversation_command(
+    action: str = typer.Argument("list", help="Action: list or show."),
+    conversation_id: str = typer.Option("", "--id", help="Conversation ID to inspect."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
+) -> None:
+    """Inspect collaboration conversations and their participant threads."""
+    from runtime.collaboration import MessageBus
+
+    bus = MessageBus(blueprint_id="bp-cli-demo")
+    c1 = bus.create_conversation(
+        title="CRM Service System Architecture",
+        mission_id="msn-crm-001",
+        participants=["sess-architect-01", "sess-backend-01", "sess-qa-01"],
+    )
+    bus.create_thread(
+        topic="Database Schema Review",
+        participant_session_ids=["sess-architect-01", "sess-backend-01"],
+        conversation_id=c1.conversation_id,
+    )
+
+    if conversation_id:
+        target = bus.get_conversation(conversation_id) or c1
+    else:
+        target = c1
+
+    if json_output:
+        console.print_json(data=target.model_dump(mode="json"))
+        return
+
+    table = Table(title=f"Conversation: {target.conversation_id}")
+    table.add_column("Field", style="bold cyan")
+    table.add_column("Value")
+    table.add_row("Title", target.title)
+    table.add_row("Mission ID", target.mission_id)
+    table.add_row("Status", target.status.value.upper())
+    table.add_row("Participants", ", ".join(target.participants))
+    table.add_row("Threads Count", str(len(target.threads)))
+    table.add_row("Created At", target.created_at)
+    console.print(table)
+
+
+@app.command("thread")
+def thread_command(
+    thread_id: str = typer.Argument("", help="Thread ID to inspect (omit for default)."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
+) -> None:
+    """Inspect message threads and message history."""
+    from runtime.collaboration import MessageBus, Message, MessageType
+
+    bus = MessageBus(blueprint_id="bp-cli-demo")
+    c = bus.create_conversation(title="Backend Service Handoff", participants=["sess-arch-01", "sess-dev-01"])
+    th = bus.create_thread(topic="API Contracts", participant_session_ids=["sess-arch-01", "sess-dev-01"], conversation_id=c.conversation_id)
+
+    bus.publish_message(Message(
+        message_id="msg-th-001",
+        conversation_id=c.conversation_id,
+        thread_id=th.thread_id,
+        sender_session_id="sess-arch-01",
+        sender_member_id="mem-arch",
+        recipient_sessions=["sess-dev-01"],
+        message_type=MessageType.QUESTION,
+        subject="API Format",
+        content="Should we use OpenAPI v3 for REST contracts?",
+    ))
+
+    target_th = bus.get_thread(thread_id) if thread_id else bus.get_thread(th.thread_id)
+    if not target_th:
+        target_th = th
+
+    if json_output:
+        console.print_json(data=target_th.model_dump(mode="json"))
+        return
+
+    table = Table(title=f"Thread: {target_th.thread_id}")
+    table.add_column("Field", style="bold cyan")
+    table.add_column("Value")
+    table.add_row("Topic", target_th.topic)
+    table.add_row("Thread Type", target_th.thread_type.value.upper())
+    table.add_row("Status", target_th.status.value.upper())
+    table.add_row("Participants", ", ".join(target_th.participant_session_ids))
+    table.add_row("Message Count", str(len(target_th.messages)))
+    console.print(table)
+
+    if target_th.messages:
+        msg_table = Table(title="Messages in Thread")
+        msg_table.add_column("Message ID", style="dim")
+        msg_table.add_column("Sender")
+        msg_table.add_column("Type", style="yellow")
+        msg_table.add_column("Subject")
+        msg_table.add_column("Content")
+        for m in target_th.messages:
+            msg_table.add_row(m.message_id, m.sender_session_id, m.message_type.value.upper(), m.subject, m.content)
+        console.print(msg_table)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission",
-    "review", "retry", "resume", "recovery",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread",
     "--help", "-h", "--version"
 }
 

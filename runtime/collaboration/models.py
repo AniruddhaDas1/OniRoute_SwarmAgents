@@ -1,7 +1,7 @@
-"""Immutable Data Models for Engineering Collaboration Architecture (ACR-007 Phase C1).
+"""Immutable Data Models for Engineering Collaboration (ACR-007 Phase C1 & C2).
 
 Defines all declarative, immutable Pydantic models for inter-session communication,
-handoffs, shared artifacts, approvals, reviews, timelines, and collaboration reports.
+conversations, threads, messages, routing, timelines, and collaboration reports.
 
 Architecture-only specifications. No AI execution, no runtime scheduling.
 """
@@ -38,6 +38,45 @@ class MessageType(str, Enum):
     INFO = "info"
 
 
+class ConversationStatus(str, Enum):
+    """Lifecycle status for a CollaborationConversation."""
+
+    ACTIVE = "active"
+    CLOSED = "closed"
+    ARCHIVED = "archived"
+
+
+class ThreadType(str, Enum):
+    """Canonical types of communication threads."""
+
+    QUESTION = "question"
+    TASK = "task"
+    REVIEW = "review"
+    APPROVAL = "approval"
+    DISCUSSION = "discussion"
+    BUG = "bug"
+    DECISION = "decision"
+    STATUS = "status"
+
+
+class ThreadStatus(str, Enum):
+    """Lifecycle status for a MessageThread."""
+
+    OPEN = "open"
+    CLOSED = "closed"
+    ARCHIVED = "archived"
+
+
+class RecipientType(str, Enum):
+    """Routing types supported by the MessageRouter."""
+
+    SPECIFIC_SESSION = "specific_session"
+    ROLE = "role"
+    DEPARTMENT = "department"
+    BROADCAST = "broadcast"
+    SYSTEM = "system"
+
+
 class HandoffStatus(str, Enum):
     """Status lifecycle for an inter-session handoff."""
 
@@ -59,6 +98,12 @@ class ApprovalStatus(str, Enum):
 class TimelineEventType(str, Enum):
     """Categories of timeline events captured during collaboration."""
 
+    CONVERSATION_CREATED = "conversation_created"
+    THREAD_CREATED = "thread_created"
+    MESSAGE_PUBLISHED = "message_published"
+    MESSAGE_DELIVERED = "message_delivered"
+    THREAD_CLOSED = "thread_closed"
+    CONVERSATION_CLOSED = "conversation_closed"
     MESSAGE = "message"
     HANDOFF = "handoff"
     REVIEW = "review"
@@ -72,49 +117,74 @@ class TimelineEventType(str, Enum):
 # ---------------------------------------------------------------------------
 
 class Message(BaseModel):
-    """Immutable message record sent between agent sessions."""
+    """Immutable message record sent between agent sessions via conversation threads."""
 
     model_config = ConfigDict(frozen=True)
 
     message_id: str = Field(..., description="Unique message identifier.")
+    conversation_id: str = Field(default="", description="Parent conversation identifier.")
+    thread_id: str = Field(default="", description="Parent MessageThread identifier.")
     sender_session_id: str = Field(..., description="AgentSession ID of the sender.")
     sender_member_id: str = Field(..., description="Organization Member ID of the sender.")
+    recipient_sessions: list[str] = Field(
+        default_factory=list, description="Target recipient descriptors or session IDs."
+    )
     recipient_session_id: str | None = Field(
-        default=None, description="Target AgentSession ID (None for broadcast messages)."
+        default=None, description="Primary recipient AgentSession ID (None for broadcast)."
     )
     message_type: MessageType = Field(..., description="Canonical message type.")
     subject: str = Field(default="", description="Subject or brief title of the message.")
     content: str = Field(..., description="Body content of the message.")
+    evidence: dict[str, Any] = Field(default_factory=dict, description="Evidence supporting message.")
     payload: dict[str, Any] = Field(default_factory=dict, description="Structured message payload.")
-    thread_id: str | None = Field(default=None, description="Parent MessageThread ID if part of a thread.")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Extensible metadata.")
     in_reply_to_id: str | None = Field(default=None, description="Parent Message ID being replied to.")
+    delivered: bool = Field(default=False, description="True if message has been delivered to recipients.")
     timestamp: str = Field(default_factory=_utcnow, description="ISO-8601 UTC timestamp.")
 
 
 class MessageThread(BaseModel):
-    """Immutable thread grouping related messages."""
+    """Append-only thread grouping related messages around a topic/type."""
 
     model_config = ConfigDict(frozen=True)
 
     thread_id: str = Field(..., description="Unique thread identifier.")
+    conversation_id: str = Field(default="", description="Parent conversation identifier.")
     topic: str = Field(..., description="Thread topic or objective.")
+    thread_type: ThreadType = Field(default=ThreadType.DISCUSSION, description="Canonical thread type.")
+    status: ThreadStatus = Field(default=ThreadStatus.OPEN, description="Current thread status.")
     participant_session_ids: list[str] = Field(
         default_factory=list, description="AgentSession IDs participating in this thread."
     )
     messages: list[Message] = Field(default_factory=list, description="Chronological message list.")
+    evidence: dict[str, Any] = Field(default_factory=dict, description="Thread evidence records.")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Extensible thread metadata.")
     created_at: str = Field(default_factory=_utcnow, description="ISO-8601 UTC thread creation timestamp.")
+    closed_at: str | None = Field(default=None, description="ISO-8601 UTC timestamp when closed.")
 
 
-class Conversation(BaseModel):
-    """Immutable conversation container between sessions."""
+class CollaborationConversation(BaseModel):
+    """Immutable conversation container tying threads to a mission/blueprint context."""
 
     model_config = ConfigDict(frozen=True)
 
     conversation_id: str = Field(..., description="Unique conversation identifier.")
-    title: str = Field(..., description="Conversation title.")
+    mission_id: str = Field(default="", description="Associated Mission ID.")
+    blueprint_id: str = Field(default="", description="Associated ExecutionBlueprint ID.")
+    title: str = Field(..., description="Conversation title or description.")
+    participants: list[str] = Field(
+        default_factory=list, description="AgentSession IDs participating in conversation."
+    )
+    status: ConversationStatus = Field(default=ConversationStatus.ACTIVE, description="Conversation status.")
     threads: list[MessageThread] = Field(default_factory=list, description="List of message threads.")
     metadata: dict[str, Any] = Field(default_factory=dict, description="Extensible metadata.")
+    evidence: dict[str, Any] = Field(default_factory=dict, description="Contextual evidence.")
     created_at: str = Field(default_factory=_utcnow, description="ISO-8601 UTC creation timestamp.")
+    closed_at: str | None = Field(default=None, description="ISO-8601 UTC timestamp when closed.")
+
+
+# Alias for backward compatibility with Phase C1
+Conversation = CollaborationConversation
 
 
 # ---------------------------------------------------------------------------
@@ -245,7 +315,7 @@ class Timeline(BaseModel):
 # ---------------------------------------------------------------------------
 
 class CollaborationSession(BaseModel):
-    """Immutable collaboration session binding active agent sessions."""
+    """Immutable collaboration session tracking active conversations, participants, open/closed threads, and timeline."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -254,8 +324,24 @@ class CollaborationSession(BaseModel):
     agent_session_ids: list[str] = Field(
         default_factory=list, description="Bound AgentSession IDs participating in collaboration."
     )
-    active_conversations: list[Conversation] = Field(
+    active_conversations: list[CollaborationConversation] = Field(
         default_factory=list, description="Conversations within this collaboration session."
+    )
+    participants: list[str] = Field(
+        default_factory=list, description="All participating AgentSession IDs."
+    )
+    open_threads: list[MessageThread] = Field(
+        default_factory=list, description="Currently open message threads."
+    )
+    closed_threads: list[MessageThread] = Field(
+        default_factory=list, description="Closed or archived message threads."
+    )
+    statistics: dict[str, int] = Field(
+        default_factory=dict, description="Collaboration statistics (total messages, threads, etc)."
+    )
+    timeline: Timeline = Field(
+        default_factory=lambda: Timeline(timeline_id="tl-empty", session_id="collab-session"),
+        description="Collaboration execution timeline log.",
     )
     handoffs: list[Handoff] = Field(default_factory=list, description="Handoffs recorded.")
     approvals: list[ApprovalRequest] = Field(default_factory=list, description="Approvals recorded.")
@@ -270,6 +356,8 @@ class CollaborationReport(BaseModel):
     report_id: str = Field(..., description="Unique report identifier.")
     collaboration_id: str = Field(..., description="Target CollaborationSession ID.")
     total_messages: int = Field(default=0, description="Total messages sent across all threads.")
+    total_threads: int = Field(default=0, description="Total threads created.")
+    total_conversations: int = Field(default=0, description="Total conversations created.")
     total_handoffs: int = Field(default=0, description="Total handoffs initiated.")
     completed_handoffs: int = Field(default=0, description="Total handoffs successfully accepted.")
     total_approvals: int = Field(default=0, description="Total approval requests processed.")

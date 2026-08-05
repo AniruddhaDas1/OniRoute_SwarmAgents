@@ -60,9 +60,11 @@ class TestCollaborationEnums:
         assert actual == expected
 
     def test_timeline_event_types(self):
-        expected = {"message", "handoff", "review", "approval", "artifact_shared", "state_changed"}
+        expected_base = {"message", "handoff", "review", "approval", "artifact_shared", "state_changed"}
+        c2_new = {"conversation_created", "thread_created", "message_published", "message_delivered", "thread_closed", "conversation_closed"}
         actual = {t.value for t in TimelineEventType}
-        assert actual == expected
+        assert expected_base.issubset(actual)
+        assert c2_new.issubset(actual)
 
 
 class TestCollaborationModelsImmutability:
