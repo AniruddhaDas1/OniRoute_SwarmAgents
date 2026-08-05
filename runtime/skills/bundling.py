@@ -211,7 +211,27 @@ class SkillBundlingEngine:
                         if prereq_bundle_id != b.bundle_id:
                             bundle_deps_map[b.bundle_id].add(prereq_bundle_id)
 
-        # Reconstruct updated bundles with populated dependency_bundles
+        # 4. Topological Bundle Execution Ordering & Cycle Pruning
+        dag = nx.DiGraph()
+        for b in bundles:
+            dag.add_node(b.bundle_id)
+
+        for b_id, prereq_ids in bundle_deps_map.items():
+            for p_id in prereq_ids:
+                dag.add_edge(p_id, b_id)
+
+        # Break feedback cycles deterministically to guarantee DAG integrity
+        while not nx.is_directed_acyclic_graph(dag):
+            cycles = list(nx.simple_cycles(dag))
+            if not cycles:
+                break
+            cycle = cycles[0]
+            u, v = cycle[-1], cycle[0]
+            dag.remove_edge(u, v)
+            if u in bundle_deps_map and v in bundle_deps_map[u]:
+                bundle_deps_map[u].remove(v)
+
+        # Reconstruct updated bundles with pruned dependency_bundles
         updated_bundles: List[ExecutionSkillBundle] = []
         for b in bundles:
             deps_list = sorted(list(bundle_deps_map[b.bundle_id]))
@@ -235,22 +255,8 @@ class SkillBundlingEngine:
                 )
             )
 
-        # 4. Topological Bundle Execution Ordering
-        dag = nx.DiGraph()
-        for b in updated_bundles:
-            dag.add_node(b.bundle_id)
+        bundle_ordering = list(nx.topological_sort(dag))
 
-        for b_id, prereq_ids in bundle_deps_map.items():
-            for p_id in prereq_ids:
-                dag.add_edge(p_id, b_id)
-
-        if nx.is_directed_acyclic_graph(dag):
-            bundle_ordering = list(nx.topological_sort(dag))
-        else:
-            # Fallback sort by priority rank if cyclic
-            bundle_ordering = [
-                b.bundle_id for b in sorted(updated_bundles, key=lambda x: (PRIORITY_RANK_MAP[x.priority], x.bundle_id))
-            ]
 
         # 5. Validation Check
         total_bundled_skills = sum(len(b.ranked_skills) for b in updated_bundles)

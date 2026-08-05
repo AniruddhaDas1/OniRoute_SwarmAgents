@@ -55,11 +55,15 @@ from runtime.skills import (
     SkillDiscoveryEngine,
     SkillRankingEngine,
     SkillBundlingEngine,
+    AgentProfileBuilderEngine,
     SkillSelectionReport,
     RankedSkillReport,
     ExecutionSkillBundleReport,
     ExecutionSkillBundle,
+    AgentProfileReport,
+    AgentProfile,
 )
+
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -2201,15 +2205,114 @@ def bundles_command(
     console.print(summary_table)
 
 
+@app.command("profiles")
+@skills_app.command("profiles")
+def profiles_command(
+    request: list[str] = typer.Argument(None, help="Natural language request or plan prompt."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+) -> None:
+    """Synthesize execution-ready Agent Profiles from ExecutionSkillBundleReport."""
+    raw_prompt = " ".join(request) if request else "Build application"
+    if request and "--json" in request:
+        json_output = True
+        raw_prompt = " ".join([r for r in request if r != "--json"])
+        if not raw_prompt.strip():
+            raw_prompt = "Build application"
+
+    intent_analyzer = IntentAnalyzer()
+    intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=workspace)
+
+    ws_intelligence = WorkspaceIntelligence()
+    ws_ctx = ws_intelligence.analyze_workspace(cwd=repository_root, explicit_workspace=workspace)
+
+    repo_intelligence = RepositoryIntelligence()
+    repo_ctx = repo_intelligence.analyze_repository(ws_ctx)
+
+    generator = EngineeringPlanGenerator()
+    plan = generator.generate_plan(intent_report, ws_ctx, repo_ctx)
+
+    loader = RepositoryLoader(repository_root)
+    registry = loader.load()
+    resolver = Resolver(registry)
+
+    discovery_engine = SkillDiscoveryEngine(registry, resolver)
+    selection_report = discovery_engine.discover_skills(plan)
+
+    ranking_engine = SkillRankingEngine(registry, resolver)
+    ranked_report = ranking_engine.rank_skills(selection_report, plan)
+
+    bundling_engine = SkillBundlingEngine(registry, resolver)
+    bundle_report = bundling_engine.bundle_skills(ranked_report, plan, selection_report)
+
+    profile_builder = AgentProfileBuilderEngine(registry, resolver)
+    profile_report = profile_builder.build_profiles(bundle_report, plan)
+
+    if json_output:
+        console.print_json(data=profile_report.model_dump(mode="json"))
+        return
+
+    console.print(
+        f"\n[bold cyan]Agent Profile Report:[/] {profile_report.report_id} "
+        f"(Bundle Report: {profile_report.bundle_report_id}, Plan: {profile_report.execution_plan_id})"
+    )
+
+    # 1. Agent Profiles Table
+    profiles_table = Table(title="Synthesized Agent Profiles")
+    profiles_table.add_column("Profile ID", style="bold cyan")
+    profiles_table.add_column("Agent Role", style="bold yellow")
+    profiles_table.add_column("Discipline")
+    profiles_table.add_column("Priority", style="bold green")
+    profiles_table.add_column("Assigned Bundles")
+    profiles_table.add_column("Deliverables")
+    profiles_table.add_column("Dependencies")
+
+    for profile in profile_report.profiles:
+        prio_str = profile.priority.value if hasattr(profile.priority, "value") else str(profile.priority)
+        bundles_str = ", ".join(profile.assigned_bundle_references)
+        deliv_str = ", ".join(profile.expected_deliverables) if profile.expected_deliverables else "None"
+        deps_str = ", ".join(profile.dependency_profiles) if profile.dependency_profiles else "None"
+        profiles_table.add_row(
+            profile.profile_id,
+            profile.agent_role,
+            profile.primary_discipline,
+            prio_str,
+            bundles_str,
+            deliv_str,
+            deps_str,
+        )
+    console.print(profiles_table)
+
+    # 2. Profile Execution Graph & Validation Summary Table
+    summary_table = Table(title="Profile Execution Ordering & Validation Summary")
+    summary_table.add_column("Metric", style="bold cyan")
+    summary_table.add_column("Value")
+
+    summary_table.add_row("Recommended Profile Execution Order", ", ".join(profile_report.recommended_profile_ordering))
+    summary_table.add_row("Total Agent Profiles", str(len(profile_report.profiles)))
+    summary_table.add_row("Total Bundles Mapped", str(len(profile_report.bundle_mapping)))
+    val = profile_report.validation
+    summary_table.add_row("Every Bundle Assigned", "YES" if val.get("every_bundle_assigned") else "NO")
+    summary_table.add_row("No Orphan Bundles", "YES" if val.get("no_orphan_bundles") else "NO")
+    summary_table.add_row("No Duplicate Bundle Ownership", "YES" if val.get("no_duplicate_bundle_ownership") else "NO")
+    summary_table.add_row("Dependency Integrity", "PASSED" if val.get("dependency_integrity") else "FAILED")
+    summary_table.add_row("Coverage Percentage", f"{profile_report.coverage.coverage_percent}%")
+    summary_table.add_row("Synthesis Confidence", f"{profile_report.confidence * 100:.1f}%")
+
+    console.print(summary_table)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
-    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles",
+    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles",
     "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact",
     "--help", "-h", "--version"
 }
+
 
 
 

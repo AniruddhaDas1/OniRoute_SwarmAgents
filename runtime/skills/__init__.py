@@ -1,8 +1,11 @@
 """Skill Intelligence subsystem for OniRoute (Phase P2)."""
 
+from .builder import AgentProfileBuilderEngine
 from .bundling import SkillBundlingEngine
 from .discovery import SkillDiscoveryEngine
 from .models import (
+    AgentProfile,
+    AgentProfileReport,
     DependencyChain,
     DiscoveredSkill,
     ExecutionSkillBundle,
@@ -19,6 +22,7 @@ __all__ = [
     "SkillDiscoveryEngine",
     "SkillRankingEngine",
     "SkillBundlingEngine",
+    "AgentProfileBuilderEngine",
     "DiscoveredSkill",
     "RankedSkill",
     "DependencyChain",
@@ -28,6 +32,9 @@ __all__ = [
     "RankedSkillReport",
     "ExecutionSkillBundle",
     "ExecutionSkillBundleReport",
+    "AgentProfile",
+    "AgentProfileReport",
 ]
+
 
 

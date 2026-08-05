@@ -161,3 +161,46 @@ class ExecutionSkillBundleReport(BaseModel):
     timestamp: str = Field(description="ISO 8601 UTC timestamp")
 
 
+class AgentProfile(BaseModel):
+    """Immutable runtime profile definition for an autonomous AI agent role."""
+
+    model_config = ConfigDict(frozen=True)
+
+    profile_id: str = Field(description="Unique agent profile identifier")
+    execution_plan_id: str = Field(description="Associated EngineeringExecutionPlan identifier")
+    agent_role: str = Field(description="Human-readable agent role title")
+    assigned_bundle_references: List[str] = Field(default_factory=list, description="IDs of ExecutionSkillBundles assigned to this profile")
+    primary_discipline: str = Field(description="Primary engineering discipline of the profile")
+    expected_deliverables: List[str] = Field(default_factory=list, description="Deliverables assigned to this agent profile")
+    execution_constraints: List[str] = Field(default_factory=list, description="Execution constraints assigned to this agent profile")
+    knowledge_references: List[str] = Field(default_factory=list, description="Consolidated knowledge references")
+    package_references: List[str] = Field(default_factory=list, description="Consolidated package references")
+    workflow_references: List[str] = Field(default_factory=list, description="Consolidated workflow references")
+    mcp_references: List[str] = Field(default_factory=list, description="Consolidated MCP tool references")
+    context_references: List[str] = Field(default_factory=list, description="Context source references")
+    priority: SkillPriority = Field(description="Highest priority among assigned bundles")
+    dependency_profiles: List[str] = Field(default_factory=list, description="Prerequisite agent profile IDs")
+    evidence: Dict[str, Any] = Field(default_factory=dict, description="Profile evidence and metadata")
+    timestamp: str = Field(description="ISO 8601 UTC timestamp")
+
+
+class AgentProfileReport(BaseModel):
+    """Immutable report containing synthesized agent profiles and profile mapping."""
+
+    model_config = ConfigDict(frozen=True)
+
+    report_id: str = Field(description="Unique agent profile report identifier")
+    execution_plan_id: str = Field(description="Associated EngineeringExecutionPlan identifier")
+    bundle_report_id: str = Field(description="Associated ExecutionSkillBundleReport identifier")
+    profiles: List[AgentProfile] = Field(default_factory=list, description="All synthesized agent profiles")
+    bundle_mapping: Dict[str, str] = Field(default_factory=dict, description="Mapping of bundle_id -> profile_id")
+    dependency_graph: Dict[str, List[str]] = Field(default_factory=dict, description="Inter-profile dependency mapping")
+    recommended_profile_ordering: List[str] = Field(default_factory=list, description="Recommended topological profile execution order")
+    coverage: SkillCoverage = Field(description="Preserved skill coverage metrics")
+    validation: Dict[str, Any] = Field(default_factory=dict, description="Profile validation metrics")
+    confidence: float = Field(description="Overall agent profile synthesis confidence score")
+    evidence: Dict[str, Any] = Field(default_factory=dict, description="Profile report evidence")
+    timestamp: str = Field(description="ISO 8601 UTC timestamp")
+
+
+
