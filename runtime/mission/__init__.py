@@ -41,7 +41,15 @@ from .orchestration import MissionOrchestrator
 from .resolution import MissionResolver
 from .states import ALLOWED_STATE_TRANSITIONS, MissionState, can_transition
 
-from runtime.deployment import MissionDeploymentPlan, MissionDeploymentPlanner
+def __getattr__(name: str):
+    if name in ("MissionDeploymentPlan", "MissionDeploymentPlanner"):
+        import runtime.deployment as dep
+        return getattr(dep, name)
+    if name in ("RuntimeExecutionSnapshot", "SwarmInitializationEngine"):
+        import runtime.swarm as sw
+        return getattr(sw, name)
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
 
 __all__ = [
     "ALLOWED_STATE_TRANSITIONS",
@@ -77,7 +85,11 @@ __all__ = [
     "MissionState",
     "MissionStatus",
     "MissionValidationError",
+    "RuntimeExecutionSnapshot",
+    "SwarmInitializationEngine",
     "WorkspaceUnavailableError",
     "can_transition",
 ]
+
+
 

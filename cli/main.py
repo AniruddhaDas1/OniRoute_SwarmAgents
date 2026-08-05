@@ -64,6 +64,8 @@ from runtime.skills import (
     AgentProfile,
 )
 from runtime.deployment import MissionDeploymentPlan, MissionDeploymentPlanner
+from runtime.swarm import RuntimeExecutionSnapshot, SwarmInitializationEngine
+
 
 
 
@@ -2468,15 +2470,166 @@ def deployment_command(
     console.print(val_table)
 
 
+@app.command("initialize")
+@mission_app.command("initialize")
+def initialize_command(
+    request: list[str] = typer.Argument(None, help="Natural language request or plan prompt."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+) -> None:
+    """Initialize Swarm execution state and produce RuntimeExecutionSnapshot."""
+    raw_prompt = " ".join(request) if request else "Build application"
+    if request and "--json" in request:
+        json_output = True
+        raw_prompt = " ".join([r for r in request if r != "--json"])
+        if not raw_prompt.strip():
+            raw_prompt = "Build application"
+
+    intent_analyzer = IntentAnalyzer()
+    intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=workspace)
+
+    ws_intelligence = WorkspaceIntelligence()
+    ws_ctx = ws_intelligence.analyze_workspace(cwd=repository_root, explicit_workspace=workspace)
+
+    repo_intelligence = RepositoryIntelligence()
+    repo_ctx = repo_intelligence.analyze_repository(ws_ctx)
+
+    generator = EngineeringPlanGenerator()
+    plan = generator.generate_plan(intent_report, ws_ctx, repo_ctx)
+
+    loader = RepositoryLoader(repository_root)
+    registry = loader.load()
+    resolver = Resolver(registry)
+
+    discovery_engine = SkillDiscoveryEngine(registry, resolver)
+    selection_report = discovery_engine.discover_skills(plan)
+
+    ranking_engine = SkillRankingEngine(registry, resolver)
+    ranked_report = ranking_engine.rank_skills(selection_report, plan)
+
+    bundling_engine = SkillBundlingEngine(registry, resolver)
+    bundle_report = bundling_engine.bundle_skills(ranked_report, plan, selection_report)
+
+    profile_builder = AgentProfileBuilderEngine(registry, resolver)
+    profile_report = profile_builder.build_profiles(bundle_report, plan)
+
+    deployment_planner = MissionDeploymentPlanner()
+    deployment_plan = deployment_planner.create_deployment_plan(plan, profile_report)
+
+    swarm_engine = SwarmInitializationEngine()
+    snapshot = swarm_engine.initialize_swarm(
+        deployment_plan, explicit_workspace=workspace, repository_root=repository_root
+    )
+
+    if json_output:
+        console.print_json(data=snapshot.model_dump(mode="json"))
+        return
+
+    console.print(
+        f"\n[bold cyan]Runtime Execution Snapshot:[/] {snapshot.snapshot_id} "
+        f"(Execution UUID: {snapshot.execution_uuid}, SHA-256 Hash: {snapshot.snapshot_hash[:16]}...)"
+    )
+
+    # 1. Swarm Overview & Execution UUID Table
+    overview_table = Table(title="Swarm Execution Overview & Status")
+    overview_table.add_column("Property", style="bold cyan")
+    overview_table.add_column("Value")
+
+    overview_table.add_row("Execution UUID", snapshot.execution_uuid)
+    overview_table.add_row("Mission ID", snapshot.mission_id)
+    overview_table.add_row("Deployment Plan ID", snapshot.deployment_plan_id)
+    overview_table.add_row("Active Wave Number", f"Wave {snapshot.execution_cursor.active_wave_number}")
+    overview_table.add_row("Execution State", snapshot.execution_cursor.execution_state)
+    overview_table.add_row("Total Agent Sessions", str(len(snapshot.sessions)))
+    overview_table.add_row("Initial Session State", "READY (All sessions ready for execution)")
+    console.print(overview_table)
+
+    # 2. Initialized Agent Sessions Table
+    sessions_table = Table(title="Initialized Agent Sessions (READY State)")
+    sessions_table.add_column("Session ID", style="bold cyan")
+    sessions_table.add_column("Agent Role", style="bold yellow")
+    sessions_table.add_column("Discipline")
+    sessions_table.add_column("Wave")
+    sessions_table.add_column("State", style="bold green")
+    sessions_table.add_column("Allocated Budget", style="bold green")
+
+    for record in snapshot.session_map.values():
+        sessions_table.add_row(
+            record.session_id,
+            record.agent_role,
+            record.primary_discipline,
+            f"Wave {record.wave_number}",
+            record.state.value if hasattr(record.state, "value") else str(record.state),
+            f"${record.allocated_budget_usd:.2f}",
+        )
+    console.print(sessions_table)
+
+    # 3. Wave Execution Status Table
+    waves_table = Table(title="Execution Waves Status")
+    waves_table.add_column("Wave Number", style="bold yellow")
+    waves_table.add_column("Name", style="bold cyan")
+    waves_table.add_column("Status", style="bold green")
+    waves_table.add_column("Assigned Profile Count")
+
+    for w_num in range(1, 7):
+        w_stat = snapshot.wave_status.get(w_num)
+        if w_stat:
+            waves_table.add_row(
+                f"Wave {w_stat.wave_number}",
+                w_stat.name,
+                w_stat.status,
+                str(len(w_stat.profile_ids)),
+            )
+    console.print(waves_table)
+
+    # 4. Checkpoint Status & Storage Connections Table
+    storage_table = Table(title="Checkpoint Status & Workspace Storage Connections")
+    storage_table.add_column("Component", style="bold cyan")
+    storage_table.add_column("Reference / Target Path")
+
+    storage_table.add_row("Current Checkpoint ID", snapshot.checkpoint_status.current_checkpoint_id)
+    storage_table.add_row("Restorable Checkpoint Status", "READY / RESTORABLE" if snapshot.checkpoint_status.is_restorable else "NO")
+    storage_table.add_row("Sessions Root", snapshot.storage_references.sessions_root)
+    storage_table.add_row("Traces Root", snapshot.storage_references.traces_root)
+    storage_table.add_row("Logs Root", snapshot.storage_references.logs_root)
+    storage_table.add_row("History Root", snapshot.storage_references.history_root)
+    storage_table.add_row("Reports Root", snapshot.storage_references.reports_root)
+    storage_table.add_row("Artifacts Root", snapshot.storage_references.artifacts_root)
+    console.print(storage_table)
+
+    # 5. Budget Status & Validation Summary Table
+    val_table = Table(title="Execution Budget & Snapshot Validation Summary")
+    val_table.add_column("Metric", style="bold cyan")
+    val_table.add_column("Value")
+
+    val = snapshot.evidence.get("validation", {})
+    val_table.add_row("All Profiles Initialized", "PASSED" if val.get("all_profiles_initialized") else "FAILED")
+    val_table.add_row("All Sessions Mapped", "PASSED" if val.get("all_sessions_mapped") else "FAILED")
+    val_table.add_row("No Orphan Sessions", "PASSED" if val.get("no_orphan_sessions") else "FAILED")
+    val_table.add_row("Wave Integrity", "PASSED" if val.get("wave_integrity") else "FAILED")
+    val_table.add_row("Budget Initialized", "PASSED" if val.get("budget_initialized") else "FAILED")
+    val_table.add_row("Checkpoint Initialized", "PASSED" if val.get("checkpoint_initialized") else "FAILED")
+    val_table.add_row("Storage Connected", "PASSED" if val.get("storage_connected") else "FAILED")
+    val_table.add_row("Deterministic Snapshot", "PASSED" if val.get("deterministic_snapshot") else "FAILED")
+    val_table.add_row("Total USD Budget", f"${snapshot.budget_status.total_budget_usd:.2f}")
+    val_table.add_row("Spent USD Budget", f"${snapshot.budget_status.spent_budget_usd:.2f}")
+    val_table.add_row("Remaining USD Budget", f"${snapshot.budget_status.remaining_budget_usd:.2f}")
+    val_table.add_row("SHA-256 Snapshot Hash", snapshot.snapshot_hash)
+
+    console.print(val_table)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
-    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment",
+    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize",
     "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact",
     "--help", "-h", "--version"
 }
+
 
 
 
