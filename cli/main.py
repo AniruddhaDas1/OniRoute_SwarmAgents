@@ -38,6 +38,7 @@ from runtime.mission import (
     MissionResolutionError,
     MissionResolver,
 )
+from runtime.intent import EmptyRequestError, IntentAnalysisError, IntentAnalyzer, IntentReport
 from runtime.agent import AgentExecutionEngine, SessionCoordinator
 from runtime.agent.recovery import (
     FailureCategory,
@@ -1694,12 +1695,61 @@ def artifact_command(
     console.print("[dim]Note: Shared artifact references do not copy or duplicate workspace file contents.[/]")
 
 
+@app.command("intent")
+def intent_cmd(
+    request: list[str] = typer.Argument(..., help="Natural language request string to analyze."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+) -> None:
+    """Analyze natural language request and display the resulting IntentReport."""
+    raw_prompt = " ".join(request)
+    if not raw_prompt.strip():
+        console.print("[red]Error:[/] Request string cannot be empty.")
+        raise typer.Exit(1)
+
+    try:
+        analyzer = IntentAnalyzer()
+        report = analyzer.analyze(raw_prompt, explicit_workspace=workspace)
+
+        if json_output:
+            console.print_json(data=report.model_dump(mode="json"))
+            return
+
+        table = Table(title=f"Intent Report: {report.intent_id}")
+        table.add_column("Property", style="bold cyan")
+        table.add_column("Value")
+
+        table.add_row("Intent ID", report.intent_id)
+        table.add_row("Original Request", report.original_request)
+        table.add_row("Normalized Request", report.normalized_request)
+        table.add_row("Primary Intent", report.primary_intent)
+        table.add_row("Project Category", report.project_category)
+        table.add_row("Application Type", report.application_type)
+        table.add_row("Confidence Score", f"{report.confidence_score:.2f}")
+        table.add_row("Detected Technologies", ", ".join(report.detected_technologies) if report.detected_technologies else "None")
+        table.add_row("Detected Frameworks", ", ".join(report.detected_frameworks) if report.detected_frameworks else "None")
+        table.add_row("Detected Languages", ", ".join(report.detected_languages) if report.detected_languages else "None")
+        table.add_row("Detected Database", ", ".join(report.detected_database) if report.detected_database else "None")
+        table.add_row("Detected Cloud", ", ".join(report.detected_cloud) if report.detected_cloud else "None")
+        table.add_row("Detected Authentication", ", ".join(report.detected_authentication) if report.detected_authentication else "None")
+        table.add_row("Detected Integrations", ", ".join(report.detected_integrations) if report.detected_integrations else "None")
+        table.add_row("Detected Features", ", ".join(report.detected_features) if report.detected_features else "None")
+        table.add_row("Detected Constraints", ", ".join(report.detected_constraints) if report.detected_constraints else "None")
+        table.add_row("Unknown Items", ", ".join(report.unknown_items) if report.unknown_items else "None")
+        table.add_row("Timestamp", report.timestamp)
+
+        console.print(table)
+    except EmptyRequestError as exc:
+        console.print(f"[red]Error:[/] {exc.message}")
+        raise typer.Exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
-    "mcp", "recommend-tool", "invoke", "search", "mission",
+    "mcp", "recommend-tool", "invoke", "search", "mission", "intent",
     "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact",
     "--help", "-h", "--version"
 }
@@ -1727,15 +1777,28 @@ def main(args: list[str] | None = None) -> None:
 
     if first_cmd is not None and first_cmd not in REGISTERED_CLI_COMMANDS:
         try:
+            raw_prompt = " ".join(cmd_args)
+            analyzer = IntentAnalyzer()
+            intent_report = analyzer.analyze(raw_prompt, explicit_workspace=explicit_ws)
+
+            if intent_report.confidence_score < 0.80:
+                console.print(f"[yellow]Warning:[/] Intent confidence score is low ({intent_report.confidence_score:.2f}).")
+                if intent_report.unknown_items:
+                    console.print(f"[yellow]Missing or ambiguous information:[/] {', '.join(intent_report.unknown_items)}")
+
             intake = MissionIntake()
-            mission_request = intake.parse_cli_command(cmd_args, explicit_workspace=explicit_ws)
+            mission_request = intake.process_intake(
+                raw_prompt,
+                explicit_workspace=explicit_ws,
+                parameters={"intent_report": intent_report.model_dump(mode="json")},
+            )
             resolver = MissionResolver()
             resolved_mission = resolver.resolve_mission(mission_request)
             orchestrator = MissionOrchestrator()
             exec_request = orchestrator.orchestrate_mission(resolved_mission)
             console.print_json(data=exec_request.model_dump(mode="json"))
             sys.exit(0)
-        except (MissionIntakeError, MissionResolutionError, MissionOrchestrationError) as exc:
+        except (IntentAnalysisError, MissionIntakeError, MissionResolutionError, MissionOrchestrationError) as exc:
             console.print(f"[red]Mission Error:[/] {getattr(exc, 'message', str(exc))}")
             sys.exit(1)
 
