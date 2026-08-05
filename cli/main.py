@@ -38,7 +38,7 @@ from runtime.mission import (
     MissionResolutionError,
     MissionResolver,
 )
-from runtime.organization import CapabilityResolver, OrganizationAssembler
+from runtime.organization import CapabilityResolver, ExecutionBlueprintAssembler, OrganizationAssembler
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -831,11 +831,68 @@ def organization_command(
         raise typer.Exit(1)
 
 
+@app.command("blueprint")
+def blueprint_command(
+    command: list[str] = typer.Argument(None, help="Natural language command or prompt for execution blueprint assembly."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON ExecutionBlueprint."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+) -> None:
+    """Assemble and display sealed Execution Blueprint for a mission without execution."""
+    if command and "--json" in command:
+        json_output = True
+        command = [c for c in command if c != "--json"]
+    raw_prompt = " ".join(command) if command else "Assemble execution blueprint for workspace"
+
+    try:
+        intake = MissionIntake()
+        mission_request = intake.process_intake(raw_prompt, explicit_workspace=workspace)
+        resolver = MissionResolver()
+        resolved_mission = resolver.resolve_mission(mission_request)
+        orchestrator = MissionOrchestrator()
+        exec_request = orchestrator.orchestrate_mission(resolved_mission)
+        bp_assembler = ExecutionBlueprintAssembler(repository_root=repository_root)
+        blueprint = bp_assembler.assemble_blueprint(exec_request, repository_root=repository_root)
+
+        if json_output:
+            console.print_json(data=blueprint.model_dump(mode="json"))
+            return
+
+        table = Table(title=f"Sealed Execution Blueprint: {blueprint.blueprint_id}")
+        table.add_column("Blueprint Attribute", style="bold cyan")
+        table.add_column("Specification / Value")
+
+        table.add_row("Blueprint ID", blueprint.blueprint_id)
+        table.add_row("Mission ID", blueprint.mission.mission_id)
+        table.add_row("Mission Primary Goal", blueprint.mission.requirements.primary_goal)
+        table.add_row("Organization ID", blueprint.organization.organization_id)
+        table.add_row("Swarm Graph ID", blueprint.dependencies.graph_id)
+        table.add_row("Allocated Swarm Members", str(len(blueprint.organization.members)))
+        table.add_row("Swarm Graph Nodes / Edges", f"{len(blueprint.dependencies.nodes)} nodes / {len(blueprint.dependencies.edges)} edges")
+        table.add_row("Assessed Capabilities", str(blueprint.capabilities.total_capabilities_analyzed))
+        table.add_row("Execution Readiness Verdict", "PASSED" if blueprint.readiness.is_ready else "FAILED")
+
+        console.print(table)
+
+        summary_table = Table(title="Execution Blueprint Readiness Verification")
+        summary_table.add_column("Verification Check", style="bold green")
+        summary_table.add_column("Status")
+
+        for check_name, status in blueprint.readiness.validation_checks.items():
+            summary_table.add_row(check_name.replace("_", " ").title(), "PASSED" if status else "FAILED")
+
+        console.print(summary_table)
+
+    except (MissionIntakeError, MissionResolutionError, MissionOrchestrationError) as exc:
+        console.print(f"[red]Execution Blueprint Assembly Error:[/] {getattr(exc, 'message', str(exc))}")
+        raise typer.Exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
-    "providers", "capabilities", "capability", "organization", "recommend-model", "tools",
+    "providers", "capabilities", "capability", "organization", "blueprint", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "--help", "-h", "--version"
 }
 

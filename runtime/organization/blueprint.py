@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from runtime.mission.models import Mission
+from runtime.mission.models import ExecutionRequest, Mission
 
 from .capability import CapabilityReport
 from .models import Organization
@@ -39,9 +39,30 @@ class ExecutionBlueprint(BaseModel):
     blueprint_id: str = Field(..., description="Unique execution blueprint identifier (e.g. blp-msn-1001)")
     organization: Organization = Field(..., description="Target validated engineering organization")
     mission: Mission = Field(..., description="Associated validated mission object")
+    execution_request: ExecutionRequest | None = Field(
+        default=None, description="Original ExecutionRequest snapshot produced by Mission Orchestrator"
+    )
     capabilities: CapabilityReport = Field(..., description="Assessed mission capabilities report")
     dependencies: SwarmGraph = Field(..., description="Swarm graph defining all relationship views")
+    department_structure: dict[str, list[str]] = Field(
+        default_factory=dict, description="Department mapping of department name to member IDs"
+    )
+    reporting_hierarchy: dict[str, Any] = Field(
+        default_factory=dict, description="Reporting hierarchy structure snapshot"
+    )
+    execution_dependencies: list[dict[str, Any]] = Field(
+        default_factory=list, description="Detailed execution dependency contracts"
+    )
+    execution_constraints: list[dict[str, Any]] = Field(
+        default_factory=list, description="Consolidated operational and policy execution constraints"
+    )
     readiness: ExecutionReadiness = Field(default_factory=ExecutionReadiness, description="Readiness check assessment")
+    evidence: list[dict[str, Any]] = Field(
+        default_factory=list, description="Audit evidence log across capability, organization, and graph stages"
+    )
+    validation_report: dict[str, Any] = Field(
+        default_factory=dict, description="Comprehensive blueprint validation report"
+    )
     execution_metadata: dict[str, Any] = Field(default_factory=dict, description="Execution context metadata snapshot")
     schema_version: str = Field(default="1.0.0", description="Execution Blueprint schema version")
     created_at: str = Field(

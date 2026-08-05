@@ -1,6 +1,8 @@
-"""Engineering Organization Builder package for OniRoute (ACR-005 Phase S1, S2, & S3)."""
+"""Engineering Organization Builder package for OniRoute (ACR-005 Phase S1, S2, S3, & S4)."""
 
 from .blueprint import ExecutionBlueprint, ExecutionReadiness
+from .blueprint_assembler import ExecutionBlueprintAssembler
+from .blueprint_validator import BlueprintValidator
 from .capability import (
     Capability,
     CapabilityConstraint,
@@ -43,6 +45,7 @@ from .swarm_graph import (
     SwarmGraphEdge,
     SwarmGraphNode,
 )
+from .swarm_graph_builder import SwarmGraphBuilder
 
 __all__ = [
     # Roles
@@ -79,9 +82,12 @@ __all__ = [
     "ReviewHierarchy",
     "ApprovalHierarchy",
     "SwarmGraph",
+    "SwarmGraphBuilder",
     # Blueprint
     "ExecutionReadiness",
     "ExecutionBlueprint",
+    "ExecutionBlueprintAssembler",
+    "BlueprintValidator",
     # Contracts
     "CapabilityAnalyzerContract",
     "OrganizationBuilderContract",
