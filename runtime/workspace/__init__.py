@@ -29,6 +29,7 @@ from .exceptions import (
 from .history_storage import ExecutionHistoryStorage
 from .log_storage import LogStorage
 from .manager import WorkspaceManager
+from .report_storage import ReportStorage
 from .models import (
     ArtifactCategory,
     ArtifactDestination,
@@ -73,6 +74,7 @@ __all__ = [
     "ProjectMetadata",
     "ProjectType",
     "PROTECTED_ENGINE_TARGETS",
+    "ReportStorage",
     "SessionStorage",
     "TraceStorage",
     "TrustLevel",

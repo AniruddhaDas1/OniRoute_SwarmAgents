@@ -9,7 +9,7 @@ from rich.table import Table
 from runtime.loader import RepositoryLoader
 from runtime.resolver import Resolver
 from runtime.validator import ValidationEngine
-from runtime.workspace import ArtifactRouter, WorkspaceManager, WorkspaceStorage
+from runtime.workspace import ArtifactRouter, ReportStorage, WorkspaceManager, WorkspaceStorage
 from runtime.workspace import SessionStorage, ExecutionHistoryStorage, TraceStorage, LogStorage
 from runtime.context.builder import ContextBuilder
 from runtime.context.serializer import ContextSerializer
@@ -54,13 +54,34 @@ _session_engines: dict[str, WorkflowEngine] = {}
 console = Console()
 
 
+def _workspace_meta(root: Path, explicit_workspace: Path | None = None):
+    """Resolve workspace metadata for *root*.
+
+    Returns the metadata only when the workspace root is physically separate
+    from the engine root (i.e. writes are safe).  Returns ``None`` otherwise,
+    indicating an in-memory fallback is required.
+    """
+    manager = WorkspaceManager()
+    ctx = manager.create_context(cwd=root, explicit_workspace=explicit_workspace)
+    if ctx.workspace_metadata is not None and ctx.is_engine_read_only():
+        return ctx.workspace_metadata
+    return None
+
+
 def _resolver(root: Path) -> Resolver:
     return Resolver(RepositoryLoader(root).load())
 
 
-def _engine(root: Path) -> WorkflowEngine:
-    key = str(root.resolve())
-    if key not in _session_engines: _session_engines[key] = WorkflowEngine(RepositoryLoader(root).load())
+def _engine(root: Path, explicit_workspace: Path | None = None) -> WorkflowEngine:
+    ws_key = f"::ws::{explicit_workspace.resolve()}" if explicit_workspace else ""
+    key = str(root.resolve()) + ws_key
+    if key not in _session_engines:
+        registry = RepositoryLoader(root).load()
+        ws_meta = _workspace_meta(root, explicit_workspace)
+        if ws_meta is not None:
+            _session_engines[key] = WorkflowEngine(registry, workspace_metadata=ws_meta)
+        else:
+            _session_engines[key] = WorkflowEngine(registry)
     return _session_engines[key]
 
 def _models(root: Path) -> ModelManager: return ModelManager(root / "config/models.yaml")
@@ -68,8 +89,12 @@ def _tools(root:Path):
     config=yaml.safe_load((root/"config/tools.yaml").read_text(encoding="utf-8")) or {};registry=ToolCatalog.load(root/"config/tools.yaml");policy=PermissionPolicy({Permission(item) for item in config.get("permission_policy",[])})
     return registry,ToolResolver(registry),ToolSelector(registry,policy,tuple(config.get("preferred_local_tools",[])))
 
-def _governance(root:Path):
-    config=yaml.safe_load((root/"config/policies.yaml").read_text(encoding="utf-8")) or {};audit=AuditEngine();budgets=BudgetTracker(BudgetLimits(**config.get("budget_limits",{})));return config,PolicyEngine(config,budgets,audit)
+def _governance(root: Path, explicit_workspace: Path | None = None):
+    config=yaml.safe_load((root/"config/policies.yaml").read_text(encoding="utf-8")) or {}
+    report_storage = ReportStorage(meta) if (meta := _workspace_meta(root, explicit_workspace)) else None
+    budgets=BudgetTracker(BudgetLimits(**config.get("budget_limits",{})))
+    audit=AuditEngine(report_storage=report_storage)
+    return config, PolicyEngine(config, budgets, audit)
 
 
 def _table(records):
@@ -137,6 +162,22 @@ def workspace(
             mark = "[green]\u2713[/]" if exists else "[dim]\u2014[/]"
             detail.add_row(f".oniroute/{name}/", mark, str(count))
         console.print(detail)
+
+        # ── Runtime statistics ────────────────────────────────────────────
+        reports = ReportStorage(ctx.workspace_metadata)
+        runtime_table = Table(title="Runtime Statistics")
+        runtime_table.add_column("Metric", style="bold cyan")
+        runtime_table.add_column("Value", justify="right")
+        runtime_table.add_row("Plans", str(storage.count_entries("plans")))
+        runtime_table.add_row("Reports", str(reports.count()))
+        runtime_table.add_row("Memory", str(storage.count_entries("memory")))
+        runtime_table.add_row("Context Snapshots", str(storage.count_entries("context")))
+        runtime_table.add_row("Runtime Files", str(storage.count_entries("runtime")))
+        runtime_table.add_row("Knowledge", str(storage.count_entries("knowledge")))
+        runtime_table.add_row("Cache", str(storage.count_entries("cache")))
+        runtime_table.add_row("Approvals", str(storage.count_entries("approvals")))
+        runtime_table.add_row("Locks", str(storage.count_entries("locks")))
+        console.print(runtime_table)
 
 
 @app.command()
@@ -225,16 +266,28 @@ def search(query: str, repository_root: Path = typer.Option(Path.cwd(), exists=T
     _table(_resolver(repository_root).search(query))
 
 @plan_app.command("workflow")
-def plan_workflow(identifier: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
-    plan = _engine(repository_root).plan(identifier); table = Table("Order", "Step", "Agent", "Skill", "Status")
-    for step in plan.steps: table.add_row(str(step.execution_order), step.description, step.agent or "—", step.skill or "—", step.status)
+def plan_workflow(
+    identifier: str,
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
+    plan = _engine(repository_root, workspace).plan(identifier)
+    table = Table("Order", "Step", "Agent", "Skill", "Status")
+    for step in plan.steps:
+        table.add_row(str(step.execution_order), step.description, step.agent or "—", step.skill or "—", step.status)
     console.print(table)
 
 @run_app.command("workflow")
-def run_workflow(identifier: str, optimization: bool | None = typer.Option(None, "--optimization/--no-optimization"), repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
-    result = _engine(repository_root).run(identifier, optimize=optimization)
+def run_workflow(
+    identifier: str,
+    optimization: bool | None = typer.Option(None, "--optimization/--no-optimization"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
+    result = _engine(repository_root, workspace).run(identifier, optimize=optimization)
     console.print(f"Execution: {result.execution_id}  Status: [green]{result.status}[/]  Artifacts: {len(result.artifacts)}")
-    for step in result.plan.steps: console.print(f"{step.execution_order}. {step.description}: {step.result}")
+    for step in result.plan.steps:
+        console.print(f"{step.execution_order}. {step.description}: {step.result}")
 
 @explain_app.command("workflow")
 def explain_workflow(identifier:str,repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
@@ -244,12 +297,90 @@ def explain_workflow(identifier:str,repository_root:Path=typer.Option(Path.cwd()
     manager=_models(repository_root);model=manager.select_best_model(SelectionRequest());console.print(f"Selected Model={model.id} Provider={model.provider} Protocol={model.protocol} Capabilities={','.join(sorted(x.value for x in model.capabilities))}")
 
 @explain_app.command("execution")
-def explain_execution(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
-    records=_engine(repository_root).history.all();console.print_json(data=records[-1].model_dump(mode="json") if records else {"status":"No execution history"})
+def explain_execution(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
+    """Explain the most recent execution, inspecting persisted workspace state."""
+    meta = _workspace_meta(repository_root, workspace)
+    if meta is not None:
+        records = ExecutionHistoryStorage(meta).load_all()
+    else:
+        records = [r.model_dump(mode="json") for r in _engine(repository_root).history.all()]
+    if records:
+        console.print_json(data=records[-1])
+    else:
+        console.print_json(data={"status": "No execution history"})
 
 @app.command("trace")
-def trace(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
-    for event in _engine(repository_root).events.events:console.print(f"{event.timestamp.isoformat()} {event.type} {event.subject_id}")
+def trace(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
+    """Display execution trace events from persisted workspace state."""
+    meta = _workspace_meta(repository_root, workspace)
+    if meta is not None:
+        trace_storage = TraceStorage(meta)
+        for execution_id in trace_storage.list_traces():
+            for event in trace_storage.read_trace(execution_id):
+                console.print(f"{event.get('timestamp', '')} {event.get('type', '')} {event.get('subject_id', '')}")
+    else:
+        for event in _engine(repository_root).events.events:
+            console.print(f"{event.timestamp.isoformat()} {event.type} {event.subject_id}")
+
+
+@app.command("traces")
+def traces(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
+    """Inspect persisted trace event streams in the workspace."""
+    meta = _workspace_meta(repository_root, workspace)
+    if meta is None:
+        console.print_json(data={"error": "No workspace storage available (workspace root equals engine root)"})
+        return
+    trace_storage = TraceStorage(meta)
+    table = Table("Execution ID", "Events")
+    for execution_id in trace_storage.list_traces():
+        count = len(trace_storage.read_trace(execution_id))
+        table.add_row(execution_id, str(count))
+    console.print(table)
+
+
+@app.command("reports")
+def reports(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
+    """Inspect persisted optimization, audit, and planning reports in the workspace."""
+    meta = _workspace_meta(repository_root, workspace)
+    if meta is None:
+        console.print_json(data={"error": "No workspace storage available (workspace root equals engine root)"})
+        return
+    report_storage = ReportStorage(meta)
+    table = Table("Report ID", "Type")
+    for record in report_storage.load_all_reports():
+        table.add_row(record.get("report_id", ""), record.get("report_type", ""))
+    console.print(table)
+
+
+@app.command("sessions")
+def sessions(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
+    """Inspect persisted workspace sessions."""
+    meta = _workspace_meta(repository_root, workspace)
+    if meta is None:
+        console.print_json(data={"error": "No workspace storage available (workspace root equals engine root)"})
+        return
+    session_storage = SessionStorage(meta)
+    table = Table("Session ID", "File Count")
+    for session_id in session_storage.list_sessions():
+        session_dir = session_storage.sessions_root / session_id
+        file_count = len(list(session_dir.iterdir())) if session_dir.is_dir() else 0
+        table.add_row(session_id, str(file_count))
+    console.print(table)
 
 @policy_app.callback()
 def policy_summary(ctx:typer.Context,repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
@@ -257,12 +388,23 @@ def policy_summary(ctx:typer.Context,repository_root:Path=typer.Option(Path.cwd(
     config,_=_governance(repository_root);console.print_json(data={"allowed_models":config.get("allowed_models"),"allowed_tools":config.get("allowed_tools"),"approval_defaults":config.get("approval_defaults"),"risk_threshold":config.get("risk_threshold")})
 
 @policy_app.command("workflow")
-def policy_workflow(identifier:str,repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
-    config,engine=_governance(repository_root);result=engine.evaluate(GovernanceRequest(kind="workflow",workflow=identifier));console.print_json(data={"workflow":identifier,"decision":result.model_dump(mode="json"),"configuration":{"approval":config.get("approval_defaults"),"token_limit":config.get("token_limit")}})
+def policy_workflow(
+    identifier: str,
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
+    config, engine = _governance(repository_root, workspace)
+    result = engine.evaluate(GovernanceRequest(kind="workflow", workflow=identifier))
+    console.print_json(data={"workflow": identifier, "decision": result.model_dump(mode="json"), "configuration": {"approval": config.get("approval_defaults"), "token_limit": config.get("token_limit")}})
 
 @app.command("audit")
-def audit(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
-    _,engine=_governance(repository_root);console.print_json(data=[item.model_dump(mode="json") for item in engine.audit.records])
+def audit(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
+    """Inspect persisted governance audit records from the workspace."""
+    _, engine = _governance(repository_root, workspace)
+    console.print_json(data=[item.model_dump(mode="json") for item in engine.audit.records])
 
 @app.command("approvals")
 def approvals(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=False)):
@@ -277,15 +419,37 @@ def budget(repository_root:Path=typer.Option(Path.cwd(),exists=True,file_okay=Fa
     config,engine=_governance(repository_root);console.print_json(data={"limits":config.get("budget_limits",{}),"usage":engine.budgets.snapshot()})
 
 @app.command()
-def history(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+def history(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
+    """Inspect persisted execution history in the workspace."""
+    meta = _workspace_meta(repository_root, workspace)
+    if meta is not None:
+        records = ExecutionHistoryStorage(meta).load_all()
+    else:
+        records = [r.model_dump(mode="json") for r in _engine(repository_root).history.all()]
     table = Table("Execution", "Workflow", "Status")
-    for item in _engine(repository_root).history.all(): table.add_row(item.execution_id, item.workflow_id, item.status)
+    for record in records:
+        table.add_row(str(record.get("execution_id", "")), str(record.get("workflow_id", "")), str(record.get("status", "")))
     console.print(table)
 
 @app.command()
-def events(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
+def events(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
+    """Inspect execution events from persisted workspace traces."""
+    meta = _workspace_meta(repository_root, workspace)
     table = Table("Type", "Execution", "Subject")
-    for event in _engine(repository_root).events.events: table.add_row(event.type, event.execution_id, event.subject_id)
+    if meta is not None:
+        trace_storage = TraceStorage(meta)
+        for execution_id in trace_storage.list_traces():
+            for event in trace_storage.read_trace(execution_id):
+                table.add_row(str(event.get("type", "")), str(event.get("execution_id", "")), str(event.get("subject_id", "")))
+    else:
+        for event in _engine(repository_root).events.events:
+            table.add_row(event.type, event.execution_id, event.subject_id)
     console.print(table)
 
 @models_app.callback()
@@ -362,10 +526,19 @@ def invoke(prompt:str=typer.Option(...),model:str|None=typer.Option(None),provid
 def models_test(): console.print("Model catalog and adapter interfaces available; no network probe performed.")
 
 @optimize_app.command("context")
-def optimize_context(value: str = typer.Argument(..., help="Context as a JSON object."), budget: int | None = typer.Option(None), protected: list[str] = typer.Option([])):
+def optimize_context(
+    value: str = typer.Argument(..., help="Context as a JSON object."),
+    budget: int | None = typer.Option(None),
+    protected: list[str] = typer.Option([]),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
     source = json.loads(value)
-    if not isinstance(source, dict): raise typer.BadParameter("Context must be a JSON object")
-    result = OptimizationEngine().optimize(OptimizationRequest(source=source, budget=budget, protected=frozenset(protected)))
+    if not isinstance(source, dict):
+        raise typer.BadParameter("Context must be a JSON object")
+    meta = _workspace_meta(repository_root, workspace)
+    report_storage = ReportStorage(meta) if meta else None
+    result = OptimizationEngine(report_storage).optimize(OptimizationRequest(source=source, budget=budget, protected=frozenset(protected)))
     console.print_json(data=result.model_dump(mode="json"))
 
 @optimize_app.command("prompt")
@@ -400,9 +573,24 @@ def optimize_benchmark(value: str = typer.Option('{"required":"keep","duplicate"
     console.print_json(data={"optimized": result, "benchmark": record.model_dump(mode="json")})
 
 @optimize_app.command("report")
-def optimize_report(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
-    records=_engine(repository_root).history.all(); traces=[item for record in records for item in record.report.get("optimization",())]
-    console.print_json(data={"executions":len(records),"optimization_records":len(traces),"records":traces})
+def optimize_report(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+):
+    """Inspect optimization reports from persisted workspace state."""
+    meta = _workspace_meta(repository_root, workspace)
+    if meta is not None:
+        report_storage = ReportStorage(meta)
+        reports = report_storage.load_reports_by_type("optimization")
+        traces = []
+        for r in reports:
+            data = r.get("data", {})
+            traces.extend(data.get("optimization_traces", []))
+        console.print_json(data={"executions": len(reports), "optimization_records": len(traces), "records": traces})
+    else:
+        records = _engine(repository_root).history.all()
+        traces = [item for record in records for item in record.report.get("optimization", ())]
+        console.print_json(data={"executions": len(records), "optimization_records": len(traces), "records": traces})
 
 @optimize_app.command("explain")
 def optimize_explain(repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
