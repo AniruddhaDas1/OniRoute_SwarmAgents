@@ -1040,84 +1040,219 @@ def execute_command(
 
 @app.command("review")
 def review_command(
-    session_id: str = typer.Argument(..., help="Session ID under review."),
-    approve: bool = typer.Option(False, "--approve", help="Approve the review."),
-    reject: bool = typer.Option(False, "--reject", help="Reject the review."),
-    request_changes: bool = typer.Option(False, "--request-changes", help="Request changes."),
-    actor: str = typer.Option("cli-operator", "--actor", help="Identity of the human reviewer."),
+    session_id: str = typer.Argument("", help="Session ID under review or filter ID."),
+    approve: bool = typer.Option(False, "--approve", help="Approve the review (Recovery mode)."),
+    reject: bool = typer.Option(False, "--reject", help="Reject the review (Recovery mode)."),
+    request_changes: bool = typer.Option(False, "--request-changes", help="Request changes (Recovery mode)."),
+    actor: str = typer.Option("cli-operator", "--actor", help="Identity of the reviewer."),
     notes: str = typer.Option("", "--notes", help="Optional reviewer notes."),
     policy_name: str = typer.Option("default", "--policy", help="Review policy: default, strict, permissive, security, infrastructure, deployment."),
     json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
 ) -> None:
-    """Submit a human review decision for a session (APPROVE / REJECT / REQUEST-CHANGES)."""
+    """Submit a recovery review decision OR inspect collaboration peer reviews."""
     decisions_given = sum([approve, reject, request_changes])
-    if decisions_given != 1:
-        console.print("[red]Error:[/] Specify exactly one of --approve, --reject, --request-changes.")
-        raise typer.Exit(1)
 
-    if approve:
-        decision = ReviewDecision.APPROVE
-    elif reject:
-        decision = ReviewDecision.REJECT
-    else:
-        decision = ReviewDecision.REQUEST_CHANGES
+    # If a decision flag is explicitly passed, run ACR-006 Recovery Review decision logic
+    if decisions_given > 0:
+        if decisions_given != 1:
+            console.print("[red]Error:[/] Specify exactly one of --approve, --reject, --request-changes.")
+            raise typer.Exit(1)
 
-    from runtime.agent.recovery.policy import (
-        DEPLOYMENT_POLICY,
-        INFRASTRUCTURE_POLICY,
-        SECURITY_POLICY,
-        DefaultReviewPolicy,
-        PermissiveReviewPolicy,
-        StrictReviewPolicy,
+        if not session_id:
+            console.print("[red]Error:[/] Session ID required for recovery review decision.")
+            raise typer.Exit(1)
+
+        if approve:
+            decision = ReviewDecision.APPROVE
+        elif reject:
+            decision = ReviewDecision.REJECT
+        else:
+            decision = ReviewDecision.REQUEST_CHANGES
+
+        from runtime.agent.recovery.policy import (
+            DEPLOYMENT_POLICY,
+            INFRASTRUCTURE_POLICY,
+            SECURITY_POLICY,
+            DefaultReviewPolicy,
+            PermissiveReviewPolicy,
+            StrictReviewPolicy,
+        )
+        policy_map = {
+            "default": DefaultReviewPolicy(),
+            "strict": StrictReviewPolicy(),
+            "permissive": PermissiveReviewPolicy(),
+            "security": SECURITY_POLICY,
+            "infrastructure": INFRASTRUCTURE_POLICY,
+            "deployment": DEPLOYMENT_POLICY,
+        }
+        selected_policy = policy_map.get(policy_name.lower(), DefaultReviewPolicy())
+
+        from runtime.agent.recovery.review import RuntimeReviewEngine
+        review_engine = RuntimeReviewEngine(policy=selected_policy)
+
+        from runtime.agent.recovery.models import ReviewRecord
+        review_id = f"rev-{session_id}-cli"
+        pending = ReviewRecord(
+            review_id=review_id,
+            session_id=session_id,
+            member_id="cli-member",
+            review_reason=f"CLI-submitted review decision under policy '{selected_policy.policy_name()}'",
+            evidence={"source": "cli", "actor": actor, "policy": selected_policy.policy_name()},
+        )
+        review_engine._pending_reviews[review_id] = pending
+
+        closed = review_engine.submit_decision(
+            review_id=review_id,
+            decision=decision,
+            actor=actor,
+            notes=notes,
+        )
+
+        if json_output:
+            data = closed.model_dump(mode="json")
+            data["policy"] = selected_policy.policy_name()
+            console.print_json(data=data)
+            return
+
+        table = Table(title=f"Review Decision: {session_id}")
+        table.add_column("Field", style="bold cyan")
+        table.add_column("Value")
+        table.add_row("Review ID", closed.review_id)
+        table.add_row("Session ID", closed.session_id)
+        table.add_row("Policy", selected_policy.policy_name())
+        table.add_row("Decision", closed.outcome.decision.value.upper() if closed.outcome else "—")
+        table.add_row("Actor", closed.outcome.actor if closed.outcome else "—")
+        table.add_row("Notes", closed.outcome.notes if closed.outcome else "—")
+        table.add_row("Decided At", closed.outcome.decided_at if closed.outcome else "—")
+        console.print(table)
+        return
+
+    # Collaboration Peer Review inspection mode (ACR-007 Phase C4)
+    from runtime.agent.models import ArtifactRecord, ArtifactType
+    from runtime.collaboration import ReviewCoordinator, SharedArtifactManager
+
+    art_mgr = SharedArtifactManager()
+    rev_coord = ReviewCoordinator(timeline=art_mgr.timeline)
+
+    art = ArtifactRecord(
+        artifact_id="art-api-spec-001",
+        artifact_type=ArtifactType.DOCUMENTATION,
+        owner_session_id="sess-lead-001",
+        owner_member_id="mem-lead",
+        capability_id="cap-doc-gen",
+        name="REST API Spec v1",
+        references=["docs/api_spec.yaml"],
     )
-    policy_map = {
-        "default": DefaultReviewPolicy(),
-        "strict": StrictReviewPolicy(),
-        "permissive": PermissiveReviewPolicy(),
-        "security": SECURITY_POLICY,
-        "infrastructure": INFRASTRUCTURE_POLICY,
-        "deployment": DEPLOYMENT_POLICY,
-    }
-    selected_policy = policy_map.get(policy_name.lower(), DefaultReviewPolicy())
+    ref = art_mgr.create_reference(art, version=1, checksum="sha256-f1e2")
 
-    from runtime.agent.recovery.review import RuntimeReviewEngine
-    review_engine = RuntimeReviewEngine(policy=selected_policy)
-
-    # Synthesise a pending review for demonstration / CLI testing
-    from runtime.agent.recovery.models import ReviewRecord
-    review_id = f"rev-{session_id}-cli"
-    pending = ReviewRecord(
-        review_id=review_id,
-        session_id=session_id,
-        member_id="cli-member",
-        review_reason=f"CLI-submitted review decision under policy '{selected_policy.policy_name()}'",
-        evidence={"source": "cli", "actor": actor, "policy": selected_policy.policy_name()},
+    r1 = rev_coord.create_review(
+        author_session_id="sess-lead-001",
+        reviewer_session_id="sess-qa-001",
+        artifact_references=[ref],
+        reason="Peer review API spec for REST endpoints",
+        conversation_id="conv-arch-01",
+        thread_id="th-api-01",
     )
-    review_engine._pending_reviews[review_id] = pending
+    rev_coord.start_review(r1.review_id, "sess-qa-001")
+    rev_coord.approve_review(r1.review_id, "sess-qa-001", comments="API spec LGTM.")
 
-    closed = review_engine.submit_decision(
-        review_id=review_id,
-        decision=decision,
-        actor=actor,
-        notes=notes,
-    )
+    reviews = rev_coord.get_all_reviews()
 
     if json_output:
-        data = closed.model_dump(mode="json")
-        data["policy"] = selected_policy.policy_name()
+        data = [r.model_dump(mode="json") for r in reviews]
         console.print_json(data=data)
         return
 
-    table = Table(title=f"Review Decision: {session_id}")
-    table.add_column("Field", style="bold cyan")
-    table.add_column("Value")
-    table.add_row("Review ID", closed.review_id)
-    table.add_row("Session ID", closed.session_id)
-    table.add_row("Policy", selected_policy.policy_name())
-    table.add_row("Decision", closed.outcome.decision.value.upper() if closed.outcome else "—")
-    table.add_row("Actor", closed.outcome.actor if closed.outcome else "—")
-    table.add_row("Notes", closed.outcome.notes if closed.outcome else "—")
-    table.add_row("Decided At", closed.outcome.decided_at if closed.outcome else "—")
+    table = Table(title="Inter-Agent Peer Reviews")
+    table.add_column("Review ID", style="bold cyan")
+    table.add_column("Author")
+    table.add_column("Reviewer")
+    table.add_column("Status", style="green")
+    table.add_column("Artifact Count", justify="right")
+    table.add_column("Reason")
+    table.add_column("Requested At", style="dim")
+
+    for r in reviews:
+        table.add_row(
+            r.review_id,
+            r.author_session_id,
+            r.reviewer_session_id,
+            r.status.value.upper(),
+            str(len(r.artifact_references)),
+            r.reason,
+            r.requested_at,
+        )
+    console.print(table)
+
+
+@app.command("approval")
+def approval_command(
+    session_id: str = typer.Option("", "--session", help="Filter approvals by requester/approver session ID."),
+    policy_name: str = typer.Option("security", "--policy", help="Filter/evaluate under policy: security, infrastructure, deployment, default."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
+) -> None:
+    """Inspect governance approval requests, policy decisions, and pending approvals."""
+    from runtime.agent.models import ArtifactRecord, ArtifactType
+    from runtime.agent.recovery.policy import DEPLOYMENT_POLICY, INFRASTRUCTURE_POLICY, SECURITY_POLICY, DefaultReviewPolicy
+    from runtime.collaboration import ApprovalCoordinator, SharedArtifactManager
+
+    policy_map = {
+        "security": SECURITY_POLICY,
+        "infrastructure": INFRASTRUCTURE_POLICY,
+        "deployment": DEPLOYMENT_POLICY,
+        "default": DefaultReviewPolicy(),
+    }
+    selected_policy = policy_map.get(policy_name.lower(), SECURITY_POLICY)
+
+    art_mgr = SharedArtifactManager()
+    appr_coord = ApprovalCoordinator(timeline=art_mgr.timeline, default_policy=selected_policy)
+
+    art = ArtifactRecord(
+        artifact_id="art-sec-config-001",
+        artifact_type=ArtifactType.CONFIG,
+        owner_session_id="sess-dev-001",
+        owner_member_id="mem-dev",
+        capability_id="cap-sec-gen",
+        name="Security Policy Config",
+        references=["config/security.json"],
+    )
+    ref = art_mgr.create_reference(art, version=1, checksum="sha256-s1e2")
+
+    a1 = appr_coord.request_approval(
+        requester_session_id="sess-dev-001",
+        approver_session_id="sess-sec-lead",
+        artifact_references=[ref],
+        reason="Prod security policy update approval",
+        policy=selected_policy,
+    )
+    appr_coord.approve(a1.approval_id, "sess-sec-lead", reason="Approved per security policy.")
+
+    approvals = appr_coord.get_all_approvals()
+
+    if json_output:
+        data = [a.model_dump(mode="json") for a in approvals]
+        console.print_json(data=data)
+        return
+
+    table = Table(title=f"Governance Approvals (Policy: {selected_policy.policy_name()})")
+    table.add_column("Approval ID", style="bold cyan")
+    table.add_column("Requester")
+    table.add_column("Approver")
+    table.add_column("Policy", style="yellow")
+    table.add_column("Status", style="green")
+    table.add_column("Reason")
+    table.add_column("Requested At", style="dim")
+
+    for a in approvals:
+        table.add_row(
+            a.approval_id,
+            a.requester_session_id,
+            a.approver_session_id or "ANY",
+            a.policy_name,
+            a.status.value.upper(),
+            a.reason,
+            a.requested_at,
+        )
     console.print(table)
 
 

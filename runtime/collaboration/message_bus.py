@@ -17,6 +17,7 @@ from runtime.agent.models import AgentSession
 
 from .contracts import MessageBusContract
 from .models import (
+    ApprovalStatus,
     CollaborationConversation,
     CollaborationReport,
     CollaborationSession,
@@ -25,6 +26,7 @@ from .models import (
     Message,
     MessageThread,
     MessageType,
+    ReviewStatus,
     ThreadStatus,
     ThreadType,
     TimelineEventType,
@@ -470,7 +472,7 @@ class MessageBus(MessageBusContract):
         return res
 
     # ------------------------------------------------------------------
-    # Managers Integration (Phase C3)
+    # Managers Integration (Phase C3 & C4)
     # ------------------------------------------------------------------
 
     def set_artifact_manager(self, artifact_manager: SharedArtifactManager) -> None:
@@ -481,6 +483,14 @@ class MessageBus(MessageBusContract):
         """Attach a HandoffManager instance sharing the bus timeline."""
         self._handoff_manager = handoff_manager
 
+    def set_review_coordinator(self, review_coordinator: ReviewCoordinator) -> None:
+        """Attach a ReviewCoordinator instance sharing the bus timeline."""
+        self._review_coordinator = review_coordinator
+
+    def set_approval_coordinator(self, approval_coordinator: ApprovalCoordinator) -> None:
+        """Attach an ApprovalCoordinator instance sharing the bus timeline."""
+        self._approval_coordinator = approval_coordinator
+
     # ------------------------------------------------------------------
     # Session Snapshot & Reporting
     # ------------------------------------------------------------------
@@ -489,10 +499,14 @@ class MessageBus(MessageBusContract):
         self,
         artifact_manager: SharedArtifactManager | None = None,
         handoff_manager: HandoffManager | None = None,
+        review_coordinator: ReviewCoordinator | None = None,
+        approval_coordinator: ApprovalCoordinator | None = None,
     ) -> CollaborationSession:
         """Return an immutable snapshot of the active CollaborationSession."""
         art_mgr = artifact_manager or getattr(self, "_artifact_manager", None)
         hdf_mgr = handoff_manager or getattr(self, "_handoff_manager", None)
+        rev_coord = review_coordinator or getattr(self, "_review_coordinator", None)
+        appr_coord = approval_coordinator or getattr(self, "_approval_coordinator", None)
 
         open_ths = [t for t in self._threads.values() if t.status == ThreadStatus.OPEN]
         closed_ths = [t for t in self._threads.values() if t.status != ThreadStatus.OPEN]
@@ -502,6 +516,8 @@ class MessageBus(MessageBusContract):
 
         shared_refs = list(art_mgr.get_all_references()) if art_mgr else []
         all_handoffs = list(hdf_mgr.get_all_handoffs()) if hdf_mgr else []
+        all_reviews = list(rev_coord.get_all_reviews()) if rev_coord else []
+        all_approvals = list(appr_coord.get_all_approvals()) if appr_coord else []
 
         return CollaborationSession(
             collaboration_id=f"collab-{self._blueprint_id}",
@@ -513,7 +529,8 @@ class MessageBus(MessageBusContract):
             closed_threads=closed_ths,
             shared_artifacts=shared_refs,
             handoffs=all_handoffs,
-            approvals=[],
+            reviews=all_reviews,
+            approvals=all_approvals,
             statistics={
                 "total_conversations": len(self._conversations),
                 "total_threads": len(self._threads),
@@ -523,6 +540,8 @@ class MessageBus(MessageBusContract):
                 "total_participants": len(all_participants),
                 "total_shared_artifacts": len(shared_refs),
                 "total_handoffs": len(all_handoffs),
+                "total_reviews": len(all_reviews),
+                "total_approvals": len(all_approvals),
             },
             timeline=self._timeline.to_timeline(),
             created_at=_utcnow(),
@@ -532,12 +551,21 @@ class MessageBus(MessageBusContract):
         self,
         artifact_manager: SharedArtifactManager | None = None,
         handoff_manager: HandoffManager | None = None,
+        review_coordinator: ReviewCoordinator | None = None,
+        approval_coordinator: ApprovalCoordinator | None = None,
     ) -> CollaborationReport:
-        """Generate a comprehensive CollaborationReport including shared artifacts and handoffs."""
+        """Generate a comprehensive CollaborationReport including reviews, approvals, and policy decisions."""
         art_mgr = artifact_manager or getattr(self, "_artifact_manager", None)
         hdf_mgr = handoff_manager or getattr(self, "_handoff_manager", None)
+        rev_coord = review_coordinator or getattr(self, "_review_coordinator", None)
+        appr_coord = approval_coordinator or getattr(self, "_approval_coordinator", None)
 
-        session_snap = self.get_collaboration_session(artifact_manager=art_mgr, handoff_manager=hdf_mgr)
+        session_snap = self.get_collaboration_session(
+            artifact_manager=art_mgr,
+            handoff_manager=hdf_mgr,
+            review_coordinator=rev_coord,
+            approval_coordinator=appr_coord,
+        )
 
         shared_refs = list(art_mgr.get_all_references()) if art_mgr else []
         ref_ids = [r.reference_id for r in shared_refs]
@@ -547,6 +575,41 @@ class MessageBus(MessageBusContract):
         completed_h = [h for h in all_handoffs if h.status == HandoffStatus.COMPLETED]
         rejected_h = [h for h in all_handoffs if h.status == HandoffStatus.REJECTED]
         cancelled_h = [h for h in all_handoffs if h.status == HandoffStatus.CANCELLED]
+
+        all_reviews = list(rev_coord.get_all_reviews()) if rev_coord else []
+        appr_reviews = [r for r in all_reviews if r.status == ReviewStatus.APPROVED]
+        rej_reviews = [r for r in all_reviews if r.status == ReviewStatus.REJECTED]
+        pend_reviews = [r for r in all_reviews if r.status in (ReviewStatus.REQUESTED, ReviewStatus.IN_PROGRESS, ReviewStatus.RESUBMITTED)]
+        cr_reviews = [r for r in all_reviews if r.status == ReviewStatus.CHANGES_REQUESTED]
+
+        all_approvals = list(appr_coord.get_all_approvals()) if appr_coord else []
+        appr_apprs = [a for a in all_approvals if a.status == ApprovalStatus.APPROVED]
+        rej_apprs = [a for a in all_approvals if a.status == ApprovalStatus.REJECTED]
+        pend_apprs = [a for a in all_approvals if a.status == ApprovalStatus.PENDING]
+
+        policy_decs: dict[str, str] = {}
+        for a in all_approvals:
+            policy_decs[a.approval_id] = f"{a.policy_name}:{a.status.value}"
+
+        rev_durations: dict[str, float] = {}
+        for r in all_reviews:
+            if r.started_at and r.completed_at:
+                try:
+                    t0 = datetime.fromisoformat(r.started_at)
+                    t1 = datetime.fromisoformat(r.completed_at)
+                    rev_durations[r.review_id] = (t1 - t0).total_seconds()
+                except Exception:
+                    pass
+
+        appr_durations: dict[str, float] = {}
+        for a in all_approvals:
+            if a.requested_at and a.decided_at:
+                try:
+                    t0 = datetime.fromisoformat(a.requested_at)
+                    t1 = datetime.fromisoformat(a.decided_at)
+                    appr_durations[a.approval_id] = (t1 - t0).total_seconds()
+                except Exception:
+                    pass
 
         ownership_sum: dict[str, int] = {}
         lineage_sum: dict[str, list[str]] = {}
@@ -560,8 +623,9 @@ class MessageBus(MessageBusContract):
             f"Conversations: {session_snap.statistics['total_conversations']}, "
             f"Threads: {session_snap.statistics['total_threads']}, "
             f"Messages: {session_snap.statistics['total_messages']}. "
-            f"Shared Artifacts: {len(shared_refs)}, Handoffs: {len(all_handoffs)} "
-            f"(completed={len(completed_h)}, pending={len(pending_h)}, rejected={len(rejected_h)}, cancelled={len(cancelled_h)})."
+            f"Shared Artifacts: {len(shared_refs)}, Handoffs: {len(all_handoffs)}, "
+            f"Reviews: {len(all_reviews)} (approved={len(appr_reviews)}, outstanding={len(pend_reviews)}), "
+            f"Approvals: {len(all_approvals)} (approved={len(appr_apprs)}, pending={len(pend_apprs)})."
         )
 
         return CollaborationReport(
@@ -578,8 +642,21 @@ class MessageBus(MessageBusContract):
             completed_handoffs=completed_h,
             rejected_handoffs=rejected_h,
             cancelled_handoffs=cancelled_h,
-            total_approvals=0,
-            approved_count=0,
+            total_reviews=len(all_reviews),
+            approved_reviews=appr_reviews,
+            rejected_reviews=rej_reviews,
+            pending_reviews=pend_reviews,
+            changes_requested_reviews=cr_reviews,
+            outstanding_reviews=len(pend_reviews),
+            total_approvals=len(all_approvals),
+            approved_approvals=appr_apprs,
+            rejected_approvals=rej_apprs,
+            pending_approvals=pend_apprs,
+            approved_count=len(appr_apprs),
+            outstanding_approvals=len(pend_apprs),
+            policy_decisions=policy_decs,
+            review_duration_summary=rev_durations,
+            approval_duration_summary=appr_durations,
             ownership_summary=ownership_sum,
             lineage_summary=lineage_sum,
             timeline=self._timeline.to_timeline(),

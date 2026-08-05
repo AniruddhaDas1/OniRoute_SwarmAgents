@@ -1,11 +1,12 @@
-"""OniRoute SwarmAgents — Engineering Collaboration Package (ACR-007 Phase C1 Architecture, Phase C2 Message Bus, Phase C3 Shared Artifacts & Handoffs).
+"""OniRoute SwarmAgents — Engineering Collaboration Package (ACR-007 Phase C1 Architecture, Phase C2 Message Bus, Phase C3 Shared Artifacts & Handoffs, Phase C4 Review & Approval Coordination).
 
 Coordinates communication, conversations, threads, messages, handoffs, shared artifacts,
-approvals, reviews, timelines, and progress reporting between live AgentSessions.
+peer reviews, governance approvals, timelines, and progress reporting between live AgentSessions.
 
 Consumes the frozen Agent Runtime without modifying Mission, Organization, Workspace, or Runtime.
 """
 
+from .approval_coordinator import ApprovalCoordinator
 from .artifact_manager import SharedArtifactManager
 from .contracts import (
     ApprovalCoordinatorContract,
@@ -22,8 +23,10 @@ from .models import (
     ApprovalRequest,
     ApprovalStatus,
     ArtifactReference,
+    CollaborationApproval,
     CollaborationConversation,
     CollaborationReport,
+    CollaborationReview,
     CollaborationSession,
     Conversation,
     ConversationStatus,
@@ -34,12 +37,15 @@ from .models import (
     MessageType,
     RecipientType,
     ReviewRequest,
+    ReviewStatus,
     ThreadStatus,
     ThreadType,
     Timeline,
     TimelineEvent,
     TimelineEventType,
 )
+
+from .review_coordinator import ReviewCoordinator
 from .router import MessageRouter
 from .timeline import CollaborationTimeline
 
@@ -51,6 +57,7 @@ __all__ = [
     "ThreadStatus",
     "RecipientType",
     "HandoffStatus",
+    "ReviewStatus",
     "ApprovalStatus",
     "TimelineEventType",
     "Message",
@@ -59,19 +66,23 @@ __all__ = [
     "CollaborationConversation",
     "ArtifactReference",
     "Handoff",
-    "ApprovalDecision",
-    "ApprovalRequest",
+    "CollaborationReview",
     "ReviewRequest",
+    "ApprovalDecision",
+    "CollaborationApproval",
+    "ApprovalRequest",
     "TimelineEvent",
     "Timeline",
     "CollaborationSession",
     "CollaborationReport",
-    # Managers & Routing
+    # Managers & Coordinators
     "MessageRouter",
     "CollaborationTimeline",
     "MessageBus",
     "SharedArtifactManager",
     "HandoffManager",
+    "ReviewCoordinator",
+    "ApprovalCoordinator",
     # Contracts
     "MessageBusContract",
     "HandoffManagerContract",

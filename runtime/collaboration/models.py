@@ -1,7 +1,8 @@
-"""Immutable Data Models for Engineering Collaboration (ACR-007 Phase C1, C2 & C3).
+"""Immutable Data Models for Engineering Collaboration (ACR-007 Phase C1, C2, C3 & C4).
 
 Defines all declarative, immutable Pydantic models for inter-session communication,
-conversations, threads, messages, shared artifact references, handoffs, timelines, and reports.
+conversations, threads, messages, shared artifact references, handoffs, reviews, approvals,
+timelines, and reports.
 
 Architecture-only specifications. No AI execution, no runtime scheduling.
 """
@@ -87,6 +88,17 @@ class HandoffStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
+class ReviewStatus(str, Enum):
+    """Lifecycle states for a CollaborationReview."""
+
+    REQUESTED = "requested"
+    IN_PROGRESS = "in_progress"
+    CHANGES_REQUESTED = "changes_requested"
+    RESUBMITTED = "resubmitted"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
 class ApprovalStatus(str, Enum):
     """Status outcomes for an approval request."""
 
@@ -111,6 +123,14 @@ class TimelineEventType(str, Enum):
     HANDOFF_REJECTED = "handoff_rejected"
     HANDOFF_COMPLETED = "handoff_completed"
     HANDOFF_CANCELLED = "handoff_cancelled"
+    REVIEW_CREATED = "review_created"
+    REVIEW_STARTED = "review_started"
+    CHANGES_REQUESTED = "changes_requested"
+    REVIEW_APPROVED = "review_approved"
+    REVIEW_REJECTED = "review_rejected"
+    APPROVAL_CREATED = "approval_created"
+    APPROVAL_APPROVED = "approval_approved"
+    APPROVAL_REJECTED = "approval_rejected"
     MESSAGE = "message"
     HANDOFF = "handoff"
     REVIEW = "review"
@@ -239,7 +259,38 @@ class Handoff(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Approval Models
+# Review Models (Phase C4)
+# ---------------------------------------------------------------------------
+
+class CollaborationReview(BaseModel):
+    """Immutable record of an inter-agent peer review workflow."""
+
+    model_config = ConfigDict(frozen=True)
+
+    review_id: str = Field(..., description="Unique review request identifier.")
+    conversation_id: str = Field(default="", description="Parent Conversation ID.")
+    thread_id: str = Field(default="", description="Parent MessageThread ID.")
+    author_session_id: str = Field(..., description="AgentSession ID that authored the work.")
+    reviewer_session_id: str = Field(..., description="AgentSession ID assigned to review.")
+    artifact_references: list[ArtifactReference] = Field(
+        default_factory=list, description="Artifacts submitted for peer review."
+    )
+    status: ReviewStatus = Field(default=ReviewStatus.REQUESTED, description="Current review status.")
+    reason: str = Field(default="", description="Reason for peer review request.")
+    evidence: dict[str, Any] = Field(default_factory=dict, description="Review context evidence.")
+    comments: list[dict[str, Any]] = Field(default_factory=list, description="Review comments/feedback.")
+    decision: str | None = Field(default=None, description="Final review decision string (e.g. 'approved', 'rejected').")
+    requested_at: str = Field(default_factory=_utcnow, description="ISO-8601 UTC request timestamp.")
+    started_at: str | None = Field(default=None, description="ISO-8601 UTC timestamp when review started.")
+    completed_at: str | None = Field(default=None, description="ISO-8601 UTC timestamp when review completed.")
+
+
+# Alias for backward compatibility
+ReviewRequest = CollaborationReview
+
+
+# ---------------------------------------------------------------------------
+# Approval Models (Phase C4)
 # ---------------------------------------------------------------------------
 
 class ApprovalDecision(BaseModel):
@@ -256,12 +307,14 @@ class ApprovalDecision(BaseModel):
     decided_at: str = Field(default_factory=_utcnow, description="ISO-8601 UTC decision timestamp.")
 
 
-class ApprovalRequest(BaseModel):
-    """Immutable request for human or governance approval."""
+class CollaborationApproval(BaseModel):
+    """Immutable request for human or governance approval governed by RuntimeReviewPolicy."""
 
     model_config = ConfigDict(frozen=True)
 
     approval_id: str = Field(..., description="Unique approval request identifier.")
+    conversation_id: str = Field(default="", description="Parent Conversation ID.")
+    thread_id: str = Field(default="", description="Parent MessageThread ID.")
     requester_session_id: str = Field(..., description="AgentSession ID requesting approval.")
     approver_session_id: str | None = Field(
         default=None, description="Target AgentSession or human approver ID."
@@ -271,28 +324,15 @@ class ApprovalRequest(BaseModel):
     )
     reason: str = Field(..., description="Rationale for requiring approval.")
     evidence: dict[str, Any] = Field(default_factory=dict, description="Contextual evidence.")
+    policy_name: str = Field(default="default", description="Active RuntimeReviewPolicy name.")
     status: ApprovalStatus = Field(default=ApprovalStatus.PENDING, description="Approval status.")
     outcome: ApprovalDecision | None = Field(default=None, description="Decided outcome, if completed.")
     requested_at: str = Field(default_factory=_utcnow, description="ISO-8601 UTC request timestamp.")
+    decided_at: str | None = Field(default=None, description="ISO-8601 UTC completion timestamp.")
 
 
-# ---------------------------------------------------------------------------
-# Review Models
-# ---------------------------------------------------------------------------
-
-class ReviewRequest(BaseModel):
-    """Immutable request for inter-agent peer review."""
-
-    model_config = ConfigDict(frozen=True)
-
-    review_id: str = Field(..., description="Unique review request identifier.")
-    reviewer_session_id: str = Field(..., description="AgentSession ID requested to conduct review.")
-    author_session_id: str = Field(..., description="AgentSession ID that authored the work.")
-    artifact_references: list[ArtifactReference] = Field(
-        default_factory=list, description="Artifacts submitted for peer review."
-    )
-    reason: str = Field(..., description="Reason for peer review request.")
-    requested_at: str = Field(default_factory=_utcnow, description="ISO-8601 UTC request timestamp.")
+# Alias for backward compatibility
+ApprovalRequest = CollaborationApproval
 
 
 # ---------------------------------------------------------------------------
@@ -328,7 +368,7 @@ class Timeline(BaseModel):
 # ---------------------------------------------------------------------------
 
 class CollaborationSession(BaseModel):
-    """Immutable collaboration session tracking conversations, handoffs, shared artifacts, and timeline."""
+    """Immutable collaboration session tracking conversations, handoffs, shared artifacts, reviews, approvals, and timeline."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -355,7 +395,10 @@ class CollaborationSession(BaseModel):
     handoffs: list[Handoff] = Field(
         default_factory=list, description="Handoffs recorded in this session."
     )
-    approvals: list[ApprovalRequest] = Field(
+    reviews: list[CollaborationReview] = Field(
+        default_factory=list, description="Peer reviews recorded in this session."
+    )
+    approvals: list[CollaborationApproval] = Field(
         default_factory=list, description="Approvals recorded in this session."
     )
     statistics: dict[str, int] = Field(
@@ -369,7 +412,7 @@ class CollaborationSession(BaseModel):
 
 
 class CollaborationReport(BaseModel):
-    """Immutable report summarizing collaboration session outcomes including shared artifacts and handoffs."""
+    """Immutable report summarizing collaboration session outcomes including reviews, approvals, policy decisions, and durations."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -398,8 +441,43 @@ class CollaborationReport(BaseModel):
     cancelled_handoffs: list[Handoff] = Field(
         default_factory=list, description="Cancelled handoffs."
     )
+    total_reviews: int = Field(default=0, description="Total peer review requests processed.")
+    approved_reviews: list[CollaborationReview] = Field(
+        default_factory=list, description="Approved peer reviews."
+    )
+    rejected_reviews: list[CollaborationReview] = Field(
+        default_factory=list, description="Rejected peer reviews."
+    )
+    pending_reviews: list[CollaborationReview] = Field(
+        default_factory=list, description="Outstanding / in-progress peer reviews."
+    )
+    changes_requested_reviews: list[CollaborationReview] = Field(
+        default_factory=list, description="Peer reviews with changes requested."
+    )
+    outstanding_reviews: int = Field(default=0, description="Count of open/pending reviews.")
+
     total_approvals: int = Field(default=0, description="Total approval requests processed.")
+    approved_approvals: list[CollaborationApproval] = Field(
+        default_factory=list, description="Approved approval requests."
+    )
+    rejected_approvals: list[CollaborationApproval] = Field(
+        default_factory=list, description="Rejected approval requests."
+    )
+    pending_approvals: list[CollaborationApproval] = Field(
+        default_factory=list, description="Outstanding approval requests."
+    )
     approved_count: int = Field(default=0, description="Total approvals granted.")
+    outstanding_approvals: int = Field(default=0, description="Count of pending approvals.")
+
+    policy_decisions: dict[str, str] = Field(
+        default_factory=dict, description="Approval ID to active policy decision outcome mapping."
+    )
+    review_duration_summary: dict[str, float] = Field(
+        default_factory=dict, description="Review ID to completion duration in seconds mapping."
+    )
+    approval_duration_summary: dict[str, float] = Field(
+        default_factory=dict, description="Approval ID to completion duration in seconds mapping."
+    )
     ownership_summary: dict[str, int] = Field(
         default_factory=dict, description="Count of shared artifacts per owner session."
     )
