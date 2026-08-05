@@ -155,3 +155,6 @@ __all__ = [
     "assert_outside_engine",
     "assert_within_workspace",
 ]
+
+from runtime.experience import ExecutionEventStream, PresentationAdapter, ExecutionRenderer, SessionRecoveryWatcher, StreamEvent, SessionStatusReport
+

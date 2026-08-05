@@ -75,6 +75,7 @@ from runtime.review import QualityGateEngine, QualityReport, QualityGateError
 from runtime.healing import SelfHealingEngine, RepairPlanner, RepairPlan, UpdatedEngineeringResult, SelfHealingError
 from runtime.validation import VerificationEngine, AcceptanceEngine, VerificationResult, AcceptanceReport, ValidationAcceptanceError
 from runtime.router import NaturalLanguageRouter, SmartDefaults, RouterExecutionResult
+from runtime.experience import ExecutionEventStream, PresentationAdapter, ExecutionRenderer, SessionRecoveryWatcher, StreamEvent, SessionStatusReport
 
 
 
@@ -4134,6 +4135,77 @@ def migrate_command(
     _run_natural_language_pipeline(req_text, workspace_path=workspace_path, json_output=json_output)
 
 
+@app.command("status")
+def status_command(
+    session_id: str | None = typer.Option(None, "--session", "-s", help="Target session ID or None for latest."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON SessionStatusReport."),
+) -> None:
+    """Display active or saved session status, progress, quality score, and readiness."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        watcher = SessionRecoveryWatcher(workspace_root=ws_path)
+        report = watcher.get_session_status(session_id=session_id)
+
+        if json_output:
+            console.print_json(data=report.model_dump(mode="json"))
+            return
+
+        table = Table(title=f"OniRoute Session Status: {report.session_id}")
+        table.add_column("Property", style="bold cyan")
+        table.add_column("Value", style="white")
+
+        table.add_row("Session ID", report.session_id)
+        table.add_row("Mission ID", report.mission_id)
+        table.add_row("Status", f"[bold green]{report.status}[/]" if report.status == "COMPLETED" else f"[bold yellow]{report.status}[/]")
+        table.add_row("Current Stage", report.current_stage)
+        table.add_row("Active Agent", report.active_agent)
+        table.add_row("Current Task", report.current_task)
+        table.add_row("Progress", f"{report.progress_percentage:.1f}%")
+        table.add_row("Files Created", str(report.files_created_count))
+        table.add_row("Files Modified", str(report.files_modified_count))
+        table.add_row("Token Usage", str(report.token_usage.get("total_tokens", 0)))
+        table.add_row("Estimated Cost", f"${report.total_cost_usd:.6f}")
+        table.add_row("Elapsed Time", f"{report.elapsed_time_ms:.2f} ms")
+        table.add_row("Quality Score", f"{report.quality_score:.2f} / 10.0")
+        table.add_row("Production Ready", "[bold green]YES[/]" if report.production_ready else "[bold red]NO[/]")
+        table.add_row("Last Event Timestamp", report.last_event_timestamp)
+
+        console.print(table)
+
+    except Exception as exc:
+        console.print(f"[red]Status Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("watch")
+def watch_command(
+    session_id: str | None = typer.Option(None, "--session", "-s", help="Target session ID or None for latest."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+) -> None:
+    """Stream live execution events from an active mission or session."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        watcher = SessionRecoveryWatcher(workspace_root=ws_path)
+        renderer = ExecutionRenderer(console=console)
+
+        console.print(f"[bold cyan]👁 Watching Execution Stream for Workspace:[/] {ws_path}")
+
+        events = watcher.watch_session(session_id=session_id)
+        if not events:
+            console.print("[yellow]No stream events found for session.[/]")
+            return
+
+        for evt in events:
+            renderer.render_event(evt)
+
+    except Exception as exc:
+        console.print(f"[red]Watch Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
@@ -4141,7 +4213,7 @@ REGISTERED_CLI_COMMANDS: set[str] = {
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
     "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept", "certify-engineering",
-    "build", "create", "fix", "refactor", "migrate",
+    "build", "create", "fix", "refactor", "migrate", "status", "watch",
     "--help", "-h", "--version"
 }
 

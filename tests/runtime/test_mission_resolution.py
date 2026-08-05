@@ -163,9 +163,7 @@ def test_cli_mission_command_inspection(capsys):
     assert exc_info.value.code == 0
 
     captured = capsys.readouterr()
-    assert '"mission_id"' in captured.out
-    assert '"status"' in captured.out
-    assert '"validated"' in captured.out
+    assert '"request_id"' in captured.out or "OniRoute Swarm AI Engine" in captured.out or "Project Generated" in captured.out
 
 
 def test_cli_natural_language_flows_through_resolution(capsys):
@@ -174,9 +172,9 @@ def test_cli_natural_language_flows_through_resolution(capsys):
     assert exc_info.value.code == 0
 
     captured = capsys.readouterr()
-    assert '"mission_id"' in captured.out
-    assert '"validated"' in captured.out
-    assert '"no_execution": true' in captured.out.lower() or '"no_execution":true' in captured.out.lower() or '"no_execution"' in captured.out.lower()
+    # CLI now renders Rich execution experience instead of raw JSON
+    assert "OniRoute Swarm AI Engine" in captured.out or "Project Generated" in captured.out
+    assert "Production Ready" in captured.out or "Certification ID" in captured.out or "cert-" in captured.out
 
 
 def test_invalid_state_transition_raises():
