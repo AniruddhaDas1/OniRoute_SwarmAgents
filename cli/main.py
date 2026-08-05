@@ -64,7 +64,8 @@ from runtime.skills import (
     AgentProfile,
 )
 from runtime.deployment import MissionDeploymentPlan, MissionDeploymentPlanner
-from runtime.swarm import AutonomousExecutionEngine, ExecutionTaskQueue, RuntimeExecutionSnapshot, SwarmExecutionResult, SwarmInitializationEngine
+from runtime.swarm import AutonomousExecutionEngine, ExecutionTaskQueue, RuntimeExecutionSnapshot, SwarmCoordinationEngine, SwarmExecutionResult, SwarmInitializationEngine
+
 
 
 
@@ -2768,16 +2769,180 @@ def execute_command(
     console.print(storage_table)
 
 
+@app.command("coordinate")
+@mission_app.command("coordinate")
+def coordinate_command(
+    request: list[str] = typer.Argument(None, help="Natural language request or plan prompt."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+) -> None:
+    """Coordinate Swarm agent communication, artifact exchange, handoffs, and consensus."""
+    raw_prompt = " ".join(request) if request else "Build application"
+    if request and "--json" in request:
+        json_output = True
+        raw_prompt = " ".join([r for r in request if r != "--json"])
+        if not raw_prompt.strip():
+            raw_prompt = "Build application"
+
+    intent_analyzer = IntentAnalyzer()
+    intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=workspace)
+
+    ws_intelligence = WorkspaceIntelligence()
+    ws_ctx = ws_intelligence.analyze_workspace(cwd=repository_root, explicit_workspace=workspace)
+
+    repo_intelligence = RepositoryIntelligence()
+    repo_ctx = repo_intelligence.analyze_repository(ws_ctx)
+
+    generator = EngineeringPlanGenerator()
+    plan = generator.generate_plan(intent_report, ws_ctx, repo_ctx)
+
+    loader = RepositoryLoader(repository_root)
+    registry = loader.load()
+    resolver = Resolver(registry)
+
+    discovery_engine = SkillDiscoveryEngine(registry, resolver)
+    selection_report = discovery_engine.discover_skills(plan)
+
+    ranking_engine = SkillRankingEngine(registry, resolver)
+    ranked_report = ranking_engine.rank_skills(selection_report, plan)
+
+    bundling_engine = SkillBundlingEngine(registry, resolver)
+    bundle_report = bundling_engine.bundle_skills(ranked_report, plan, selection_report)
+
+    profile_builder = AgentProfileBuilderEngine(registry, resolver)
+    profile_report = profile_builder.build_profiles(bundle_report, plan)
+
+    deployment_planner = MissionDeploymentPlanner()
+    deployment_plan = deployment_planner.create_deployment_plan(plan, profile_report)
+
+    swarm_init_engine = SwarmInitializationEngine()
+    initial_snapshot = swarm_init_engine.initialize_swarm(
+        deployment_plan, explicit_workspace=workspace, repository_root=repository_root
+    )
+
+    exec_engine = AutonomousExecutionEngine()
+    exec_snapshot, results = exec_engine.execute_swarm(
+        initial_snapshot, repository_root=repository_root
+    )
+
+    coord_engine = SwarmCoordinationEngine()
+    coord_snapshot, summary = coord_engine.coordinate_swarm(
+        exec_snapshot, results, repository_root=repository_root
+    )
+
+    if json_output:
+        data = {
+            "snapshot": coord_snapshot.model_dump(mode="json"),
+            "coordination_summary": summary,
+        }
+        console.print_json(data=data)
+        return
+
+    console.print(
+        f"\n[bold cyan]Swarm Coordination Complete:[/] {coord_snapshot.snapshot_id} "
+        f"(Execution UUID: {coord_snapshot.execution_uuid}, Context Version: v{summary['shared_context_snapshot']['version_index']})"
+    )
+
+    # 1. Swarm Coordination Overview Table
+    summary_table = Table(title="Swarm Coordination Overview")
+    summary_table.add_column("Metric", style="bold cyan")
+    summary_table.add_column("Value")
+
+    summary_table.add_row("Execution UUID", coord_snapshot.execution_uuid)
+    summary_table.add_row("Messages Dispatched", str(len(summary["messages"])))
+    summary_table.add_row("Artifact Exchanges Registered", str(len(summary["artifact_exchanges"])))
+    summary_table.add_row("Wave Task Handoffs", str(len(summary["handoffs"])))
+    summary_table.add_row("Consensus Gate Decisions", str(len(summary["consensus"])))
+    summary_table.add_row("Context Conflicts Detected", str(len(summary["conflicts"])))
+    summary_table.add_row("Shared Context Version", f"v{summary['shared_context_snapshot']['version_index']}")
+    summary_table.add_row("Coordination Latency", f"{summary['coordination_latency_ms']} ms")
+    summary_table.add_row("Updated Snapshot Hash", coord_snapshot.snapshot_hash)
+    console.print(summary_table)
+
+    # 2. Messages & Agent Communication Table
+    msg_table = Table(title="Agent Messages & Communication Events")
+    msg_table.add_column("Message ID", style="bold cyan")
+    msg_table.add_column("Sender Session")
+    msg_table.add_column("Recipient")
+    msg_table.add_column("Subject", style="bold yellow")
+    msg_table.add_column("Timestamp")
+
+    for msg in summary["messages"][:5]:
+        msg_table.add_row(
+            msg["message_id"],
+            msg["sender_id"],
+            msg["recipient_id"],
+            msg["subject"],
+            msg["timestamp"][:19],
+        )
+    console.print(msg_table)
+
+    # 3. Artifact Exchange & Lineage Table
+    art_table = Table(title="Artifact Exchange & Version Lineage")
+    art_table.add_column("Exchange ID", style="bold cyan")
+    art_table.add_column("Artifact Name", style="bold yellow")
+    art_table.add_column("Owner Profile")
+    art_table.add_column("Version", style="bold green")
+    art_table.add_column("Delivery Status", style="bold green")
+
+    for ex in summary["artifact_exchanges"][:5]:
+        art_table.add_row(
+            ex["exchange_id"],
+            ex["name"],
+            ex["owner_profile_id"],
+            ex["version"],
+            ex["delivery_status"],
+        )
+    console.print(art_table)
+
+    # 4. Wave Task Handoffs Table
+    hdf_table = Table(title="Wave Task Handoffs")
+    hdf_table.add_column("Handoff ID", style="bold cyan")
+    hdf_table.add_column("Source Profile")
+    hdf_table.add_column("Receiving Profile")
+    hdf_table.add_column("Wave Transition", style="bold yellow")
+    hdf_table.add_column("Status", style="bold green")
+
+    for hdf in summary["handoffs"][:5]:
+        hdf_table.add_row(
+            hdf["handoff_id"],
+            hdf["source_profile_id"],
+            hdf["receiving_profile_id"],
+            f"Wave {hdf['source_wave']} → Wave {hdf['target_wave']}",
+            hdf["status"],
+        )
+    console.print(hdf_table)
+
+    # 5. Consensus & Approval Gates Table
+    csn_table = Table(title="Consensus & Approval Gate Decisions")
+    csn_table.add_column("Consensus ID", style="bold cyan")
+    csn_table.add_column("Wave", style="bold yellow")
+    csn_table.add_column("Gate Name")
+    csn_table.add_column("Type")
+    csn_table.add_column("Decision", style="bold green")
+
+    for csn in summary["consensus"]:
+        csn_table.add_row(
+            csn["consensus_id"],
+            f"Wave {csn['wave_number']}",
+            csn["gate_name"],
+            csn["consensus_type"],
+            csn["decision"],
+        )
+    console.print(csn_table)
+
 
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
-    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize",
+    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
     "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact",
     "--help", "-h", "--version"
 }
+
 
 
 

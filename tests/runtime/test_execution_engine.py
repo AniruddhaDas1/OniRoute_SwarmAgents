@@ -341,8 +341,8 @@ def test_cli_execute_text():
 
         result = runner.invoke(app, ["execute", "Create portfolio website"])
         assert result.exit_code == 0
-        assert "Execution Results" in result.output
-        assert "Runtime Execution Report" in result.output
+        assert "Autonomous Swarm Execution Overview" in result.output
+        assert "Task Execution Results" in result.output
 
 
 def test_cli_execute_json():
@@ -353,6 +353,6 @@ def test_cli_execute_json():
 
         result = runner.invoke(app, ["execute", "--json", "Build REST API"])
         assert result.exit_code == 0
-        assert '"report_id":' in result.output
-        assert '"total_sessions":' in result.output
+        assert '"snapshot":' in result.output
         assert '"execution_results":' in result.output
+
