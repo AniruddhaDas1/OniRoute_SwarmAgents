@@ -12,6 +12,7 @@ from runtime.validator import ValidationEngine
 from runtime.workspace import ArtifactRouter, ReportStorage, WorkspaceManager, WorkspaceStorage
 from runtime.workspace import SessionStorage, ExecutionHistoryStorage, TraceStorage, LogStorage
 from runtime.workspace import WorkspaceContext, WorkspaceIntelligence, WorkspaceState
+from runtime.workspace import RepositoryContext, RepositoryIntelligence
 from runtime.context.builder import ContextBuilder
 from runtime.context.serializer import ContextSerializer
 from runtime.execution.engine import WorkflowEngine
@@ -1790,8 +1791,58 @@ def workspace_context_cmd(
     console.print(table)
 
 
+@app.command("repository")
+def repository_cmd(
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+) -> None:
+    """Analyze and display detailed Repository Intelligence and directory topology."""
+    ws_intelligence = WorkspaceIntelligence()
+    ws_ctx = ws_intelligence.analyze_workspace(cwd=repository_root, explicit_workspace=workspace)
+
+    repo_intelligence = RepositoryIntelligence()
+    repo_ctx = repo_intelligence.analyze_repository(ws_ctx)
+
+    if json_output:
+        console.print_json(data=repo_ctx.model_dump(mode="json"))
+        return
+
+    table = Table(title=f"Repository Intelligence: {repo_ctx.repository_id}")
+    table.add_column("Category", style="bold cyan")
+    table.add_column("Property")
+    table.add_column("Value")
+
+    table.add_row("Topology", "Layout Pattern", repo_ctx.project_layout)
+    top_dirs = [k for k in repo_ctx.directory_topology.keys() if k != "."]
+    table.add_row("Topology", "Main Directories", ", ".join(top_dirs) if top_dirs else "None")
+
+    table.add_row("Roots", "Source Root", repo_ctx.detected_roots.get("source_root") or "None")
+    table.add_row("Roots", "Test Root", repo_ctx.detected_roots.get("test_root") or "None")
+    table.add_row("Roots", "Config Root", repo_ctx.detected_roots.get("configuration_root") or "None")
+    table.add_row("Roots", "Doc Root", repo_ctx.detected_roots.get("documentation_root") or "None")
+    table.add_row("Roots", "API Root", repo_ctx.detected_roots.get("api_root") or "None")
+    table.add_row("Roots", "Component Root", repo_ctx.detected_roots.get("component_root") or "None")
+
+    table.add_row("Entry Points", "Detected Entries", ", ".join(repo_ctx.entry_points) if repo_ctx.entry_points else "None")
+    table.add_row("Config", "Config Files Count", str(len(repo_ctx.configuration_files)))
+    table.add_row("Config", "Config Files", ", ".join(repo_ctx.configuration_files[:5]) if repo_ctx.configuration_files else "None")
+    table.add_row("Docs", "Doc Files Count", str(len(repo_ctx.documentation_files)))
+    table.add_row("Docs", "Doc Files", ", ".join(repo_ctx.documentation_files[:5]) if repo_ctx.documentation_files else "None")
+
+    table.add_row("Tests", "Test Presence", "YES" if repo_ctx.test_presence else "NO")
+    table.add_row("Tests", "Test File Count", str(repo_ctx.test_summary.get("test_file_count", 0)))
+    table.add_row("Assets", "Total Assets", str(repo_ctx.asset_summary.get("total_assets", 0)))
+
+    table.add_row("Repository Size", "Total Files", str(repo_ctx.repository_size.get("file_count", 0)))
+    table.add_row("Repository Size", "Total Directories", str(repo_ctx.repository_size.get("directory_count", 0)))
+    table.add_row("Repository Size", "Total Size (bytes)", str(repo_ctx.repository_size.get("total_size_bytes", 0)))
+
+    console.print(table)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
-    "workspace", "workspace-context", "doctor", "history", "events", "list", "inspect",
+    "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
@@ -1830,6 +1881,9 @@ def main(args: list[str] | None = None) -> None:
             ws_intel = WorkspaceIntelligence()
             ws_context = ws_intel.analyze_workspace(cwd=Path.cwd(), explicit_workspace=explicit_ws)
 
+            repo_intel = RepositoryIntelligence()
+            repo_context = repo_intel.analyze_repository(ws_context)
+
             if intent_report.confidence_score < 0.80:
                 console.print(f"[yellow]Warning:[/] Intent confidence score is low ({intent_report.confidence_score:.2f}).")
                 if intent_report.unknown_items:
@@ -1842,6 +1896,7 @@ def main(args: list[str] | None = None) -> None:
                 parameters={
                     "intent_report": intent_report.model_dump(mode="json"),
                     "workspace_context": ws_context.model_dump(mode="json"),
+                    "repository_context": repo_context.model_dump(mode="json"),
                 },
             )
             resolver = MissionResolver()

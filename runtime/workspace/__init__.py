@@ -50,6 +50,7 @@ from .models import (
 )
 from .intelligence import WorkspaceContext, WorkspaceIntelligence, WorkspaceState
 from .project import ProjectDetector
+from .repository import RepositoryContext, RepositoryIntelligence
 from .session_storage import SessionStorage
 from .storage import WorkspaceStorage
 from .trace_storage import TraceStorage
@@ -76,6 +77,8 @@ __all__ = [
     "ProjectType",
     "PROTECTED_ENGINE_TARGETS",
     "ReportStorage",
+    "RepositoryContext",
+    "RepositoryIntelligence",
     "SessionStorage",
     "TraceStorage",
     "TrustLevel",
