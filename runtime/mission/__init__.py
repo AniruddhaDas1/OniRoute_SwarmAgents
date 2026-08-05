@@ -1,12 +1,13 @@
-"""Mission Orchestrator Architecture package for OniRoute (ACR-004 Phase O1, O2 & O3).
+"""Mission Orchestrator Architecture package for OniRoute (ACR-004 Phase O1, O2, O3 & O4).
 
 Defines canonical Mission models, lifecycle states, evidence schemas, abstract contracts,
-Mission Intake normalizers, and Mission Resolution engines.
+Mission Intake normalizers, Mission Resolution engines, and Mission Orchestration engines.
 """
 
 from .contracts import (
     MissionDirectorContract,
     MissionIntakeContract,
+    MissionOrchestratorContract,
     MissionPipelineContract,
     MissionResolverContract,
 )
@@ -18,12 +19,14 @@ from .exceptions import (
     InvalidMissionStateError,
     MalformedRequestError,
     MissionIntakeError,
+    MissionOrchestrationError,
     MissionResolutionError,
     MissionValidationError,
     WorkspaceUnavailableError,
 )
 from .intake import MissionIntake, MissionNormalizer
 from .models import (
+    ExecutionRequest,
     Mission,
     MissionConstraints,
     MissionContext,
@@ -34,12 +37,14 @@ from .models import (
     MissionResult,
     MissionStatus,
 )
+from .orchestration import MissionOrchestrator
 from .resolution import MissionResolver
 from .states import ALLOWED_STATE_TRANSITIONS, MissionState, can_transition
 
 __all__ = [
     "ALLOWED_STATE_TRANSITIONS",
     "EmptyCommandError",
+    "ExecutionRequest",
     "InvalidCommandError",
     "InvalidMissionStateError",
     "MalformedRequestError",
@@ -54,6 +59,9 @@ __all__ = [
     "MissionIntakeContract",
     "MissionIntakeError",
     "MissionNormalizer",
+    "MissionOrchestrationError",
+    "MissionOrchestrator",
+    "MissionOrchestratorContract",
     "MissionPipelineContract",
     "MissionReport",
     "MissionRequest",

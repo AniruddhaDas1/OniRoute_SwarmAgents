@@ -26,6 +26,13 @@ class MissionEvidence(BaseModel):
     repository: dict[str, Any] = Field(default_factory=dict, description="Repository analysis evidence")
     knowledge: dict[str, Any] = Field(default_factory=dict, description="Knowledge resolution evidence")
     validation: dict[str, Any] = Field(default_factory=dict, description="Mission validation evidence")
+    orchestration: dict[str, Any] = Field(default_factory=dict, description="Mission orchestration preparation evidence")
+    planning_prep: dict[str, Any] = Field(default_factory=dict, description="Planning preparation evidence")
+    governance_prep: dict[str, Any] = Field(default_factory=dict, description="Governance preparation evidence")
+    workspace_prep: dict[str, Any] = Field(default_factory=dict, description="Workspace preparation evidence")
+    umal_prep: dict[str, Any] = Field(default_factory=dict, description="UMAL preparation evidence")
+    invocation_prep: dict[str, Any] = Field(default_factory=dict, description="Invocation preparation evidence")
+
 
     def record_stage(self, stage: str, data: dict[str, Any]) -> MissionEvidence:
         """Return a new MissionEvidence instance with updated stage evidence (immutable update)."""

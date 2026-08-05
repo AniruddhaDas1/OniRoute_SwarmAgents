@@ -133,3 +133,20 @@ class Mission(BaseModel):
     status: MissionStatus = Field(default_factory=MissionStatus, description="Current lifecycle state tracker")
     result: MissionResult | None = Field(default=None, description="Final execution outcome payload")
     report: MissionReport | None = Field(default=None, description="Final consolidated report")
+
+
+class ExecutionRequest(BaseModel):
+    """Canonical immutable ExecutionRequest produced by Mission Orchestration (ACR-004 Phase O4)."""
+
+    request_id: str = Field(..., description="Unique execution request ID (e.g. exreq-123456)")
+    mission: Mission = Field(..., description="Target validated Mission object")
+    mission_context: MissionContext = Field(..., description="Canonical mission context snapshot")
+    mission_constraints: MissionConstraints = Field(..., description="Operational constraints & limits")
+    workspace_metadata: dict[str, Any] = Field(default_factory=dict, description="Prepared workspace metadata")
+    planning_request: dict[str, Any] = Field(default_factory=dict, description="Prepared planning engine request")
+    governance_request: dict[str, Any] = Field(default_factory=dict, description="Prepared governance policy request")
+    umal_request: dict[str, Any] = Field(default_factory=dict, description="Prepared UMAL model selection request")
+    invocation_request: dict[str, Any] = Field(default_factory=dict, description="Prepared invocation dispatcher request")
+    execution_metadata: dict[str, Any] = Field(default_factory=dict, description="Overall execution metadata snapshot")
+    execution_evidence: MissionEvidence = Field(..., description="Consolidated stage & preparation evidence audit log")
+    execution_state: MissionState = Field(default=MissionState.ORCHESTRATED, description="Target lifecycle state")

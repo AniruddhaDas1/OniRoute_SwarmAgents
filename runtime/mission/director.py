@@ -12,7 +12,8 @@ from typing import Any
 
 from .contracts import MissionDirectorContract
 from .exceptions import InvalidMissionStateError
-from .models import Mission, MissionReport, MissionRequest, MissionStatus
+from .models import ExecutionRequest, Mission, MissionReport, MissionRequest, MissionStatus
+from .orchestration import MissionOrchestrator
 from .resolution import MissionResolver
 from .states import MissionState, can_transition
 
@@ -20,12 +21,22 @@ from .states import MissionState, can_transition
 class MissionDirector(MissionDirectorContract):
     """Concrete supervisor component for Mission Orchestration."""
 
-    def __init__(self, resolver: MissionResolver | None = None) -> None:
+    def __init__(
+        self,
+        resolver: MissionResolver | None = None,
+        orchestrator: MissionOrchestrator | None = None,
+    ) -> None:
         self.resolver = resolver or MissionResolver()
+        self.orchestrator = orchestrator or MissionOrchestrator()
 
     def receive_mission(self, request: MissionRequest) -> Mission:
         """Parse raw request and resolve it into an immutable Mission object."""
         return self.resolver.resolve_mission(request)
+
+    def orchestrate_mission(self, mission: Mission) -> ExecutionRequest:
+        """Supervise and execute mission orchestration to produce an ExecutionRequest."""
+        return self.orchestrator.orchestrate_mission(mission)
+
 
     def supervise_orchestration(self, mission: Mission) -> Mission:
         """Supervise pipeline progression across existing frozen engines.

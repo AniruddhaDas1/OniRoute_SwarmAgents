@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from .evidence import MissionEvidence
-from .models import Mission, MissionReport, MissionRequest
+from .models import ExecutionRequest, Mission, MissionReport, MissionRequest
 from .states import MissionState
 
 
@@ -85,4 +85,13 @@ class MissionResolverContract(ABC):
         workspace_manager: Any = None,
     ) -> Mission:
         """Transform a canonical MissionRequest into a fully validated Mission."""
+        ...
+
+
+class MissionOrchestratorContract(ABC):
+    """Abstract contract for Mission Orchestration (ACR-004 Phase O4)."""
+
+    @abstractmethod
+    def orchestrate_mission(self, mission: Mission) -> ExecutionRequest:
+        """Convert a VALIDATED Mission into a canonical ExecutionRequest."""
         ...

@@ -30,7 +30,14 @@ from runtime.optimization.conversation_optimizer import optimize_conversation
 from runtime.optimization.prompt_optimizer import optimize_prompt
 from runtime.optimization.repository_optimizer import lookup_symbols
 from runtime.optimization.terminal_optimizer import summarize_terminal
-from runtime.mission import MissionIntake, MissionIntakeError, MissionResolutionError, MissionResolver
+from runtime.mission import (
+    MissionIntake,
+    MissionIntakeError,
+    MissionOrchestrationError,
+    MissionOrchestrator,
+    MissionResolutionError,
+    MissionResolver,
+)
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -42,6 +49,7 @@ models_app = typer.Typer(help="List and test model metadata.", invoke_without_co
 explain_app = typer.Typer(help="Explain Workflow and execution resolution.")
 policy_app = typer.Typer(help="Inspect governance policy.",invoke_without_command=True)
 optimize_app = typer.Typer(help="Optimize context deterministically before invocation.")
+mission_app = typer.Typer(help="Mission Orchestrator inspection and orchestration commands.", invoke_without_command=True)
 app.add_typer(list_app, name="list")
 app.add_typer(inspect_app, name="inspect")
 app.add_typer(context_app, name="context")
@@ -51,6 +59,8 @@ app.add_typer(models_app, name="models")
 app.add_typer(explain_app, name="explain")
 app.add_typer(policy_app, name="policy")
 app.add_typer(optimize_app, name="optimize")
+app.add_typer(mission_app, name="mission")
+
 _session_engines: dict[str, WorkflowEngine] = {}
 console = Console()
 
@@ -599,14 +609,18 @@ def optimize_explain(repository_root: Path = typer.Option(Path.cwd(), exists=Tru
     console.print_json(data={"pipeline":"Context Engine -> ICOE -> UMAL -> Invocation","policy":policy,"native_plugin":"Healthy","optional_plugins":{"rtk":"Unavailable","ast":"Unavailable","repository-graph":"Unavailable"},"bypass":"oniroute run workflow <id> --no-optimization"})
 
 
-@app.command("mission")
-def mission_cmd(
+@mission_app.callback()
+def mission_default(
+    ctx: typer.Context,
     command: list[str] = typer.Argument(None, help="Natural language mission command."),
     workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
     json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
-    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
 ) -> None:
-    """Inspect and resolve a Mission without planning or execution."""
+    if ctx.invoked_subcommand is not None:
+        return
+    if command and command[0] == "orchestrate":
+        mission_orchestrate(command=command[1:], workspace=workspace, json_output=json_output)
+        return
     raw_prompt = " ".join(command) if command else "Inspect workspace mission status"
     try:
         intake = MissionIntake()
@@ -635,6 +649,46 @@ def mission_cmd(
         console.print(table)
     except (MissionIntakeError, MissionResolutionError) as exc:
         console.print(f"[red]Mission Resolution Error:[/] {getattr(exc, 'message', str(exc))}")
+        raise typer.Exit(1)
+
+
+@mission_app.command("orchestrate")
+def mission_orchestrate(
+    command: list[str] = typer.Argument(None, help="Natural language mission command."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON ExecutionRequest."),
+) -> None:
+    """Orchestrate a validated Mission and display the prepared ExecutionRequest without executing."""
+    raw_prompt = " ".join(command) if command else "Orchestrate workspace mission"
+    try:
+        intake = MissionIntake()
+        mission_request = intake.process_intake(raw_prompt, explicit_workspace=workspace)
+        resolver = MissionResolver()
+        resolved_mission = resolver.resolve_mission(mission_request)
+        orchestrator = MissionOrchestrator()
+        exec_request = orchestrator.orchestrate_mission(resolved_mission)
+
+        if json_output:
+            console.print_json(data=exec_request.model_dump(mode="json"))
+            return
+
+        table = Table(title=f"Prepared ExecutionRequest: {exec_request.request_id}")
+        table.add_column("Component", style="bold cyan")
+        table.add_column("Status / Detail")
+
+        table.add_row("Request ID", exec_request.request_id)
+        table.add_row("Mission ID", exec_request.mission.mission_id)
+        table.add_row("Execution State", str(exec_request.execution_state.value if hasattr(exec_request.execution_state, "value") else exec_request.execution_state).upper())
+        table.add_row("Planning Request", f"PREPARED ({exec_request.planning_request.get('primary_goal', '')})")
+        table.add_row("Governance Request", f"PREPARED ({exec_request.governance_request.get('approvals', '')})")
+        table.add_row("Workspace Preparation", f"PREPARED ({len(exec_request.workspace_metadata)} metadata keys)")
+        table.add_row("UMAL Request", f"PREPARED ({len(exec_request.umal_request.get('capabilities_required', []))} capabilities)")
+        table.add_row("Invocation Request", f"PREPARED (Streaming: {exec_request.invocation_request.get('streaming', False)})")
+        table.add_row("Prepared Evidence Stages", str(len(exec_request.execution_evidence.model_dump(mode="python"))))
+
+        console.print(table)
+    except (MissionIntakeError, MissionResolutionError, MissionOrchestrationError) as exc:
+        console.print(f"[red]Mission Orchestration Error:[/] {getattr(exc, 'message', str(exc))}")
         raise typer.Exit(1)
 
 
@@ -673,13 +727,16 @@ def main(args: list[str] | None = None) -> None:
             mission_request = intake.parse_cli_command(cmd_args, explicit_workspace=explicit_ws)
             resolver = MissionResolver()
             resolved_mission = resolver.resolve_mission(mission_request)
-            console.print_json(data=resolved_mission.model_dump(mode="json"))
+            orchestrator = MissionOrchestrator()
+            exec_request = orchestrator.orchestrate_mission(resolved_mission)
+            console.print_json(data=exec_request.model_dump(mode="json"))
             sys.exit(0)
-        except (MissionIntakeError, MissionResolutionError) as exc:
+        except (MissionIntakeError, MissionResolutionError, MissionOrchestrationError) as exc:
             console.print(f"[red]Mission Error:[/] {getattr(exc, 'message', str(exc))}")
             sys.exit(1)
 
     app(args=raw_args)
+
 
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ class MissionState(str, Enum):
     PARSED = "parsed"
     RESOLVED = "resolved"
     VALIDATED = "validated"
+    ORCHESTRATED = "orchestrated"
     PLANNED = "planned"
     EXECUTING = "executing"
     COMPLETED = "completed"
@@ -24,7 +25,8 @@ ALLOWED_STATE_TRANSITIONS: dict[MissionState, set[MissionState]] = {
     MissionState.RECEIVED: {MissionState.PARSED, MissionState.FAILED, MissionState.CANCELLED},
     MissionState.PARSED: {MissionState.RESOLVED, MissionState.FAILED, MissionState.CANCELLED},
     MissionState.RESOLVED: {MissionState.VALIDATED, MissionState.FAILED, MissionState.CANCELLED},
-    MissionState.VALIDATED: {MissionState.PLANNED, MissionState.FAILED, MissionState.CANCELLED},
+    MissionState.VALIDATED: {MissionState.ORCHESTRATED, MissionState.PLANNED, MissionState.FAILED, MissionState.CANCELLED},
+    MissionState.ORCHESTRATED: {MissionState.PLANNED, MissionState.FAILED, MissionState.CANCELLED},
     MissionState.PLANNED: {MissionState.EXECUTING, MissionState.FAILED, MissionState.CANCELLED},
     MissionState.EXECUTING: {MissionState.COMPLETED, MissionState.FAILED, MissionState.CANCELLED},
     MissionState.COMPLETED: set(),
