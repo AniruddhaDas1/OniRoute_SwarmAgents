@@ -62,6 +62,7 @@ from runtime.allocation import ImplementationAllocationEngine, ImplementationAll
 from runtime.contracts import EngineeringContractEngine, EngineeringContractReport, EngineeringContractError
 from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssemblyCertificationReport, ProjectAssemblyError
 from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError
+from runtime.review import QualityGateEngine, QualityReport, QualityGateError
 
 __all__ = [
     "WorkspaceScaffoldEngine",
@@ -82,6 +83,9 @@ __all__ = [
     "EngineeringWorkerEngine",
     "EngineeringResult",
     "EngineeringWorkerError",
+    "QualityGateEngine",
+    "QualityReport",
+    "QualityGateError",
     "WorkspaceValidator",
     "ArtifactCategory",
     "ArtifactCollisionError",

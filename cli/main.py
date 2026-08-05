@@ -71,6 +71,7 @@ from runtime.allocation import ImplementationAllocationEngine, ImplementationAll
 from runtime.contracts import EngineeringContractEngine, EngineeringContractReport, EngineeringContractError
 from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssemblyCertificationReport, AssemblyCertificationError
 from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError
+from runtime.review import QualityGateEngine, QualityReport, QualityGateError
 
 
 
@@ -3479,6 +3480,115 @@ def engineer_command(
 
     except Exception as exc:
         console.print(f"[red]Engineering Worker Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("review")
+def review_command(
+    results_path: Path | None = typer.Option(
+        None, "--result", "-r", help="Path to EngineeringResult JSON file."
+    ),
+    workspace_path: Path | None = typer.Option(
+        None, "--workspace", "-w", help="Target workspace path."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output raw JSON QualityReport."
+    ),
+) -> None:
+    """Perform Quality Gate cross-agent review on generated EngineeringResults."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        eng_results: List[EngineeringResult] = []
+
+        if results_path is not None:
+            res_file = results_path.resolve()
+            if not res_file.exists():
+                console.print(f"[red]Review Error:[/] Result file '{res_file}' does not exist.")
+                sys.exit(1)
+            raw_data = json.loads(res_file.read_text(encoding="utf-8"))
+            if isinstance(raw_data, list):
+                eng_results = [EngineeringResult.model_validate(item) for item in raw_data]
+            else:
+                eng_results = [EngineeringResult.model_validate(raw_data)]
+        else:
+            ws_intel = WorkspaceIntelligence()
+            ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+            repo_intel = RepositoryIntelligence()
+            repo_context = repo_intel.analyze_repository(ws_context)
+
+            intent_report = IntentReport(
+                raw_request="Perform quality gate review for workspace",
+                primary_intent="scaffold",
+                extracted_domain="engineering",
+                confidence_score=1.0,
+            )
+            plan_gen = EngineeringPlanGenerator()
+            exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+            registry = Resolver().load_registry()
+            resolver = Resolver()
+            discovery_engine = SkillDiscoveryEngine(registry, resolver)
+            ranking_engine = SkillRankingEngine(registry, resolver)
+            bundling_engine = SkillBundlingEngine(registry, resolver)
+            builder_engine = AgentProfileBuilderEngine(registry, resolver)
+            deployment_planner = MissionDeploymentPlanner()
+
+            sel_report = discovery_engine.discover_skills(exec_plan)
+            rnk_report = ranking_engine.rank_skills(sel_report, exec_plan)
+            bnd_report = bundling_engine.bundle_skills(rnk_report, exec_plan, sel_report)
+            prf_report = builder_engine.build_profiles(bnd_report, exec_plan)
+            deployment_plan = deployment_planner.create_deployment_plan(exec_plan, prf_report)
+
+            init_engine = SwarmInitializationEngine()
+            snapshot = init_engine.initialize_swarm(deployment_plan)
+
+            scaffold_engine = WorkspaceScaffoldEngine()
+            scaffold_report = scaffold_engine.scaffold_workspace(snapshot, workspace_override=ws_path)
+
+            blueprint_engine = ProjectBlueprintEngine()
+            blueprint_report = blueprint_engine.generate_blueprint(scaffold_report)
+
+            allocation_engine = ImplementationAllocationEngine()
+            allocation_report = allocation_engine.allocate_implementation(blueprint_report)
+
+            contract_engine = EngineeringContractEngine()
+            contract_report = contract_engine.generate_contracts(allocation_report)
+
+            worker_engine = EngineeringWorkerEngine()
+            eng_results = worker_engine.execute_all_contracts(contract_report)
+
+        gate_engine = QualityGateEngine()
+        quality_reports = gate_engine.review_all_results(eng_results)
+
+        if json_output:
+            console.print_json(data=[r.model_dump(mode="json") for r in quality_reports])
+            return
+
+        console.print(f"[bold green]✓ Quality Gate Review Complete[/] ({len(quality_reports)} results audited)")
+
+        summary_table = Table(title="Quality Gate Cross-Agent Review Summary")
+        summary_table.add_column("Report ID", style="bold cyan")
+        summary_table.add_column("Result ID", style="bold yellow")
+        summary_table.add_column("Approval Status", style="bold green")
+        summary_table.add_column("Arch Score", style="bold blue")
+        summary_table.add_column("Sec Score", style="bold magenta")
+        summary_table.add_column("Findings", style="bold white")
+
+        for q in quality_reports:
+            status_style = "bold green" if q.approval_status == "APPROVED" else "bold red"
+            summary_table.add_row(
+                q.report_id,
+                q.engineering_result_id,
+                f"[{status_style}]{q.approval_status}[/]",
+                f"{q.architecture_score:.2f}",
+                f"{q.security_score:.2f}",
+                str(len(q.findings)),
+            )
+        console.print(summary_table)
+
+    except Exception as exc:
+        console.print(f"[red]Quality Gate Error:[/] {str(exc)}")
         sys.exit(1)
 
 
