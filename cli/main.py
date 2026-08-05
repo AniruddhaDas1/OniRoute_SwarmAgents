@@ -70,6 +70,7 @@ from runtime.blueprint import ProjectBlueprintEngine, ProjectBlueprintReport, Pr
 from runtime.allocation import ImplementationAllocationEngine, ImplementationAllocationReport, ImplementationAllocationError
 from runtime.contracts import EngineeringContractEngine, EngineeringContractReport, EngineeringContractError
 from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssemblyCertificationReport, AssemblyCertificationError
+from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError
 
 
 
@@ -3379,13 +3380,115 @@ def certify_assembly_command(
         sys.exit(1)
 
 
+@app.command("engineer")
+def engineer_command(
+    contracts_path: Path | None = typer.Option(
+        None, "--contracts", "-c", help="Path to EngineeringContractReport JSON file."
+    ),
+    workspace_path: Path | None = typer.Option(
+        None, "--workspace", "-w", help="Target workspace path."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output raw JSON list of EngineeringResults."
+    ),
+) -> None:
+    """Execute autonomous code generation for allocated contracts in an EngineeringContractReport."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        contract_report: Optional[EngineeringContractReport] = None
+
+        if contracts_path is not None:
+            ctr_file = contracts_path.resolve()
+            if not ctr_file.exists():
+                console.print(f"[red]Contracts Error:[/] Contract report file '{ctr_file}' does not exist.")
+                sys.exit(1)
+            raw_data = json.loads(ctr_file.read_text(encoding="utf-8"))
+            contract_report = EngineeringContractReport.model_validate(raw_data)
+        else:
+            ws_intel = WorkspaceIntelligence()
+            ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+            repo_intel = RepositoryIntelligence()
+            repo_context = repo_intel.analyze_repository(ws_context)
+
+            intent_report = IntentReport(
+                raw_request="Execute autonomous engineering for workspace",
+                primary_intent="scaffold",
+                extracted_domain="engineering",
+                confidence_score=1.0,
+            )
+            plan_gen = EngineeringPlanGenerator()
+            exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+            registry = Resolver().load_registry()
+            resolver = Resolver()
+            discovery_engine = SkillDiscoveryEngine(registry, resolver)
+            ranking_engine = SkillRankingEngine(registry, resolver)
+            bundling_engine = SkillBundlingEngine(registry, resolver)
+            builder_engine = AgentProfileBuilderEngine(registry, resolver)
+            deployment_planner = MissionDeploymentPlanner()
+
+            sel_report = discovery_engine.discover_skills(exec_plan)
+            rnk_report = ranking_engine.rank_skills(sel_report, exec_plan)
+            bnd_report = bundling_engine.bundle_skills(rnk_report, exec_plan, sel_report)
+            prf_report = builder_engine.build_profiles(bnd_report, exec_plan)
+            deployment_plan = deployment_planner.create_deployment_plan(exec_plan, prf_report)
+
+            init_engine = SwarmInitializationEngine()
+            snapshot = init_engine.initialize_swarm(deployment_plan)
+
+            scaffold_engine = WorkspaceScaffoldEngine()
+            scaffold_report = scaffold_engine.scaffold_workspace(snapshot, workspace_override=ws_path)
+
+            blueprint_engine = ProjectBlueprintEngine()
+            blueprint_report = blueprint_engine.generate_blueprint(scaffold_report)
+
+            allocation_engine = ImplementationAllocationEngine()
+            allocation_report = allocation_engine.allocate_implementation(blueprint_report)
+
+            contract_engine = EngineeringContractEngine()
+            contract_report = contract_engine.generate_contracts(allocation_report)
+
+        worker_engine = EngineeringWorkerEngine()
+        results = worker_engine.execute_all_contracts(contract_report)
+
+        if json_output:
+            console.print_json(data=[r.model_dump(mode="json") for r in results])
+            return
+
+        console.print(f"[bold green]✓ Autonomous Engineering Worker Execution Complete[/] ({len(results)} contracts executed)")
+
+        summary_table = Table(title="Autonomous Engineering Worker Execution Summary")
+        summary_table.add_column("Result ID", style="bold cyan")
+        summary_table.add_column("Contract ID", style="bold yellow")
+        summary_table.add_column("Profile ID", style="bold green")
+        summary_table.add_column("Files Generated", style="bold magenta")
+        summary_table.add_column("Tokens", style="bold white")
+        summary_table.add_column("Latency", style="bold blue")
+
+        for r in results:
+            summary_table.add_row(
+                r.result_id,
+                r.contract_id,
+                r.profile_id,
+                ", ".join(r.created_files + r.modified_files),
+                str(r.token_usage.get("total_tokens", 0)),
+                f"{r.execution_time_ms:.2f} ms",
+            )
+        console.print(summary_table)
+
+    except Exception as exc:
+        console.print(f"[red]Engineering Worker Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
-    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts", "certify-assembly",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts", "certify-assembly", "engineer",
     "--help", "-h", "--version"
 }
 
