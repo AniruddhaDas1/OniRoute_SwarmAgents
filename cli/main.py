@@ -1445,13 +1445,123 @@ def thread_command(
         console.print(msg_table)
 
 
+@app.command("handoff")
+def handoff_command(
+    session_id: str = typer.Option("", "--session", help="Filter handoffs by session ID."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
+) -> None:
+    """Inspect deliverable and task handoffs between collaborating agent sessions."""
+    from runtime.agent.models import ArtifactRecord, ArtifactType
+    from runtime.collaboration import HandoffManager, SharedArtifactManager
+
+    art_mgr = SharedArtifactManager()
+    hdf_mgr = HandoffManager(timeline=art_mgr.timeline)
+
+    # Demo handoff record for CLI demonstration
+    art = ArtifactRecord(
+        artifact_id="art-db-schema-001",
+        artifact_type=ArtifactType.SCHEMA,
+        owner_session_id="sess-arch-001",
+        owner_member_id="mem-arch",
+        capability_id="cap-schema-gen",
+        name="Database Schema v1.0",
+        references=["artifacts/schema.sql"],
+    )
+    ref = art_mgr.create_reference(art, checksum="sha256-a1b2c3d4", version=1)
+    hdf = hdf_mgr.create_handoff(
+        producer_session_id="sess-arch-001",
+        consumer_session_id="sess-dev-001",
+        artifact_reference=ref,
+        reason="Database schema ready for REST API implementation",
+    )
+
+    handoffs = hdf_mgr.get_handoffs(session_id) if session_id else hdf_mgr.get_all_handoffs()
+
+    if json_output:
+        data = [h.model_dump(mode="json") for h in handoffs]
+        console.print_json(data=data)
+        return
+
+    table = Table(title="Inter-Session Handoffs")
+    table.add_column("Handoff ID", style="bold cyan")
+    table.add_column("Producer")
+    table.add_column("Consumer")
+    table.add_column("Artifact ID", style="yellow")
+    table.add_column("Status", style="green")
+    table.add_column("Reason")
+    table.add_column("Timestamp", style="dim")
+
+    for h in handoffs:
+        table.add_row(
+            h.handoff_id,
+            h.producer_session_id,
+            h.consumer_session_id,
+            h.artifact_reference.artifact_id,
+            h.status.value.upper(),
+            h.reason,
+            h.timestamp,
+        )
+    console.print(table)
+
+
+@app.command("artifact")
+def artifact_command(
+    reference_id: str = typer.Option("", "--id", help="Artifact Reference ID to inspect."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
+) -> None:
+    """Inspect shared artifact references, ownership, checksums, versioning, and lineage."""
+    from runtime.agent.models import ArtifactRecord, ArtifactType
+    from runtime.collaboration import SharedArtifactManager
+
+    art_mgr = SharedArtifactManager()
+    art1 = ArtifactRecord(
+        artifact_id="art-spec-001",
+        artifact_type=ArtifactType.DOCUMENTATION,
+        owner_session_id="sess-lead-001",
+        owner_member_id="mem-lead",
+        capability_id="cap-doc-gen",
+        name="System Architecture Spec",
+        references=["docs/spec.md"],
+    )
+    ref1 = art_mgr.create_reference(art1, version=1, checksum="sha256-f1e2d3c4")
+
+    refs = [art_mgr.resolve_reference(reference_id)] if reference_id else art_mgr.get_all_references()
+
+    if json_output:
+        data = [r.model_dump(mode="json") for r in refs]
+        console.print_json(data=data)
+        return
+
+    table = Table(title="Shared Artifact References (Zero-Duplication Pointers)")
+    table.add_column("Reference ID", style="bold cyan")
+    table.add_column("Artifact ID", style="yellow")
+    table.add_column("Owner Session")
+    table.add_column("Type")
+    table.add_column("Checksum", style="dim")
+    table.add_column("Version", justify="right")
+    table.add_column("Path / URI")
+
+    for r in refs:
+        table.add_row(
+            r.reference_id,
+            r.artifact_id,
+            r.owner_session_id,
+            r.artifact_type.upper(),
+            r.checksum,
+            str(r.version),
+            r.workspace_path,
+        )
+    console.print(table)
+    console.print("[dim]Note: Shared artifact references do not copy or duplicate workspace file contents.[/]")
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission",
-    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact",
     "--help", "-h", "--version"
 }
 

@@ -50,7 +50,7 @@ class TestCollaborationEnums:
         assert actual == expected
 
     def test_handoff_status_values(self):
-        expected = {"pending", "accepted", "rejected", "completed"}
+        expected = {"pending", "accepted", "rejected", "completed", "cancelled"}
         actual = {s.value for s in HandoffStatus}
         assert actual == expected
 
@@ -62,9 +62,11 @@ class TestCollaborationEnums:
     def test_timeline_event_types(self):
         expected_base = {"message", "handoff", "review", "approval", "artifact_shared", "state_changed"}
         c2_new = {"conversation_created", "thread_created", "message_published", "message_delivered", "thread_closed", "conversation_closed"}
+        c3_new = {"handoff_created", "handoff_accepted", "handoff_rejected", "handoff_completed", "handoff_cancelled"}
         actual = {t.value for t in TimelineEventType}
         assert expected_base.issubset(actual)
         assert c2_new.issubset(actual)
+        assert c3_new.issubset(actual)
 
 
 class TestCollaborationModelsImmutability:
@@ -157,7 +159,7 @@ class TestCollaborationModelsImmutability:
             collaboration_id="collab-201",
             total_messages=5,
             total_handoffs=2,
-            completed_handoffs=2,
+            completed_handoffs=[],
             total_approvals=1,
             approved_count=1,
             timeline=Timeline(timeline_id="tl-201", session_id="sess-1"),

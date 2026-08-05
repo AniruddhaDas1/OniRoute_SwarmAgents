@@ -1,7 +1,7 @@
-"""Immutable Data Models for Engineering Collaboration (ACR-007 Phase C1 & C2).
+"""Immutable Data Models for Engineering Collaboration (ACR-007 Phase C1, C2 & C3).
 
 Defines all declarative, immutable Pydantic models for inter-session communication,
-conversations, threads, messages, routing, timelines, and collaboration reports.
+conversations, threads, messages, shared artifact references, handoffs, timelines, and reports.
 
 Architecture-only specifications. No AI execution, no runtime scheduling.
 """
@@ -84,6 +84,7 @@ class HandoffStatus(str, Enum):
     ACCEPTED = "accepted"
     REJECTED = "rejected"
     COMPLETED = "completed"
+    CANCELLED = "cancelled"
 
 
 class ApprovalStatus(str, Enum):
@@ -104,11 +105,16 @@ class TimelineEventType(str, Enum):
     MESSAGE_DELIVERED = "message_delivered"
     THREAD_CLOSED = "thread_closed"
     CONVERSATION_CLOSED = "conversation_closed"
+    ARTIFACT_SHARED = "artifact_shared"
+    HANDOFF_CREATED = "handoff_created"
+    HANDOFF_ACCEPTED = "handoff_accepted"
+    HANDOFF_REJECTED = "handoff_rejected"
+    HANDOFF_COMPLETED = "handoff_completed"
+    HANDOFF_CANCELLED = "handoff_cancelled"
     MESSAGE = "message"
     HANDOFF = "handoff"
     REVIEW = "review"
     APPROVAL = "approval"
-    ARTIFACT_SHARED = "artifact_shared"
     STATE_CHANGED = "state_changed"
 
 
@@ -183,25 +189,30 @@ class CollaborationConversation(BaseModel):
     closed_at: str | None = Field(default=None, description="ISO-8601 UTC timestamp when closed.")
 
 
-# Alias for backward compatibility with Phase C1
+# Alias for backward compatibility
 Conversation = CollaborationConversation
 
 
 # ---------------------------------------------------------------------------
-# Shared Artifact Reference
+# Shared Artifact Reference (Zero Duplication)
 # ---------------------------------------------------------------------------
 
 class ArtifactReference(BaseModel):
-    """Immutable pointer to a shared artifact. Does not duplicate artifact content."""
+    """Immutable pointer referencing a workspace ArtifactRecord. Never duplicates artifact content."""
 
     model_config = ConfigDict(frozen=True)
 
     reference_id: str = Field(..., description="Unique reference identifier.")
     artifact_id: str = Field(..., description="ID of the underlying ArtifactRecord in workspace.")
-    owner_session_id: str = Field(..., description="AgentSession ID that produced the artifact.")
-    owner_member_id: str = Field(..., description="Member ID that produced the artifact.")
+    owner_session_id: str = Field(..., description="AgentSession ID that owns the artifact.")
+    owner_member_id: str = Field(..., description="Member ID that owns the artifact.")
+    artifact_type: str = Field(default="custom", description="Artifact category string.")
+    workspace_path: str = Field(default="", description="Workspace relative path or URI.")
     lineage: list[str] = Field(default_factory=list, description="Parent artifact reference IDs.")
     metadata: dict[str, Any] = Field(default_factory=dict, description="Extensible reference metadata.")
+    evidence: dict[str, Any] = Field(default_factory=dict, description="Contextual verification evidence.")
+    checksum: str = Field(default="", description="Content checksum string (e.g. SHA-256).")
+    version: int = Field(default=1, ge=1, description="Artifact version integer.")
     shared_at: str = Field(default_factory=_utcnow, description="ISO-8601 UTC timestamp when shared.")
 
 
@@ -210,7 +221,7 @@ class ArtifactReference(BaseModel):
 # ---------------------------------------------------------------------------
 
 class Handoff(BaseModel):
-    """Immutable record of an artifact/task handoff between producer and consumer agents."""
+    """Immutable record of an artifact/task handoff between producer and consumer agent sessions."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -221,8 +232,10 @@ class Handoff(BaseModel):
     reason: str = Field(..., description="Rationale for the handoff.")
     evidence: dict[str, Any] = Field(default_factory=dict, description="Contextual verification evidence.")
     status: HandoffStatus = Field(default=HandoffStatus.PENDING, description="Current handoff status.")
-    timestamp: str = Field(default_factory=_utcnow, description="ISO-8601 UTC handoff timestamp.")
+    timestamp: str = Field(default_factory=_utcnow, description="ISO-8601 UTC handoff creation timestamp.")
     completed_at: str | None = Field(default=None, description="ISO-8601 UTC completion timestamp.")
+    rejected_at: str | None = Field(default=None, description="ISO-8601 UTC rejection timestamp.")
+    cancelled_at: str | None = Field(default=None, description="ISO-8601 UTC cancellation timestamp.")
 
 
 # ---------------------------------------------------------------------------
@@ -315,7 +328,7 @@ class Timeline(BaseModel):
 # ---------------------------------------------------------------------------
 
 class CollaborationSession(BaseModel):
-    """Immutable collaboration session tracking active conversations, participants, open/closed threads, and timeline."""
+    """Immutable collaboration session tracking conversations, handoffs, shared artifacts, and timeline."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -336,20 +349,27 @@ class CollaborationSession(BaseModel):
     closed_threads: list[MessageThread] = Field(
         default_factory=list, description="Closed or archived message threads."
     )
+    shared_artifacts: list[ArtifactReference] = Field(
+        default_factory=list, description="Shared artifact references in this session."
+    )
+    handoffs: list[Handoff] = Field(
+        default_factory=list, description="Handoffs recorded in this session."
+    )
+    approvals: list[ApprovalRequest] = Field(
+        default_factory=list, description="Approvals recorded in this session."
+    )
     statistics: dict[str, int] = Field(
-        default_factory=dict, description="Collaboration statistics (total messages, threads, etc)."
+        default_factory=dict, description="Collaboration statistics."
     )
     timeline: Timeline = Field(
         default_factory=lambda: Timeline(timeline_id="tl-empty", session_id="collab-session"),
         description="Collaboration execution timeline log.",
     )
-    handoffs: list[Handoff] = Field(default_factory=list, description="Handoffs recorded.")
-    approvals: list[ApprovalRequest] = Field(default_factory=list, description="Approvals recorded.")
     created_at: str = Field(default_factory=_utcnow, description="ISO-8601 UTC creation timestamp.")
 
 
 class CollaborationReport(BaseModel):
-    """Immutable report summarizing collaboration session outcomes."""
+    """Immutable report summarizing collaboration session outcomes including shared artifacts and handoffs."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -358,10 +378,34 @@ class CollaborationReport(BaseModel):
     total_messages: int = Field(default=0, description="Total messages sent across all threads.")
     total_threads: int = Field(default=0, description="Total threads created.")
     total_conversations: int = Field(default=0, description="Total conversations created.")
+    total_shared_artifacts: int = Field(default=0, description="Total shared artifact references created.")
+    shared_artifacts: list[ArtifactReference] = Field(
+        default_factory=list, description="List of shared ArtifactReference objects."
+    )
+    artifact_references: list[str] = Field(
+        default_factory=list, description="List of shared reference IDs."
+    )
     total_handoffs: int = Field(default=0, description="Total handoffs initiated.")
-    completed_handoffs: int = Field(default=0, description="Total handoffs successfully accepted.")
+    pending_handoffs: list[Handoff] = Field(
+        default_factory=list, description="Pending handoffs."
+    )
+    completed_handoffs: list[Handoff] = Field(
+        default_factory=list, description="Successfully completed handoffs."
+    )
+    rejected_handoffs: list[Handoff] = Field(
+        default_factory=list, description="Rejected handoffs."
+    )
+    cancelled_handoffs: list[Handoff] = Field(
+        default_factory=list, description="Cancelled handoffs."
+    )
     total_approvals: int = Field(default=0, description="Total approval requests processed.")
     approved_count: int = Field(default=0, description="Total approvals granted.")
+    ownership_summary: dict[str, int] = Field(
+        default_factory=dict, description="Count of shared artifacts per owner session."
+    )
+    lineage_summary: dict[str, list[str]] = Field(
+        default_factory=dict, description="Reference ID to parent lineage mapping."
+    )
     timeline: Timeline = Field(..., description="Full collaboration timeline log.")
     summary: str = Field(default="", description="Human-readable collaboration summary.")
     generated_at: str = Field(default_factory=_utcnow, description="ISO-8601 UTC report timestamp.")

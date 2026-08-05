@@ -1,4 +1,4 @@
-"""OniRoute SwarmAgents — Engineering Collaboration Package (ACR-007 Phase C1 Architecture & Phase C2 Message Bus).
+"""OniRoute SwarmAgents — Engineering Collaboration Package (ACR-007 Phase C1 Architecture, Phase C2 Message Bus, Phase C3 Shared Artifacts & Handoffs).
 
 Coordinates communication, conversations, threads, messages, handoffs, shared artifacts,
 approvals, reviews, timelines, and progress reporting between live AgentSessions.
@@ -6,6 +6,7 @@ approvals, reviews, timelines, and progress reporting between live AgentSessions
 Consumes the frozen Agent Runtime without modifying Mission, Organization, Workspace, or Runtime.
 """
 
+from .artifact_manager import SharedArtifactManager
 from .contracts import (
     ApprovalCoordinatorContract,
     CollaborationCoordinatorContract,
@@ -14,6 +15,7 @@ from .contracts import (
     ReviewCoordinatorContract,
     SharedArtifactManagerContract,
 )
+from .handoff_manager import HandoffManager
 from .message_bus import MessageBus
 from .models import (
     ApprovalDecision,
@@ -64,10 +66,12 @@ __all__ = [
     "Timeline",
     "CollaborationSession",
     "CollaborationReport",
-    # Engines & Routing
+    # Managers & Routing
     "MessageRouter",
     "CollaborationTimeline",
     "MessageBus",
+    "SharedArtifactManager",
+    "HandoffManager",
     # Contracts
     "MessageBusContract",
     "HandoffManagerContract",

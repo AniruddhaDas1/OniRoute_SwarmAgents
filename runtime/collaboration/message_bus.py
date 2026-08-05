@@ -21,6 +21,7 @@ from .models import (
     CollaborationReport,
     CollaborationSession,
     ConversationStatus,
+    HandoffStatus,
     Message,
     MessageThread,
     MessageType,
@@ -469,16 +470,38 @@ class MessageBus(MessageBusContract):
         return res
 
     # ------------------------------------------------------------------
+    # Managers Integration (Phase C3)
+    # ------------------------------------------------------------------
+
+    def set_artifact_manager(self, artifact_manager: SharedArtifactManager) -> None:
+        """Attach a SharedArtifactManager instance sharing the bus timeline."""
+        self._artifact_manager = artifact_manager
+
+    def set_handoff_manager(self, handoff_manager: HandoffManager) -> None:
+        """Attach a HandoffManager instance sharing the bus timeline."""
+        self._handoff_manager = handoff_manager
+
+    # ------------------------------------------------------------------
     # Session Snapshot & Reporting
     # ------------------------------------------------------------------
 
-    def get_collaboration_session(self) -> CollaborationSession:
+    def get_collaboration_session(
+        self,
+        artifact_manager: SharedArtifactManager | None = None,
+        handoff_manager: HandoffManager | None = None,
+    ) -> CollaborationSession:
         """Return an immutable snapshot of the active CollaborationSession."""
+        art_mgr = artifact_manager or getattr(self, "_artifact_manager", None)
+        hdf_mgr = handoff_manager or getattr(self, "_handoff_manager", None)
+
         open_ths = [t for t in self._threads.values() if t.status == ThreadStatus.OPEN]
         closed_ths = [t for t in self._threads.values() if t.status != ThreadStatus.OPEN]
         all_participants = sorted({
             p for conv in self._conversations.values() for p in conv.participants
         })
+
+        shared_refs = list(art_mgr.get_all_references()) if art_mgr else []
+        all_handoffs = list(hdf_mgr.get_all_handoffs()) if hdf_mgr else []
 
         return CollaborationSession(
             collaboration_id=f"collab-{self._blueprint_id}",
@@ -488,6 +511,9 @@ class MessageBus(MessageBusContract):
             participants=all_participants,
             open_threads=open_ths,
             closed_threads=closed_ths,
+            shared_artifacts=shared_refs,
+            handoffs=all_handoffs,
+            approvals=[],
             statistics={
                 "total_conversations": len(self._conversations),
                 "total_threads": len(self._threads),
@@ -495,34 +521,67 @@ class MessageBus(MessageBusContract):
                 "closed_threads": len(closed_ths),
                 "total_messages": len(self._messages),
                 "total_participants": len(all_participants),
+                "total_shared_artifacts": len(shared_refs),
+                "total_handoffs": len(all_handoffs),
             },
             timeline=self._timeline.to_timeline(),
-            handoffs=[],
-            approvals=[],
             created_at=_utcnow(),
         )
 
-    def generate_report(self) -> CollaborationReport:
-        """Generate a comprehensive CollaborationReport."""
-        session_snap = self.get_collaboration_session()
+    def generate_report(
+        self,
+        artifact_manager: SharedArtifactManager | None = None,
+        handoff_manager: HandoffManager | None = None,
+    ) -> CollaborationReport:
+        """Generate a comprehensive CollaborationReport including shared artifacts and handoffs."""
+        art_mgr = artifact_manager or getattr(self, "_artifact_manager", None)
+        hdf_mgr = handoff_manager or getattr(self, "_handoff_manager", None)
+
+        session_snap = self.get_collaboration_session(artifact_manager=art_mgr, handoff_manager=hdf_mgr)
+
+        shared_refs = list(art_mgr.get_all_references()) if art_mgr else []
+        ref_ids = [r.reference_id for r in shared_refs]
+
+        all_handoffs = list(hdf_mgr.get_all_handoffs()) if hdf_mgr else []
+        pending_h = [h for h in all_handoffs if h.status == HandoffStatus.PENDING]
+        completed_h = [h for h in all_handoffs if h.status == HandoffStatus.COMPLETED]
+        rejected_h = [h for h in all_handoffs if h.status == HandoffStatus.REJECTED]
+        cancelled_h = [h for h in all_handoffs if h.status == HandoffStatus.CANCELLED]
+
+        ownership_sum: dict[str, int] = {}
+        lineage_sum: dict[str, list[str]] = {}
+        for r in shared_refs:
+            ownership_sum[r.owner_session_id] = ownership_sum.get(r.owner_session_id, 0) + 1
+            if r.lineage:
+                lineage_sum[r.reference_id] = r.lineage
+
         summary = (
             f"Collaboration Session for blueprint '{self._blueprint_id}'. "
-            f"Total Conversations: {session_snap.statistics['total_conversations']}, "
-            f"Threads: {session_snap.statistics['total_threads']} "
-            f"(open={session_snap.statistics['open_threads']}, closed={session_snap.statistics['closed_threads']}), "
-            f"Messages: {session_snap.statistics['total_messages']} across "
-            f"{session_snap.statistics['total_participants']} participants."
+            f"Conversations: {session_snap.statistics['total_conversations']}, "
+            f"Threads: {session_snap.statistics['total_threads']}, "
+            f"Messages: {session_snap.statistics['total_messages']}. "
+            f"Shared Artifacts: {len(shared_refs)}, Handoffs: {len(all_handoffs)} "
+            f"(completed={len(completed_h)}, pending={len(pending_h)}, rejected={len(rejected_h)}, cancelled={len(cancelled_h)})."
         )
+
         return CollaborationReport(
             report_id=f"rep-collab-{self._blueprint_id}-{uuid.uuid4().hex[:6]}",
             collaboration_id=session_snap.collaboration_id,
             total_messages=session_snap.statistics["total_messages"],
             total_threads=session_snap.statistics["total_threads"],
             total_conversations=session_snap.statistics["total_conversations"],
-            total_handoffs=0,
-            completed_handoffs=0,
+            total_shared_artifacts=len(shared_refs),
+            shared_artifacts=shared_refs,
+            artifact_references=ref_ids,
+            total_handoffs=len(all_handoffs),
+            pending_handoffs=pending_h,
+            completed_handoffs=completed_h,
+            rejected_handoffs=rejected_h,
+            cancelled_handoffs=cancelled_h,
             total_approvals=0,
             approved_count=0,
+            ownership_summary=ownership_sum,
+            lineage_summary=lineage_sum,
             timeline=self._timeline.to_timeline(),
             summary=summary,
             generated_at=_utcnow(),
