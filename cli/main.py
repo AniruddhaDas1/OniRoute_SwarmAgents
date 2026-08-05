@@ -73,6 +73,7 @@ from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssembly
 from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError
 from runtime.review import QualityGateEngine, QualityReport, QualityGateError
 from runtime.healing import SelfHealingEngine, RepairPlanner, RepairPlan, UpdatedEngineeringResult, SelfHealingError
+from runtime.validation import VerificationEngine, AcceptanceEngine, VerificationResult, AcceptanceReport, ValidationAcceptanceError
 
 
 
@@ -3717,13 +3718,260 @@ def heal_command(
         sys.exit(1)
 
 
+@app.command("validate")
+def validate_command(
+    result_path: Path | None = typer.Option(
+        None, "--result", "-r", help="Path to UpdatedEngineeringResult or EngineeringResult JSON file."
+    ),
+    workspace_path: Path | None = typer.Option(
+        None, "--workspace", "-w", help="Target workspace path."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output raw JSON list of VerificationResults."
+    ),
+) -> None:
+    """Perform deterministic build, test, and security verification checks."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        target_results: List[Any] = []
+
+        if result_path is not None:
+            res_file = result_path.resolve()
+            if not res_file.exists():
+                console.print(f"[red]Validate Error:[/] Result file '{res_file}' does not exist.")
+                sys.exit(1)
+            raw_res = json.loads(res_file.read_text(encoding="utf-8"))
+            items = raw_res if isinstance(raw_res, list) else [raw_res]
+            for item in items:
+                try:
+                    target_results.append(UpdatedEngineeringResult.model_validate(item))
+                except Exception:
+                    target_results.append(EngineeringResult.model_validate(item))
+        else:
+            ws_intel = WorkspaceIntelligence()
+            ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+            repo_intel = RepositoryIntelligence()
+            repo_context = repo_intel.analyze_repository(ws_context)
+
+            intent_report = IntentReport(
+                raw_request="Perform verification for workspace",
+                primary_intent="scaffold",
+                extracted_domain="engineering",
+                confidence_score=1.0,
+            )
+            plan_gen = EngineeringPlanGenerator()
+            exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+            registry = Resolver().load_registry()
+            resolver = Resolver()
+            discovery_engine = SkillDiscoveryEngine(registry, resolver)
+            ranking_engine = SkillRankingEngine(registry, resolver)
+            bundling_engine = SkillBundlingEngine(registry, resolver)
+            builder_engine = AgentProfileBuilderEngine(registry, resolver)
+            deployment_planner = MissionDeploymentPlanner()
+
+            sel_report = discovery_engine.discover_skills(exec_plan)
+            rnk_report = ranking_engine.rank_skills(sel_report, exec_plan)
+            bnd_report = bundling_engine.bundle_skills(rnk_report, exec_plan, sel_report)
+            prf_report = builder_engine.build_profiles(bnd_report, exec_plan)
+            deployment_plan = deployment_planner.create_deployment_plan(exec_plan, prf_report)
+
+            init_engine = SwarmInitializationEngine()
+            snapshot = init_engine.initialize_swarm(deployment_plan)
+
+            scaffold_engine = WorkspaceScaffoldEngine()
+            scaffold_report = scaffold_engine.scaffold_workspace(snapshot, workspace_override=ws_path)
+
+            blueprint_engine = ProjectBlueprintEngine()
+            blueprint_report = blueprint_engine.generate_blueprint(scaffold_report)
+
+            allocation_engine = ImplementationAllocationEngine()
+            allocation_report = allocation_engine.allocate_implementation(blueprint_report)
+
+            contract_engine = EngineeringContractEngine()
+            contract_report = contract_engine.generate_contracts(allocation_report)
+
+            worker_engine = EngineeringWorkerEngine()
+            eng_results = worker_engine.execute_all_contracts(contract_report)
+
+            gate_engine = QualityGateEngine()
+            quality_reports = gate_engine.review_all_results(eng_results)
+
+            planner = RepairPlanner()
+            healing_engine = SelfHealingEngine()
+
+            result_map = {r.result_id: r for r in eng_results}
+            for q_rep in quality_reports:
+                repair_plan = planner.create_repair_plan(q_rep)
+                orig_res = result_map.get(q_rep.engineering_result_id, eng_results[0])
+                upd_res = healing_engine.apply_repairs(repair_plan, orig_res, str(ws_path))
+                target_results.append(upd_res)
+
+        vrf_engine = VerificationEngine()
+        verifications = vrf_engine.verify_all_results(target_results, str(ws_path))
+
+        if json_output:
+            console.print_json(data=[v.model_dump(mode="json") for v in verifications])
+            return
+
+        console.print(f"[bold green]✓ Verification Execution Complete[/] ({len(verifications)} results verified)")
+
+        summary_table = Table(title="Verification Engine Summary")
+        summary_table.add_column("Verification ID", style="bold cyan")
+        summary_table.add_column("Result ID", style="bold yellow")
+        summary_table.add_column("Build Status", style="bold green")
+        summary_table.add_column("Test Status", style="bold green")
+        summary_table.add_column("Coverage", style="bold blue")
+        summary_table.add_column("Artifact Status", style="bold magenta")
+
+        for v in verifications:
+            summary_table.add_row(
+                v.verification_id,
+                v.engineering_result_id,
+                v.build_status,
+                v.test_status,
+                f"{v.coverage_percentage:.1f}%",
+                v.artifact_status,
+            )
+        console.print(summary_table)
+
+    except Exception as exc:
+        console.print(f"[red]Verification Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("accept")
+def accept_command(
+    verification_path: Path | None = typer.Option(
+        None, "--verification", "-v", help="Path to VerificationResult JSON file."
+    ),
+    workspace_path: Path | None = typer.Option(
+        None, "--workspace", "-w", help="Target workspace path."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output raw JSON list of AcceptanceReports."
+    ),
+) -> None:
+    """Evaluate acceptance criteria, mission success, and release readiness."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        verifications: List[VerificationResult] = []
+
+        if verification_path is not None:
+            vrf_file = verification_path.resolve()
+            if not vrf_file.exists():
+                console.print(f"[red]Accept Error:[/] Verification file '{vrf_file}' does not exist.")
+                sys.exit(1)
+            raw_vrf = json.loads(vrf_file.read_text(encoding="utf-8"))
+            items = raw_vrf if isinstance(raw_vrf, list) else [raw_vrf]
+            verifications = [VerificationResult.model_validate(i) for i in items]
+        else:
+            ws_intel = WorkspaceIntelligence()
+            ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+            repo_intel = RepositoryIntelligence()
+            repo_context = repo_intel.analyze_repository(ws_context)
+
+            intent_report = IntentReport(
+                raw_request="Evaluate acceptance for workspace",
+                primary_intent="scaffold",
+                extracted_domain="engineering",
+                confidence_score=1.0,
+            )
+            plan_gen = EngineeringPlanGenerator()
+            exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+            registry = Resolver().load_registry()
+            resolver = Resolver()
+            discovery_engine = SkillDiscoveryEngine(registry, resolver)
+            ranking_engine = SkillRankingEngine(registry, resolver)
+            bundling_engine = SkillBundlingEngine(registry, resolver)
+            builder_engine = AgentProfileBuilderEngine(registry, resolver)
+            deployment_planner = MissionDeploymentPlanner()
+
+            sel_report = discovery_engine.discover_skills(exec_plan)
+            rnk_report = ranking_engine.rank_skills(sel_report, exec_plan)
+            bnd_report = bundling_engine.bundle_skills(rnk_report, exec_plan, sel_report)
+            prf_report = builder_engine.build_profiles(bnd_report, exec_plan)
+            deployment_plan = deployment_planner.create_deployment_plan(exec_plan, prf_report)
+
+            init_engine = SwarmInitializationEngine()
+            snapshot = init_engine.initialize_swarm(deployment_plan)
+
+            scaffold_engine = WorkspaceScaffoldEngine()
+            scaffold_report = scaffold_engine.scaffold_workspace(snapshot, workspace_override=ws_path)
+
+            blueprint_engine = ProjectBlueprintEngine()
+            blueprint_report = blueprint_engine.generate_blueprint(scaffold_report)
+
+            allocation_engine = ImplementationAllocationEngine()
+            allocation_report = allocation_engine.allocate_implementation(blueprint_report)
+
+            contract_engine = EngineeringContractEngine()
+            contract_report = contract_engine.generate_contracts(allocation_report)
+
+            worker_engine = EngineeringWorkerEngine()
+            eng_results = worker_engine.execute_all_contracts(contract_report)
+
+            gate_engine = QualityGateEngine()
+            quality_reports = gate_engine.review_all_results(eng_results)
+
+            planner = RepairPlanner()
+            healing_engine = SelfHealingEngine()
+
+            result_map = {r.result_id: r for r in eng_results}
+            updated_results: List[UpdatedEngineeringResult] = []
+            for q_rep in quality_reports:
+                repair_plan = planner.create_repair_plan(q_rep)
+                orig_res = result_map.get(q_rep.engineering_result_id, eng_results[0])
+                upd_res = healing_engine.apply_repairs(repair_plan, orig_res, str(ws_path))
+                updated_results.append(upd_res)
+
+            vrf_engine = VerificationEngine()
+            verifications = vrf_engine.verify_all_results(updated_results, str(ws_path))
+
+        acpt_engine = AcceptanceEngine()
+        acceptance_reports = acpt_engine.evaluate_all_acceptances(verifications)
+
+        if json_output:
+            console.print_json(data=[a.model_dump(mode="json") for a in acceptance_reports])
+            return
+
+        console.print(f"[bold green]✓ Acceptance Evaluation Complete[/] ({len(acceptance_reports)} reports generated)")
+
+        summary_table = Table(title="Acceptance Engine Summary")
+        summary_table.add_column("Acceptance ID", style="bold cyan")
+        summary_table.add_column("Verification ID", style="bold yellow")
+        summary_table.add_column("Verdict", style="bold green")
+        summary_table.add_column("Mission Status", style="bold blue")
+        summary_table.add_column("Production Ready", style="bold magenta")
+        summary_table.add_column("Accepted Criteria", style="bold white")
+
+        for a in acceptance_reports:
+            verdict_style = "bold green" if a.acceptance_verdict == "ACCEPTED" else "bold red"
+            summary_table.add_row(
+                a.acceptance_id,
+                a.verification_id,
+                f"[{verdict_style}]{a.acceptance_verdict}[/]",
+                a.mission_status,
+                "YES" if a.production_ready else "NO",
+                str(len(a.accepted_criteria)),
+            )
+        console.print(summary_table)
+
+    except Exception as exc:
+        console.print(f"[red]Acceptance Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
-    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts", "certify-assembly", "engineer", "heal",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept",
     "--help", "-h", "--version"
 }
 

@@ -64,6 +64,7 @@ from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssembly
 from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError
 from runtime.review import QualityGateEngine, QualityReport, QualityGateError
 from runtime.healing import SelfHealingEngine, RepairPlanner, RepairPlan, UpdatedEngineeringResult, SelfHealingError
+from runtime.validation import VerificationEngine, AcceptanceEngine, VerificationResult, AcceptanceReport, ValidationAcceptanceError
 
 __all__ = [
     "WorkspaceScaffoldEngine",
@@ -92,6 +93,11 @@ __all__ = [
     "RepairPlan",
     "UpdatedEngineeringResult",
     "SelfHealingError",
+    "VerificationEngine",
+    "AcceptanceEngine",
+    "VerificationResult",
+    "AcceptanceReport",
+    "ValidationAcceptanceError",
     "WorkspaceValidator",
     "ArtifactCategory",
     "ArtifactCollisionError",
