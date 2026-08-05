@@ -63,6 +63,8 @@ from runtime.skills import (
     AgentProfileReport,
     AgentProfile,
 )
+from runtime.deployment import MissionDeploymentPlan, MissionDeploymentPlanner
+
 
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
@@ -2303,15 +2305,179 @@ def profiles_command(
     console.print(summary_table)
 
 
+@app.command("deployment")
+@mission_app.command("deployment")
+def deployment_command(
+    request: list[str] = typer.Argument(None, help="Natural language request or plan prompt."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+) -> None:
+    """Generate deterministic Mission Deployment Plan for Swarm execution."""
+    raw_prompt = " ".join(request) if request else "Build application"
+    if request and "--json" in request:
+        json_output = True
+        raw_prompt = " ".join([r for r in request if r != "--json"])
+        if not raw_prompt.strip():
+            raw_prompt = "Build application"
+
+    intent_analyzer = IntentAnalyzer()
+    intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=workspace)
+
+    ws_intelligence = WorkspaceIntelligence()
+    ws_ctx = ws_intelligence.analyze_workspace(cwd=repository_root, explicit_workspace=workspace)
+
+    repo_intelligence = RepositoryIntelligence()
+    repo_ctx = repo_intelligence.analyze_repository(ws_ctx)
+
+    generator = EngineeringPlanGenerator()
+    plan = generator.generate_plan(intent_report, ws_ctx, repo_ctx)
+
+    loader = RepositoryLoader(repository_root)
+    registry = loader.load()
+    resolver = Resolver(registry)
+
+    discovery_engine = SkillDiscoveryEngine(registry, resolver)
+    selection_report = discovery_engine.discover_skills(plan)
+
+    ranking_engine = SkillRankingEngine(registry, resolver)
+    ranked_report = ranking_engine.rank_skills(selection_report, plan)
+
+    bundling_engine = SkillBundlingEngine(registry, resolver)
+    bundle_report = bundling_engine.bundle_skills(ranked_report, plan, selection_report)
+
+    profile_builder = AgentProfileBuilderEngine(registry, resolver)
+    profile_report = profile_builder.build_profiles(bundle_report, plan)
+
+    deployment_planner = MissionDeploymentPlanner()
+    deployment_plan = deployment_planner.create_deployment_plan(plan, profile_report)
+
+    if json_output:
+        console.print_json(data=deployment_plan.model_dump(mode="json"))
+        return
+
+    console.print(
+        f"\n[bold cyan]Mission Deployment Plan:[/] {deployment_plan.plan_id} "
+        f"(Mission: {deployment_plan.mission_id}, SHA-256 Hash: {deployment_plan.deployment_hash[:16]}...)"
+    )
+
+    # 1. Execution Waves Table
+    waves_table = Table(title="Execution Waves (Waves 1 to 6)")
+    waves_table.add_column("Wave", style="bold yellow")
+    waves_table.add_column("Name", style="bold cyan")
+    waves_table.add_column("Scheduled Profiles")
+    waves_table.add_column("Prerequisites")
+    waves_table.add_column("Deliverables")
+    waves_table.add_column("Gates")
+
+    for wave in deployment_plan.execution_waves:
+        profs_str = ", ".join(wave.profile_ids) if wave.profile_ids else "None"
+        prereqs_str = ", ".join(map(str, wave.prerequisite_wave_numbers)) if wave.prerequisite_wave_numbers else "None"
+        deliv_str = ", ".join(wave.deliverables[:3]) + ("..." if len(wave.deliverables) > 3 else "") if wave.deliverables else "None"
+        gates_str = ", ".join(wave.review_gate_ids + wave.approval_gate_ids) if (wave.review_gate_ids or wave.approval_gate_ids) else "None"
+        waves_table.add_row(
+            f"Wave {wave.wave_number}",
+            wave.name,
+            profs_str,
+            prereqs_str,
+            deliv_str,
+            gates_str,
+        )
+    console.print(waves_table)
+
+    # 2. Parallel Groups & Sequential Dependencies Table
+    pg_table = Table(title="Parallel Execution Groups & Sequential Dependencies")
+    pg_table.add_column("Group / Profile", style="bold cyan")
+    pg_table.add_column("Wave", style="bold yellow")
+    pg_table.add_column("Concurrently Executing Profiles / Prerequisites")
+
+    for pg in deployment_plan.parallel_groups:
+        pg_table.add_row(
+            f"[bold green]Parallel Group: {pg.group_id}[/]",
+            f"Wave {pg.wave_number}",
+            ", ".join(pg.profile_ids),
+        )
+    for pid, prereqs in deployment_plan.sequential_dependencies.items():
+        if prereqs:
+            pg_table.add_row(
+                pid,
+                "Sequential",
+                f"Prerequisites: {', '.join(prereqs)}",
+            )
+    console.print(pg_table)
+
+    # 3. Review Gates & Approval Gates Table
+    gates_table = Table(title="Review Gates & Approval Gates")
+    gates_table.add_column("Gate ID", style="bold cyan")
+    gates_table.add_column("Type", style="bold yellow")
+    gates_table.add_column("Wave")
+    gates_table.add_column("Target / Approver")
+    gates_table.add_column("Blocking", style="bold red")
+
+    for rg in deployment_plan.review_gates:
+        gates_table.add_row(
+            rg.gate_id,
+            f"Review ({rg.review_type})",
+            f"Wave {rg.wave_number}",
+            ", ".join(rg.trigger_profiles),
+            "YES" if rg.blocking else "NO",
+        )
+    for ag in deployment_plan.approval_gates:
+        gates_table.add_row(
+            ag.gate_id,
+            "Approval",
+            f"Wave {ag.wave_number}",
+            ag.required_approver,
+            "YES" if ag.blocking else "NO",
+        )
+    console.print(gates_table)
+
+    # 4. Artifact Routes Table
+    routes_table = Table(title="Artifact Flow Routes")
+    routes_table.add_column("Route ID", style="bold cyan")
+    routes_table.add_column("Source Profile (Wave)")
+    routes_table.add_column("Target Profile (Wave)")
+    routes_table.add_column("Artifact Deliverable")
+
+    for route in deployment_plan.artifact_routes:
+        routes_table.add_row(
+            route.route_id,
+            f"{route.source_profile_id} (W{route.source_wave})",
+            f"{route.target_profile_id} (W{route.target_wave})",
+            route.artifact_name,
+        )
+    console.print(routes_table)
+
+    # 5. Validation & Summary Table
+    val_table = Table(title="Deployment Plan Validation & Budget Summary")
+    val_table.add_column("Metric", style="bold cyan")
+    val_table.add_column("Value")
+
+    val = deployment_plan.evidence.get("validation", {})
+    val_table.add_row("No Cyclic Execution", "PASSED" if val.get("no_cyclic_execution") else "FAILED")
+    val_table.add_row("Every Profile Scheduled", "PASSED" if val.get("every_profile_scheduled") else "FAILED")
+    val_table.add_row("No Orphan Profiles", "PASSED" if val.get("no_orphan_profiles") else "FAILED")
+    val_table.add_row("Valid Review Path", "PASSED" if val.get("valid_review_path") else "FAILED")
+    val_table.add_row("Valid Approval Path", "PASSED" if val.get("valid_approval_path") else "FAILED")
+    val_table.add_row("Valid Artifact Routing", "PASSED" if val.get("valid_artifact_routing") else "FAILED")
+    val_table.add_row("Deterministic Order", "PASSED" if val.get("deterministic_execution_order") else "FAILED")
+    val_table.add_row("Total USD Budget", f"${deployment_plan.budget_allocation.total_budget_usd:.2f}")
+    val_table.add_row("Total Mission Timeout", f"{deployment_plan.timeout_rules.total_mission_timeout_seconds}s")
+    val_table.add_row("SHA-256 Deployment Hash", deployment_plan.deployment_hash)
+
+    console.print(val_table)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
-    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles",
+    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment",
     "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact",
     "--help", "-h", "--version"
 }
+
 
 
 

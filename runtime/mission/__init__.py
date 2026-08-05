@@ -41,6 +41,8 @@ from .orchestration import MissionOrchestrator
 from .resolution import MissionResolver
 from .states import ALLOWED_STATE_TRANSITIONS, MissionState, can_transition
 
+from runtime.deployment import MissionDeploymentPlan, MissionDeploymentPlanner
+
 __all__ = [
     "ALLOWED_STATE_TRANSITIONS",
     "EmptyCommandError",
@@ -52,6 +54,8 @@ __all__ = [
     "MissionConstraints",
     "MissionContext",
     "MissionDeliverables",
+    "MissionDeploymentPlan",
+    "MissionDeploymentPlanner",
     "MissionDirector",
     "MissionDirectorContract",
     "MissionEvidence",
@@ -76,3 +80,4 @@ __all__ = [
     "WorkspaceUnavailableError",
     "can_transition",
 ]
+
