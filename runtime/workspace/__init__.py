@@ -57,11 +57,15 @@ from .storage import WorkspaceStorage
 from .trace_storage import TraceStorage
 from .validation import WorkspaceValidator
 from runtime.scaffold import WorkspaceScaffoldEngine, WorkspaceScaffoldReport, WorkspaceScaffoldError
+from runtime.blueprint import ProjectBlueprintEngine, ProjectBlueprintReport, ProjectBlueprintError
 
 __all__ = [
     "WorkspaceScaffoldEngine",
     "WorkspaceScaffoldReport",
     "WorkspaceScaffoldError",
+    "ProjectBlueprintEngine",
+    "ProjectBlueprintReport",
+    "ProjectBlueprintError",
     "WorkspaceValidator",
     "ArtifactCategory",
     "ArtifactCollisionError",

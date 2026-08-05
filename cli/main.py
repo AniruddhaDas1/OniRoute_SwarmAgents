@@ -66,6 +66,7 @@ from runtime.skills import (
 from runtime.deployment import MissionDeploymentPlan, MissionDeploymentPlanner
 from runtime.swarm import AutonomousExecutionEngine, ExecutionTaskQueue, RuntimeExecutionSnapshot, SwarmCoordinationEngine, SwarmExecutionResult, SwarmInitializationEngine
 from runtime.scaffold import WorkspaceScaffoldEngine, WorkspaceScaffoldReport, WorkspaceScaffoldError
+from runtime.blueprint import ProjectBlueprintEngine, ProjectBlueprintReport, ProjectBlueprintError
 
 
 
@@ -3031,13 +3032,116 @@ def scaffold_command(
         sys.exit(1)
 
 
+@app.command("blueprint-project")
+def blueprint_project_command(
+    scaffold_path: Path | None = typer.Option(
+        None, "--scaffold", "-s", help="Path to WorkspaceScaffoldReport JSON file."
+    ),
+    workspace_path: Path | None = typer.Option(
+        None, "--workspace", "-w", help="Target workspace path."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output raw JSON ProjectBlueprintReport."
+    ),
+) -> None:
+    """Generate deterministic Project Blueprint from a WorkspaceScaffoldReport."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        scaffold_report: Optional[WorkspaceScaffoldReport] = None
+
+        if scaffold_path is not None:
+            scaf_file = scaffold_path.resolve()
+            if not scaf_file.exists():
+                console.print(f"[red]Scaffold Error:[/] Scaffold report file '{scaf_file}' does not exist.")
+                sys.exit(1)
+            raw_data = json.loads(scaf_file.read_text(encoding="utf-8"))
+            scaffold_report = WorkspaceScaffoldReport.model_validate(raw_data)
+        else:
+            ws_intel = WorkspaceIntelligence()
+            ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+            repo_intel = RepositoryIntelligence()
+            repo_context = repo_intel.analyze_repository(ws_context)
+
+            intent_report = IntentReport(
+                raw_request="Scaffold target project workspace for blueprint",
+                primary_intent="scaffold",
+                extracted_domain="engineering",
+                confidence_score=1.0,
+            )
+            plan_gen = EngineeringPlanGenerator()
+            exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+            registry = Resolver().load_registry()
+            resolver = Resolver()
+            discovery_engine = SkillDiscoveryEngine(registry, resolver)
+            ranking_engine = SkillRankingEngine(registry, resolver)
+            bundling_engine = SkillBundlingEngine(registry, resolver)
+            builder_engine = AgentProfileBuilderEngine(registry, resolver)
+            deployment_planner = MissionDeploymentPlanner()
+
+            sel_report = discovery_engine.discover_skills(exec_plan)
+            rnk_report = ranking_engine.rank_skills(sel_report, exec_plan)
+            bnd_report = bundling_engine.bundle_skills(rnk_report, exec_plan, sel_report)
+            prf_report = builder_engine.build_profiles(bnd_report, exec_plan)
+            deployment_plan = deployment_planner.create_deployment_plan(exec_plan, prf_report)
+
+            init_engine = SwarmInitializationEngine()
+            snapshot = init_engine.initialize_swarm(deployment_plan)
+
+            scaffold_engine = WorkspaceScaffoldEngine()
+            scaffold_report = scaffold_engine.scaffold_workspace(snapshot, workspace_override=ws_path)
+
+        blueprint_engine = ProjectBlueprintEngine()
+        blueprint_report = blueprint_engine.generate_blueprint(scaffold_report)
+
+        if json_output:
+            console.print_json(data=blueprint_report.model_dump(mode="json"))
+            return
+
+        console.print(f"[bold green]✓ Project Blueprint Complete[/] ({blueprint_report.blueprint_id})")
+
+        overview_table = Table(title="Project Blueprint Summary")
+        overview_table.add_column("Property", style="bold cyan")
+        overview_table.add_column("Value", style="bold yellow")
+        overview_table.add_row("Blueprint ID", blueprint_report.blueprint_id)
+        overview_table.add_row("Workspace ID", blueprint_report.workspace_id)
+        overview_table.add_row("Technology Stack", blueprint_report.technology_stack)
+        overview_table.add_row("Blueprint Hash", blueprint_report.blueprint_hash[:16] + "...")
+        overview_table.add_row("Project Modules", str(len(blueprint_report.project_modules)))
+        overview_table.add_row("Disciplines Covered", str(len(blueprint_report.engineering_discipline_ownership)))
+        overview_table.add_row("Expected Files", str(len(blueprint_report.expected_files)))
+        console.print(overview_table)
+
+        mod_table = Table(title="Project Module Allocations")
+        mod_table.add_column("Module ID", style="bold cyan")
+        mod_table.add_column("Name", style="bold white")
+        mod_table.add_column("Discipline", style="bold green")
+        mod_table.add_column("Relative Path", style="bold yellow")
+        for m in blueprint_report.project_modules:
+            mod_table.add_row(m.module_id, m.name, m.discipline, m.relative_path)
+        console.print(mod_table)
+
+        disc_table = Table(title="Engineering Discipline Ownership")
+        disc_table.add_column("Discipline", style="bold green")
+        disc_table.add_column("Owned Items", style="bold cyan")
+        for disc, items in blueprint_report.engineering_discipline_ownership.items():
+            if items:
+                disc_table.add_row(disc, ", ".join(items[:4]) + (f" (+{len(items)-4} more)" if len(items) > 4 else ""))
+        console.print(disc_table)
+
+    except Exception as exc:
+        console.print(f"[red]Blueprint Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
-    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project",
     "--help", "-h", "--version"
 }
 
