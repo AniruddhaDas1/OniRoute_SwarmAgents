@@ -67,6 +67,7 @@ from runtime.deployment import MissionDeploymentPlan, MissionDeploymentPlanner
 from runtime.swarm import AutonomousExecutionEngine, ExecutionTaskQueue, RuntimeExecutionSnapshot, SwarmCoordinationEngine, SwarmExecutionResult, SwarmInitializationEngine
 from runtime.scaffold import WorkspaceScaffoldEngine, WorkspaceScaffoldReport, WorkspaceScaffoldError
 from runtime.blueprint import ProjectBlueprintEngine, ProjectBlueprintReport, ProjectBlueprintError
+from runtime.allocation import ImplementationAllocationEngine, ImplementationAllocationReport, ImplementationAllocationError
 
 
 
@@ -3135,13 +3136,113 @@ def blueprint_project_command(
         sys.exit(1)
 
 
+@app.command("allocate")
+def allocate_command(
+    blueprint_path: Path | None = typer.Option(
+        None, "--blueprint", "-b", help="Path to ProjectBlueprintReport JSON file."
+    ),
+    workspace_path: Path | None = typer.Option(
+        None, "--workspace", "-w", help="Target workspace path."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output raw JSON ImplementationAllocationReport."
+    ),
+) -> None:
+    """Allocate implementation targets to engineering disciplines and agent profiles."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        blueprint_report: Optional[ProjectBlueprintReport] = None
+
+        if blueprint_path is not None:
+            blu_file = blueprint_path.resolve()
+            if not blu_file.exists():
+                console.print(f"[red]Blueprint Error:[/] Blueprint report file '{blu_file}' does not exist.")
+                sys.exit(1)
+            raw_data = json.loads(blu_file.read_text(encoding="utf-8"))
+            blueprint_report = ProjectBlueprintReport.model_validate(raw_data)
+        else:
+            ws_intel = WorkspaceIntelligence()
+            ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+            repo_intel = RepositoryIntelligence()
+            repo_context = repo_intel.analyze_repository(ws_context)
+
+            intent_report = IntentReport(
+                raw_request="Scaffold and blueprint workspace for allocation",
+                primary_intent="scaffold",
+                extracted_domain="engineering",
+                confidence_score=1.0,
+            )
+            plan_gen = EngineeringPlanGenerator()
+            exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+            registry = Resolver().load_registry()
+            resolver = Resolver()
+            discovery_engine = SkillDiscoveryEngine(registry, resolver)
+            ranking_engine = SkillRankingEngine(registry, resolver)
+            bundling_engine = SkillBundlingEngine(registry, resolver)
+            builder_engine = AgentProfileBuilderEngine(registry, resolver)
+            deployment_planner = MissionDeploymentPlanner()
+
+            sel_report = discovery_engine.discover_skills(exec_plan)
+            rnk_report = ranking_engine.rank_skills(sel_report, exec_plan)
+            bnd_report = bundling_engine.bundle_skills(rnk_report, exec_plan, sel_report)
+            prf_report = builder_engine.build_profiles(bnd_report, exec_plan)
+            deployment_plan = deployment_planner.create_deployment_plan(exec_plan, prf_report)
+
+            init_engine = SwarmInitializationEngine()
+            snapshot = init_engine.initialize_swarm(deployment_plan)
+
+            scaffold_engine = WorkspaceScaffoldEngine()
+            scaffold_report = scaffold_engine.scaffold_workspace(snapshot, workspace_override=ws_path)
+
+            blueprint_engine = ProjectBlueprintEngine()
+            blueprint_report = blueprint_engine.generate_blueprint(scaffold_report)
+
+        allocation_engine = ImplementationAllocationEngine()
+        allocation_report = allocation_engine.allocate_implementation(blueprint_report)
+
+        if json_output:
+            console.print_json(data=allocation_report.model_dump(mode="json"))
+            return
+
+        console.print(f"[bold green]✓ Implementation Allocation Complete[/] ({allocation_report.allocation_id})")
+
+        overview_table = Table(title="Implementation Allocation Summary")
+        overview_table.add_column("Property", style="bold cyan")
+        overview_table.add_column("Value", style="bold yellow")
+        overview_table.add_row("Allocation ID", allocation_report.allocation_id)
+        overview_table.add_row("Blueprint ID", allocation_report.blueprint_id)
+        overview_table.add_row("Technology Stack", allocation_report.technology_stack)
+        overview_table.add_row("Allocation Hash", allocation_report.allocation_hash[:16] + "...")
+        overview_table.add_row("Total Allocated Targets", str(len(allocation_report.allocated_targets)))
+        overview_table.add_row("Agent Profiles Assigned", str(len(allocation_report.agent_ownership)))
+        overview_table.add_row("Disciplines Covered", str(len(allocation_report.discipline_ownership)))
+        overview_table.add_row("Execution Order Length", str(len(allocation_report.execution_order)))
+        console.print(overview_table)
+
+        agent_table = Table(title="Agent Profile Ownership & Target Allocations")
+        agent_table.add_column("Profile ID", style="bold cyan")
+        agent_table.add_column("Role Title", style="bold green")
+        agent_table.add_column("Assigned Targets Count", style="bold yellow")
+        for prof_id, targets_list in allocation_report.agent_ownership.items():
+            first_target = next((t for t in allocation_report.allocated_targets if t.owning_profile_id == prof_id), None)
+            role_name = first_target.owning_profile_role if first_target else "Engineering Agent"
+            agent_table.add_row(prof_id, role_name, str(len(targets_list)))
+        console.print(agent_table)
+
+    except Exception as exc:
+        console.print(f"[red]Allocation Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
-    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate",
     "--help", "-h", "--version"
 }
 
