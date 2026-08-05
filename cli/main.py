@@ -38,7 +38,7 @@ from runtime.mission import (
     MissionResolutionError,
     MissionResolver,
 )
-from runtime.organization import CapabilityResolver
+from runtime.organization import CapabilityResolver, OrganizationAssembler
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -763,11 +763,79 @@ def capability_command(
         raise typer.Exit(1)
 
 
+@app.command("organization")
+def organization_command(
+    command: list[str] = typer.Argument(None, help="Natural language command or prompt for organization assembly."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON Organization."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+) -> None:
+    """Assemble and display required engineering organization for a mission without execution."""
+    if command and "--json" in command:
+        json_output = True
+        command = [c for c in command if c != "--json"]
+    raw_prompt = " ".join(command) if command else "Assemble organization for workspace"
+
+    try:
+        intake = MissionIntake()
+        mission_request = intake.process_intake(raw_prompt, explicit_workspace=workspace)
+        resolver = MissionResolver()
+        resolved_mission = resolver.resolve_mission(mission_request)
+        orchestrator = MissionOrchestrator()
+        exec_request = orchestrator.orchestrate_mission(resolved_mission)
+        cap_resolver = CapabilityResolver(repository_root=repository_root)
+        cap_report = cap_resolver.resolve_capabilities(exec_request)
+        org_assembler = OrganizationAssembler(repository_root=repository_root)
+        org = org_assembler.assemble_organization(cap_report, mission_id=exec_request.mission.mission_id)
+
+        if json_output:
+            console.print_json(data=org.model_dump(mode="json"))
+            return
+
+        table = Table(title=f"Assembled Organization: {org.organization_id} ({org.name})")
+        table.add_column("Member ID", style="bold cyan")
+        table.add_column("Role Title", style="bold yellow")
+        table.add_column("Department", style="bold green")
+        table.add_column("Capabilities")
+        table.add_column("Status")
+
+        for member in org.members:
+            dept_found = "Engineering"
+            for d_name, m_list in org.departments.items():
+                if member.member_id in m_list:
+                    dept_found = d_name
+                    break
+            table.add_row(
+                member.member_id,
+                member.role.title,
+                dept_found,
+                str(len(member.capability_ids)),
+                member.status.value.upper(),
+            )
+
+        console.print(table)
+
+        summary_table = Table(title="Organization Structural Integrity & Readiness Summary")
+        summary_table.add_column("Metric", style="bold green")
+        summary_table.add_column("Value")
+        summary_table.add_row("Total Members Allocated", str(len(org.members)))
+        summary_table.add_row("Total Roles Defined", str(len(org.roles)))
+        summary_table.add_row("Total Departments Assembled", str(len(org.departments)))
+        summary_table.add_row("Total Dependencies Mapped", str(len(org.dependencies)))
+        summary_table.add_row("Structural Integrity Status", "PASSED" if org.readiness.get("is_ready", True) else "FAILED")
+
+        console.print(summary_table)
+
+    except (MissionIntakeError, MissionResolutionError, MissionOrchestrationError) as exc:
+        console.print(f"[red]Organization Assembly Error:[/] {getattr(exc, 'message', str(exc))}")
+        raise typer.Exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
-    "providers", "capabilities", "capability", "recommend-model", "tools",
+    "providers", "capabilities", "capability", "organization", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "--help", "-h", "--version"
 }
 
