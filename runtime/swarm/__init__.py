@@ -1,9 +1,6 @@
-"""Swarm Initialization package for OniRoute (Phase P3.A2).
-
-Converts MissionDeploymentPlan into an immutable RuntimeExecutionSnapshot.
-"""
-
+from .autonomous_engine import AutonomousExecutionEngine
 from .benchmark import benchmark_swarm_initialization
+from .benchmark_execution import benchmark_autonomous_execution
 from .engine import SwarmInitializationEngine
 from .exceptions import (
     InvalidSnapshotError,
@@ -23,12 +20,17 @@ from .models import (
     WaveExecutionStatus,
     WorkspaceReferences,
 )
+from .queue import ExecutionTask, ExecutionTaskQueue
+from .result import SwarmExecutionResult
 
 __all__ = [
+    "AutonomousExecutionEngine",
     "BudgetStatus",
     "CheckpointStatus",
     "EventBusReferences",
     "ExecutionCursor",
+    "ExecutionTask",
+    "ExecutionTaskQueue",
     "InvalidSnapshotError",
     "RetryStatus",
     "RuntimeExecutionSnapshot",
@@ -36,9 +38,12 @@ __all__ = [
     "SessionStateRecord",
     "StorageConnectionError",
     "StorageReferences",
+    "SwarmExecutionResult",
     "SwarmInitializationEngine",
     "SwarmInitializationError",
     "WaveExecutionStatus",
     "WorkspaceReferences",
+    "benchmark_autonomous_execution",
     "benchmark_swarm_initialization",
 ]
+

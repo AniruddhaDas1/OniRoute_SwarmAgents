@@ -45,10 +45,11 @@ def __getattr__(name: str):
     if name in ("MissionDeploymentPlan", "MissionDeploymentPlanner"):
         import runtime.deployment as dep
         return getattr(dep, name)
-    if name in ("RuntimeExecutionSnapshot", "SwarmInitializationEngine"):
+    if name in ("RuntimeExecutionSnapshot", "SwarmInitializationEngine", "AutonomousExecutionEngine", "ExecutionTaskQueue", "SwarmExecutionResult"):
         import runtime.swarm as sw
         return getattr(sw, name)
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
 
 
 __all__ = [

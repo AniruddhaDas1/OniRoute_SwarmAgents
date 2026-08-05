@@ -64,7 +64,8 @@ from runtime.skills import (
     AgentProfile,
 )
 from runtime.deployment import MissionDeploymentPlan, MissionDeploymentPlanner
-from runtime.swarm import RuntimeExecutionSnapshot, SwarmInitializationEngine
+from runtime.swarm import AutonomousExecutionEngine, ExecutionTaskQueue, RuntimeExecutionSnapshot, SwarmExecutionResult, SwarmInitializationEngine
+
 
 
 
@@ -2618,6 +2619,154 @@ def initialize_command(
     val_table.add_row("SHA-256 Snapshot Hash", snapshot.snapshot_hash)
 
     console.print(val_table)
+
+
+@app.command("execute")
+@mission_app.command("execute")
+def execute_command(
+    request: list[str] = typer.Argument(None, help="Natural language request or plan prompt."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+) -> None:
+    """Execute Swarm autonomously across Waves 1 to 6 and update RuntimeExecutionSnapshot."""
+    raw_prompt = " ".join(request) if request else "Build application"
+    if request and "--json" in request:
+        json_output = True
+        raw_prompt = " ".join([r for r in request if r != "--json"])
+        if not raw_prompt.strip():
+            raw_prompt = "Build application"
+
+    intent_analyzer = IntentAnalyzer()
+    intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=workspace)
+
+    ws_intelligence = WorkspaceIntelligence()
+    ws_ctx = ws_intelligence.analyze_workspace(cwd=repository_root, explicit_workspace=workspace)
+
+    repo_intelligence = RepositoryIntelligence()
+    repo_ctx = repo_intelligence.analyze_repository(ws_ctx)
+
+    generator = EngineeringPlanGenerator()
+    plan = generator.generate_plan(intent_report, ws_ctx, repo_ctx)
+
+    loader = RepositoryLoader(repository_root)
+    registry = loader.load()
+    resolver = Resolver(registry)
+
+    discovery_engine = SkillDiscoveryEngine(registry, resolver)
+    selection_report = discovery_engine.discover_skills(plan)
+
+    ranking_engine = SkillRankingEngine(registry, resolver)
+    ranked_report = ranking_engine.rank_skills(selection_report, plan)
+
+    bundling_engine = SkillBundlingEngine(registry, resolver)
+    bundle_report = bundling_engine.bundle_skills(ranked_report, plan, selection_report)
+
+    profile_builder = AgentProfileBuilderEngine(registry, resolver)
+    profile_report = profile_builder.build_profiles(bundle_report, plan)
+
+    deployment_planner = MissionDeploymentPlanner()
+    deployment_plan = deployment_planner.create_deployment_plan(plan, profile_report)
+
+    swarm_init_engine = SwarmInitializationEngine()
+    initial_snapshot = swarm_init_engine.initialize_swarm(
+        deployment_plan, explicit_workspace=workspace, repository_root=repository_root
+    )
+
+    exec_engine = AutonomousExecutionEngine()
+    updated_snapshot, results = exec_engine.execute_swarm(
+        initial_snapshot, repository_root=repository_root
+    )
+
+    if json_output:
+        data = {
+            "snapshot": updated_snapshot.model_dump(mode="json"),
+            "execution_results": [r.model_dump(mode="json") for r in results],
+        }
+        console.print_json(data=data)
+        return
+
+    console.print(
+        f"\n[bold cyan]Autonomous Execution Complete:[/] {updated_snapshot.snapshot_id} "
+        f"(Execution UUID: {updated_snapshot.execution_uuid}, State: {updated_snapshot.execution_cursor.execution_state})"
+    )
+
+    # 1. Swarm Execution Summary Table
+    summary_table = Table(title="Autonomous Swarm Execution Overview")
+    summary_table.add_column("Metric", style="bold cyan")
+    summary_table.add_column("Value")
+
+    total_tokens = sum(r.consumed_tokens for r in results)
+    total_cost = sum(r.cost_usd for r in results)
+    total_artifacts = sum(len(r.produced_artifacts) for r in results)
+
+    summary_table.add_row("Execution UUID", updated_snapshot.execution_uuid)
+    summary_table.add_row("Execution State", updated_snapshot.execution_cursor.execution_state)
+    summary_table.add_row("Final Wave Reached", f"Wave {updated_snapshot.execution_cursor.active_wave_number}")
+    summary_table.add_row("Total Tasks Executed", str(len(results)))
+    summary_table.add_row("Total Tokens Consumed", f"{total_tokens:,}")
+    summary_table.add_row("Total USD Cost Spent", f"${total_cost:.4f}")
+    summary_table.add_row("Remaining USD Budget", f"${updated_snapshot.budget_status.remaining_budget_usd:.2f}")
+    summary_table.add_row("Artifacts Produced", str(total_artifacts))
+    summary_table.add_row("Updated Snapshot Hash", updated_snapshot.snapshot_hash)
+    console.print(summary_table)
+
+    # 2. Wave Progress & Execution Status Table
+    wave_table = Table(title="Execution Waves Progress")
+    wave_table.add_column("Wave Number", style="bold yellow")
+    wave_table.add_column("Wave Name", style="bold cyan")
+    wave_table.add_column("Status", style="bold green")
+    wave_table.add_column("Completed Profiles")
+    wave_table.add_column("Failed Profiles")
+
+    for w_num in range(1, 7):
+        w_stat = updated_snapshot.wave_status.get(w_num)
+        if w_stat:
+            wave_table.add_row(
+                f"Wave {w_stat.wave_number}",
+                w_stat.name,
+                w_stat.status,
+                ", ".join(w_stat.completed_profile_ids) if w_stat.completed_profile_ids else "None",
+                ", ".join(w_stat.failed_profile_ids) if w_stat.failed_profile_ids else "None",
+            )
+    console.print(wave_table)
+
+    # 3. Task Execution Results Table
+    results_table = Table(title="Task Execution Results")
+    results_table.add_column("Task ID", style="bold cyan")
+    results_table.add_column("Wave", style="bold yellow")
+    results_table.add_column("Session ID")
+    results_table.add_column("Status", style="bold green")
+    results_table.add_column("Tokens", style="bold green")
+    results_table.add_column("Cost", style="bold green")
+    results_table.add_column("Artifacts")
+
+    for res in results:
+        art_names = [a.name for a in res.produced_artifacts]
+        art_str = ", ".join(art_names[:2]) + ("..." if len(art_names) > 2 else "") if art_names else "None"
+        results_table.add_row(
+            res.task_id,
+            f"Wave {res.wave_number}",
+            res.session_id,
+            res.execution_status.value if hasattr(res.execution_status, "value") else str(res.execution_status),
+            f"{res.consumed_tokens:,}",
+            f"${res.cost_usd:.4f}",
+            art_str,
+        )
+    console.print(results_table)
+
+    # 4. Storage Traces & Artifact Locations Table
+    storage_table = Table(title="Execution Traces & Storage Locations")
+    storage_table.add_column("Resource", style="bold cyan")
+    storage_table.add_column("Path / Location")
+
+    storage_table.add_row("Sessions Root", updated_snapshot.storage_references.sessions_root)
+    storage_table.add_row("Traces Root", updated_snapshot.storage_references.traces_root)
+    storage_table.add_row("Logs Root", updated_snapshot.storage_references.logs_root)
+    storage_table.add_row("Artifacts Root", updated_snapshot.storage_references.artifacts_root)
+    storage_table.add_row("History Root", updated_snapshot.storage_references.history_root)
+    console.print(storage_table)
+
 
 
 REGISTERED_CLI_COMMANDS: set[str] = {
