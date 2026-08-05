@@ -59,6 +59,7 @@ from .validation import WorkspaceValidator
 from runtime.scaffold import WorkspaceScaffoldEngine, WorkspaceScaffoldReport, WorkspaceScaffoldError
 from runtime.blueprint import ProjectBlueprintEngine, ProjectBlueprintReport, ProjectBlueprintError
 from runtime.allocation import ImplementationAllocationEngine, ImplementationAllocationReport, ImplementationAllocationError
+from runtime.contracts import EngineeringContractEngine, EngineeringContractReport, EngineeringContractError
 
 __all__ = [
     "WorkspaceScaffoldEngine",
@@ -70,6 +71,9 @@ __all__ = [
     "ImplementationAllocationEngine",
     "ImplementationAllocationReport",
     "ImplementationAllocationError",
+    "EngineeringContractEngine",
+    "EngineeringContractReport",
+    "EngineeringContractError",
     "WorkspaceValidator",
     "ArtifactCategory",
     "ArtifactCollisionError",

@@ -68,6 +68,7 @@ from runtime.swarm import AutonomousExecutionEngine, ExecutionTaskQueue, Runtime
 from runtime.scaffold import WorkspaceScaffoldEngine, WorkspaceScaffoldReport, WorkspaceScaffoldError
 from runtime.blueprint import ProjectBlueprintEngine, ProjectBlueprintReport, ProjectBlueprintError
 from runtime.allocation import ImplementationAllocationEngine, ImplementationAllocationReport, ImplementationAllocationError
+from runtime.contracts import EngineeringContractEngine, EngineeringContractReport, EngineeringContractError
 
 
 
@@ -3236,13 +3237,112 @@ def allocate_command(
         sys.exit(1)
 
 
+@app.command("contracts")
+def contracts_command(
+    allocation_path: Path | None = typer.Option(
+        None, "--allocation", "-a", help="Path to ImplementationAllocationReport JSON file."
+    ),
+    workspace_path: Path | None = typer.Option(
+        None, "--workspace", "-w", help="Target workspace path."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output raw JSON EngineeringContractReport."
+    ),
+) -> None:
+    """Generate execution-ready Engineering Contracts from an ImplementationAllocationReport."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        allocation_report: Optional[ImplementationAllocationReport] = None
+
+        if allocation_path is not None:
+            alloc_file = allocation_path.resolve()
+            if not alloc_file.exists():
+                console.print(f"[red]Allocation Error:[/] Allocation report file '{alloc_file}' does not exist.")
+                sys.exit(1)
+            raw_data = json.loads(alloc_file.read_text(encoding="utf-8"))
+            allocation_report = ImplementationAllocationReport.model_validate(raw_data)
+        else:
+            ws_intel = WorkspaceIntelligence()
+            ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+            repo_intel = RepositoryIntelligence()
+            repo_context = repo_intel.analyze_repository(ws_context)
+
+            intent_report = IntentReport(
+                raw_request="Generate engineering contracts for workspace",
+                primary_intent="scaffold",
+                extracted_domain="engineering",
+                confidence_score=1.0,
+            )
+            plan_gen = EngineeringPlanGenerator()
+            exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+            registry = Resolver().load_registry()
+            resolver = Resolver()
+            discovery_engine = SkillDiscoveryEngine(registry, resolver)
+            ranking_engine = SkillRankingEngine(registry, resolver)
+            bundling_engine = SkillBundlingEngine(registry, resolver)
+            builder_engine = AgentProfileBuilderEngine(registry, resolver)
+            deployment_planner = MissionDeploymentPlanner()
+
+            sel_report = discovery_engine.discover_skills(exec_plan)
+            rnk_report = ranking_engine.rank_skills(sel_report, exec_plan)
+            bnd_report = bundling_engine.bundle_skills(rnk_report, exec_plan, sel_report)
+            prf_report = builder_engine.build_profiles(bnd_report, exec_plan)
+            deployment_plan = deployment_planner.create_deployment_plan(exec_plan, prf_report)
+
+            init_engine = SwarmInitializationEngine()
+            snapshot = init_engine.initialize_swarm(deployment_plan)
+
+            scaffold_engine = WorkspaceScaffoldEngine()
+            scaffold_report = scaffold_engine.scaffold_workspace(snapshot, workspace_override=ws_path)
+
+            blueprint_engine = ProjectBlueprintEngine()
+            blueprint_report = blueprint_engine.generate_blueprint(scaffold_report)
+
+            allocation_engine = ImplementationAllocationEngine()
+            allocation_report = allocation_engine.allocate_implementation(blueprint_report)
+
+        contract_engine = EngineeringContractEngine()
+        contract_report = contract_engine.generate_contracts(allocation_report)
+
+        if json_output:
+            console.print_json(data=contract_report.model_dump(mode="json"))
+            return
+
+        console.print(f"[bold green]✓ Engineering Contracts Complete[/] ({contract_report.report_id})")
+
+        overview_table = Table(title="Engineering Contract Report Summary")
+        overview_table.add_column("Property", style="bold cyan")
+        overview_table.add_column("Value", style="bold yellow")
+        overview_table.add_row("Report ID", contract_report.report_id)
+        overview_table.add_row("Allocation ID", contract_report.allocation_id)
+        overview_table.add_row("Technology Stack", contract_report.technology_stack)
+        overview_table.add_row("Report Hash", contract_report.report_hash[:16] + "...")
+        overview_table.add_row("Total Contracts Generated", str(len(contract_report.contracts)))
+        overview_table.add_row("Execution Waves Count", str(len(contract_report.execution_waves)))
+        overview_table.add_row("Expected Artifact Outputs", str(len(contract_report.expected_outputs)))
+        console.print(overview_table)
+
+        wave_table = Table(title="Execution Waves & Engineering Contracts")
+        wave_table.add_column("Wave", style="bold yellow")
+        wave_table.add_column("Assigned Contracts Count", style="bold cyan")
+        for wave_num, ctr_ids in sorted(contract_report.execution_waves.items()):
+            wave_table.add_row(f"Wave {wave_num}", str(len(ctr_ids)))
+        console.print(wave_table)
+
+    except Exception as exc:
+        console.print(f"[red]Contracts Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
-    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts",
     "--help", "-h", "--version"
 }
 
