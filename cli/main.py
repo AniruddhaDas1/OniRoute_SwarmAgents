@@ -1049,8 +1049,12 @@ def review_command(
     policy_name: str = typer.Option("default", "--policy", help="Review policy: default, strict, permissive, security, infrastructure, deployment."),
     json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
 ) -> None:
-    """Submit a recovery review decision OR inspect collaboration peer reviews."""
     decisions_given = sum([approve, reject, request_changes])
+
+    # If session_id is provided without decision flags in recovery mode:
+    if session_id and decisions_given == 0:
+        console.print("[red]Error:[/] Specify exactly one of --approve, --reject, --request-changes.")
+        raise typer.Exit(1)
 
     # If a decision flag is explicitly passed, run ACR-006 Recovery Review decision logic
     if decisions_given > 0:
