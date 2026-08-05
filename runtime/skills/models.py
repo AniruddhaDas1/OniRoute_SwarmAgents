@@ -1,9 +1,19 @@
-"""Data models for Automatic Skill Discovery (Phase P2.S1)."""
-
 from __future__ import annotations
 
+from enum import Enum
 from typing import Any, Dict, List
 from pydantic import BaseModel, ConfigDict, Field
+
+
+class SkillPriority(str, Enum):
+    """Priority levels for ranked skills."""
+
+    CRITICAL = "CRITICAL"
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
+    OPTIONAL = "OPTIONAL"
+    SUPPORT = "SUPPORT"
 
 
 class DiscoveredSkill(BaseModel):
@@ -21,6 +31,40 @@ class DiscoveredSkill(BaseModel):
     required_packages: List[str] = Field(default_factory=list, description="Package requirements")
     required_mcp_tools: List[str] = Field(default_factory=list, description="MCP tool requirements")
     path: str = Field(default="", description="Path to skill definition")
+
+
+class RankedSkill(BaseModel):
+    """Immutable metadata representation of a ranked skill."""
+
+    model_config = ConfigDict(frozen=True)
+
+    skill_id: str = Field(description="Unique identifier of the skill record")
+    name: str = Field(description="Skill canonical name")
+    display_name: str = Field(description="Human-readable display name")
+    category: str = Field(description="Skill category")
+    rank: int = Field(description="1-indexed rank position")
+    priority: SkillPriority = Field(description="Assigned priority level")
+    score: float = Field(description="Deterministic weighted score (0.0 to 100.0)")
+    ranking_reason: str = Field(description="Reason for score and priority assignment")
+    score_breakdown: Dict[str, float] = Field(default_factory=dict, description="Breakdown of individual scoring factors")
+    dependencies: List[str] = Field(default_factory=list, description="Prerequisite skill identifiers")
+    knowledge_references: List[str] = Field(default_factory=list, description="Knowledge source references")
+    package_references: List[str] = Field(default_factory=list, description="Package references")
+    workflow_references: List[str] = Field(default_factory=list, description="Workflow references")
+    path: str = Field(default="", description="Path to skill definition")
+    is_official: bool = Field(default=False, description="Whether skill is an official registry skill")
+
+
+class DependencyChain(BaseModel):
+    """Dependency relationships and chain structure for a ranked skill."""
+
+    model_config = ConfigDict(frozen=True)
+
+    skill_id: str = Field(description="Target skill identifier")
+    prerequisites: List[str] = Field(default_factory=list, description="Skills that must execute prior to target")
+    blocking: List[str] = Field(default_factory=list, description="Skills dependent on target")
+    is_blocking: bool = Field(default=False, description="True if target skill blocks other skills")
+    is_independent: bool = Field(default=False, description="True if target skill has no prerequisites or dependent skills")
 
 
 class SkillCoverage(BaseModel):
@@ -52,3 +96,27 @@ class SkillSelectionReport(BaseModel):
     confidence: float = Field(description="Overall skill selection confidence score")
     evidence: Dict[str, Any] = Field(default_factory=dict, description="Discovery evidence and metadata")
     timestamp: str = Field(description="ISO 8601 UTC timestamp")
+
+
+class RankedSkillReport(BaseModel):
+    """Immutable report containing deterministically ranked skills and execution ordering."""
+
+    model_config = ConfigDict(frozen=True)
+
+    report_id: str = Field(description="Unique report identifier")
+    selection_report_id: str = Field(description="Associated SkillSelectionReport identifier")
+    execution_plan_id: str = Field(description="Associated EngineeringExecutionPlan identifier")
+    ranked_skills: List[RankedSkill] = Field(default_factory=list, description="Deterministically ranked skill records")
+    priority_groups: Dict[str, List[str]] = Field(default_factory=dict, description="Skill IDs grouped by SkillPriority")
+    dependency_chains: List[DependencyChain] = Field(default_factory=list, description="Dependency chains for all ranked skills")
+    recommended_execution_order: List[str] = Field(default_factory=list, description="Recommended topological execution order")
+    blocking_skills: List[str] = Field(default_factory=list, description="Skill IDs that block other skills")
+    independent_skills: List[str] = Field(default_factory=list, description="Skill IDs with no prerequisites or dependents")
+    knowledge_references: List[str] = Field(default_factory=list, description="Consolidated knowledge references")
+    package_references: List[str] = Field(default_factory=list, description="Consolidated package references")
+    workflow_references: List[str] = Field(default_factory=list, description="Consolidated workflow references")
+    coverage: SkillCoverage = Field(description="Preserved discovery coverage metrics")
+    confidence: float = Field(description="Overall skill ranking confidence score")
+    evidence: Dict[str, Any] = Field(default_factory=dict, description="Ranking evidence and metadata")
+    timestamp: str = Field(description="ISO 8601 UTC timestamp")
+

@@ -51,7 +51,7 @@ from runtime.agent.recovery import (
     ReviewDecision,
 )
 from runtime.organization import CapabilityResolver, ExecutionBlueprintAssembler, OrganizationAssembler
-from runtime.skills import SkillDiscoveryEngine, SkillSelectionReport
+from runtime.skills import SkillDiscoveryEngine, SkillRankingEngine, SkillSelectionReport, RankedSkillReport
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -2012,15 +2012,104 @@ def skills_default(
     console.print(mcp_table)
 
 
+@app.command("rank-skills")
+@skills_app.command("rank")
+def rank_skills_command(
+    request: list[str] = typer.Argument(None, help="Natural language request or plan prompt."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+) -> None:
+    """Deterministically rank discovered skills for an EngineeringExecutionPlan."""
+    raw_prompt = " ".join(request) if request else "Build application"
+    if request and "--json" in request:
+        json_output = True
+        raw_prompt = " ".join([r for r in request if r != "--json"])
+        if not raw_prompt.strip():
+            raw_prompt = "Build application"
+
+    intent_analyzer = IntentAnalyzer()
+    intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=workspace)
+
+    ws_intelligence = WorkspaceIntelligence()
+    ws_ctx = ws_intelligence.analyze_workspace(cwd=repository_root, explicit_workspace=workspace)
+
+    repo_intelligence = RepositoryIntelligence()
+    repo_ctx = repo_intelligence.analyze_repository(ws_ctx)
+
+    generator = EngineeringPlanGenerator()
+    plan = generator.generate_plan(intent_report, ws_ctx, repo_ctx)
+
+    loader = RepositoryLoader(repository_root)
+    registry = loader.load()
+    resolver = Resolver(registry)
+
+    discovery_engine = SkillDiscoveryEngine(registry, resolver)
+    selection_report = discovery_engine.discover_skills(plan)
+
+    ranking_engine = SkillRankingEngine(registry, resolver)
+    ranked_report = ranking_engine.rank_skills(selection_report, plan)
+
+    if json_output:
+        console.print_json(data=ranked_report.model_dump(mode="json"))
+        return
+
+    console.print(
+        f"\n[bold cyan]Ranked Skill Report:[/] {ranked_report.report_id} "
+        f"(Selection Report: {ranked_report.selection_report_id}, Plan: {ranked_report.execution_plan_id})"
+    )
+
+    # 1. Ranked Skills Table
+    skills_table = Table(title="Ranked Skills")
+    skills_table.add_column("Rank", justify="right", style="bold yellow")
+    skills_table.add_column("Priority", style="bold green")
+    skills_table.add_column("Score", justify="right")
+    skills_table.add_column("Skill ID", style="bold cyan")
+    skills_table.add_column("Category")
+    skills_table.add_column("Dependencies")
+    skills_table.add_column("Ranking Reason")
+
+    for skill in ranked_report.ranked_skills:
+        prio_str = skill.priority.value if hasattr(skill.priority, "value") else str(skill.priority)
+        deps_str = ", ".join(skill.dependencies) if skill.dependencies else "None"
+        skills_table.add_row(
+            str(skill.rank),
+            prio_str,
+            f"{skill.score:.1f}",
+            skill.skill_id,
+            skill.category,
+            deps_str,
+            skill.ranking_reason,
+        )
+    console.print(skills_table)
+
+    # 2. Priority Groups & Dependency Summary Table
+    summary_table = Table(title="Priority & Dependency Summary")
+    summary_table.add_column("Metric", style="bold cyan")
+    summary_table.add_column("Value")
+
+    for prio_name, sid_list in ranked_report.priority_groups.items():
+        summary_table.add_row(f"Priority [{prio_name}]", f"{len(sid_list)} skills ({', '.join(sid_list)})")
+
+    summary_table.add_row("Recommended Execution Order", ", ".join(ranked_report.recommended_execution_order))
+    summary_table.add_row("Blocking Skills", ", ".join(ranked_report.blocking_skills) if ranked_report.blocking_skills else "None")
+    summary_table.add_row("Independent Skills", ", ".join(ranked_report.independent_skills) if ranked_report.independent_skills else "None")
+    summary_table.add_row("Coverage Percentage", f"{ranked_report.coverage.coverage_percent}%")
+    summary_table.add_row("Ranking Confidence", f"{ranked_report.confidence * 100:.1f}%")
+
+    console.print(summary_table)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
-    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills",
+    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills",
     "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact",
     "--help", "-h", "--version"
 }
+
 
 
 
