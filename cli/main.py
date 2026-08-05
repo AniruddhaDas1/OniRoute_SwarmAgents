@@ -74,6 +74,7 @@ from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, Engi
 from runtime.review import QualityGateEngine, QualityReport, QualityGateError
 from runtime.healing import SelfHealingEngine, RepairPlanner, RepairPlan, UpdatedEngineeringResult, SelfHealingError
 from runtime.validation import VerificationEngine, AcceptanceEngine, VerificationResult, AcceptanceReport, ValidationAcceptanceError
+from runtime.router import NaturalLanguageRouter, SmartDefaults, RouterExecutionResult
 
 
 
@@ -4010,6 +4011,129 @@ def certify_engineering_command(
         sys.exit(1)
 
 
+def _run_natural_language_pipeline(request_text: str, workspace_path: Path | None = None, json_output: bool = False) -> None:
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+
+        if not json_output:
+            console.print(f"[bold cyan]🚀 OniRoute Swarm AI Engine v1.2[/] — Processing Request: [bold yellow]'{request_text}'[/]")
+
+        router = NaturalLanguageRouter()
+        result = router.route_and_execute(request_text, workspace_path=ws_path)
+
+        if json_output:
+            console.print_json(data=result.model_dump(mode="json"))
+            return
+
+        console.print("\n[bold green]✓ Project Generated & Certified Production-Ready![/]")
+
+        mission_table = Table(title="Mission & Intelligence Summary")
+        mission_table.add_column("Mission ID", style="bold cyan")
+        mission_table.add_column("Primary Intent", style="bold yellow")
+        mission_table.add_column("Confidence Score", style="bold green")
+        mission_table.add_column("End-to-End Latency", style="bold blue")
+
+        mission_table.add_row(
+            result.mission_id,
+            result.primary_intent.upper(),
+            f"{result.confidence_score * 100:.1f}%",
+            f"{result.end_to_end_latency_ms:.2f} ms",
+        )
+        console.print(mission_table)
+
+        defaults = result.smart_defaults
+        stack_table = Table(title="Detected Technology Stack & Smart Defaults")
+        stack_table.add_column("Property", style="bold magenta")
+        stack_table.add_column("Resolved Value", style="white")
+
+        stack_table.add_row("Project Type", defaults.project_type)
+        stack_table.add_row("Technology Stack", defaults.technology_stack)
+        stack_table.add_row("Framework", defaults.framework)
+        stack_table.add_row("Database", defaults.database)
+        stack_table.add_row("Authentication", defaults.authentication)
+        stack_table.add_row("Deployment Target", defaults.deployment_target)
+        stack_table.add_row("Testing Framework", defaults.testing_framework)
+        stack_table.add_row("Package Manager", defaults.package_manager)
+        stack_table.add_row("Coding Standards", defaults.coding_standards)
+        stack_table.add_row("Review Strategy", defaults.review_strategy)
+        stack_table.add_row("Healing Strategy", defaults.healing_strategy)
+        stack_table.add_row("Verification Strategy", defaults.verification_strategy)
+
+        console.print(stack_table)
+
+        exec_table = Table(title="Autonomous Engineering & Release Summary")
+        exec_table.add_column("Metric", style="bold cyan")
+        exec_table.add_column("Result", style="bold yellow")
+
+        exec_table.add_row("Files Created", str(result.total_files_created))
+        exec_table.add_row("Files Modified", str(result.total_files_modified))
+        exec_table.add_row("Quality Score", f"{result.quality_score:.2f} / 10.0")
+        exec_table.add_row("Production Ready", "[bold green]YES[/]" if result.production_ready else "[bold red]NO[/]")
+        exec_table.add_row("Certification ID", result.certification_report.certification_id)
+
+        console.print(exec_table)
+
+    except Exception as exc:
+        console.print(f"[red]Execution Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("build")
+def build_command(
+    prompt: list[str] = typer.Argument(..., help="Natural language request (e.g. 'a real estate website')."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON result."),
+) -> None:
+    """Build a project from natural language prompt."""
+    req_text = "build " + " ".join(prompt)
+    _run_natural_language_pipeline(req_text, workspace_path=workspace_path, json_output=json_output)
+
+
+@app.command("create")
+def create_command(
+    prompt: list[str] = typer.Argument(..., help="Natural language request (e.g. 'SaaS CRM')."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON result."),
+) -> None:
+    """Create a project from natural language prompt."""
+    req_text = "create " + " ".join(prompt)
+    _run_natural_language_pipeline(req_text, workspace_path=workspace_path, json_output=json_output)
+
+
+@app.command("fix")
+def fix_command(
+    prompt: list[str] = typer.Argument(..., help="Natural language request (e.g. 'database connection pool leak')."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON result."),
+) -> None:
+    """Fix issues from natural language prompt."""
+    req_text = "fix " + " ".join(prompt)
+    _run_natural_language_pipeline(req_text, workspace_path=workspace_path, json_output=json_output)
+
+
+@app.command("refactor")
+def refactor_command(
+    prompt: list[str] = typer.Argument(..., help="Natural language request (e.g. 'extract auth middleware')."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON result."),
+) -> None:
+    """Refactor codebase from natural language prompt."""
+    req_text = "refactor " + " ".join(prompt)
+    _run_natural_language_pipeline(req_text, workspace_path=workspace_path, json_output=json_output)
+
+
+@app.command("migrate")
+def migrate_command(
+    prompt: list[str] = typer.Argument(..., help="Natural language request (e.g. 'upgrade to Next.js 14 App Router')."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON result."),
+) -> None:
+    """Migrate codebase from natural language prompt."""
+    req_text = "migrate " + " ".join(prompt)
+    _run_natural_language_pipeline(req_text, workspace_path=workspace_path, json_output=json_output)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
@@ -4017,6 +4141,7 @@ REGISTERED_CLI_COMMANDS: set[str] = {
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
     "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept", "certify-engineering",
+    "build", "create", "fix", "refactor", "migrate",
     "--help", "-h", "--version"
 }
 
@@ -4049,45 +4174,10 @@ def main(args: list[str] | None = None) -> None:
         idx += 1
 
     if first_cmd is not None and first_cmd not in REGISTERED_CLI_COMMANDS:
-        try:
-            raw_prompt = " ".join(cmd_args)
-            analyzer = IntentAnalyzer()
-            intent_report = analyzer.analyze(raw_prompt, explicit_workspace=explicit_ws)
+        raw_prompt = " ".join(cmd_args)
+        _run_natural_language_pipeline(raw_prompt, workspace_path=explicit_ws)
+        sys.exit(0)
 
-            ws_intel = WorkspaceIntelligence()
-            ws_context = ws_intel.analyze_workspace(cwd=Path.cwd(), explicit_workspace=explicit_ws)
-
-            repo_intel = RepositoryIntelligence()
-            repo_context = repo_intel.analyze_repository(ws_context)
-
-            plan_gen = EngineeringPlanGenerator()
-            exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
-
-            if intent_report.confidence_score < 0.80:
-                console.print(f"[yellow]Warning:[/] Intent confidence score is low ({intent_report.confidence_score:.2f}).")
-                if intent_report.unknown_items:
-                    console.print(f"[yellow]Missing or ambiguous information:[/] {', '.join(intent_report.unknown_items)}")
-
-            intake = MissionIntake()
-            mission_request = intake.process_intake(
-                raw_prompt,
-                explicit_workspace=explicit_ws,
-                parameters={
-                    "intent_report": intent_report.model_dump(mode="json"),
-                    "workspace_context": ws_context.model_dump(mode="json"),
-                    "repository_context": repo_context.model_dump(mode="json"),
-                    "engineering_execution_plan": exec_plan.model_dump(mode="json"),
-                },
-            )
-            resolver = MissionResolver()
-            resolved_mission = resolver.resolve_mission(mission_request)
-            orchestrator = MissionOrchestrator()
-            exec_request = orchestrator.orchestrate_mission(resolved_mission)
-            console.print_json(data=exec_request.model_dump(mode="json"))
-            sys.exit(0)
-        except (IntentAnalysisError, MissionIntakeError, MissionResolutionError, MissionOrchestrationError) as exc:
-            console.print(f"[red]Mission Error:[/] {getattr(exc, 'message', str(exc))}")
-            sys.exit(1)
 
     app(args=raw_args)
 

@@ -67,6 +67,7 @@ from runtime.healing import SelfHealingEngine, RepairPlanner, RepairPlan, Update
 from runtime.validation import VerificationEngine, AcceptanceEngine, VerificationResult, AcceptanceReport, ValidationAcceptanceError
 
 __all__ = [
+
     "WorkspaceScaffoldEngine",
     "WorkspaceScaffoldReport",
     "WorkspaceScaffoldError",
@@ -100,6 +101,11 @@ __all__ = [
     "VerificationResult",
     "AcceptanceReport",
     "ValidationAcceptanceError",
+    "NaturalLanguageRouter",
+    "SmartDefaults",
+    "RouterExecutionResult",
+    "RouterError",
+    "RouterExecutionError",
     "WorkspaceValidator",
     "ArtifactCategory",
     "ArtifactCollisionError",
