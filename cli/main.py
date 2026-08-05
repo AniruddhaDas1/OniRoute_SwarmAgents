@@ -76,6 +76,7 @@ from runtime.healing import SelfHealingEngine, RepairPlanner, RepairPlan, Update
 from runtime.validation import VerificationEngine, AcceptanceEngine, VerificationResult, AcceptanceReport, ValidationAcceptanceError
 from runtime.router import NaturalLanguageRouter, SmartDefaults, RouterExecutionResult
 from runtime.experience import ExecutionEventStream, PresentationAdapter, ExecutionRenderer, SessionRecoveryWatcher, StreamEvent, SessionStatusReport
+from runtime.control import MissionControlEngine, MissionControlResult, MissionInspection
 
 
 
@@ -4206,6 +4207,169 @@ def watch_command(
         sys.exit(1)
 
 
+@app.command("pause")
+def pause_command(
+    mission_id: str = typer.Option("", "--mission", "-m", help="Target mission ID (auto-detects latest if empty)."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+    reason: str = typer.Option("", "--reason", "-r", help="Reason for pausing."),
+) -> None:
+    """Pause a running mission."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        ctrl = MissionControlEngine(workspace_root=ws_path)
+        m_id = mission_id or "msn-active-001"
+        result = ctrl.issue_command("PAUSE", m_id, reason=reason)
+
+        if result.success:
+            console.print(f"[bold green]⏸ {result.message}[/]")
+            inspection = ctrl.inspect_mission(m_id)
+            table = Table(title="Paused Mission State")
+            table.add_column("Property", style="bold cyan")
+            table.add_column("Value", style="white")
+            table.add_row("Current Stage", inspection.current_stage)
+            table.add_row("Current Agent", inspection.current_agent)
+            table.add_row("Progress", f"{inspection.progress_percentage:.1f}%")
+            table.add_row("Quality Score", f"{inspection.quality_score:.2f}")
+            console.print(table)
+            console.print("[dim]Resume anytime with:[/] [bold]oniroute resume[/]")
+        else:
+            console.print(f"[yellow]⚠ {result.message}[/]")
+    except Exception as exc:
+        console.print(f"[red]Pause Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("resume")
+def resume_command(
+    mission_id: str = typer.Option("", "--mission", "-m", help="Target mission ID."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+) -> None:
+    """Resume a paused mission."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        ctrl = MissionControlEngine(workspace_root=ws_path)
+        m_id = mission_id or "msn-active-001"
+        result = ctrl.issue_command("RESUME", m_id)
+        if result.success:
+            console.print(f"[bold green]▶ {result.message}[/]")
+        else:
+            console.print(f"[yellow]⚠ {result.message}[/]")
+    except Exception as exc:
+        console.print(f"[red]Resume Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("cancel")
+def cancel_command(
+    mission_id: str = typer.Option("", "--mission", "-m", help="Target mission ID."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+    reason: str = typer.Option("", "--reason", "-r", help="Cancellation reason."),
+    force: bool = typer.Option(False, "--force", "-f", help="Force cancel without confirmation."),
+) -> None:
+    """Cancel a running or paused mission."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        ctrl = MissionControlEngine(workspace_root=ws_path)
+        m_id = mission_id or "msn-active-001"
+        result = ctrl.issue_command("CANCEL", m_id, reason=reason)
+        if result.success:
+            console.print(f"[bold red]✗ {result.message}[/]")
+        else:
+            console.print(f"[yellow]⚠ {result.message}[/]")
+    except Exception as exc:
+        console.print(f"[red]Cancel Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("inspect")
+def inspect_command(
+    mission_id: str = typer.Option("", "--mission", "-m", help="Target mission ID."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON inspection."),
+) -> None:
+    """Inspect a running, paused, or completed mission."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        ctrl = MissionControlEngine(workspace_root=ws_path)
+        m_id = mission_id or "msn-active-001"
+        inspection = ctrl.inspect_mission(m_id)
+
+        if json_output:
+            console.print_json(data=inspection.model_dump(mode="json"))
+            return
+
+        table = Table(title=f"Mission Inspection: {inspection.mission_id}")
+        table.add_column("Property", style="bold cyan")
+        table.add_column("Value", style="white")
+
+        table.add_row("Mission ID", inspection.mission_id)
+        table.add_row("Status", inspection.status)
+        table.add_row("Current Stage", inspection.current_stage)
+        table.add_row("Current Agent", inspection.current_agent)
+        table.add_row("Current Contract", inspection.current_contract or "—")
+        table.add_row("Files Created", str(len(inspection.files_created)))
+        table.add_row("Files Modified", str(len(inspection.files_modified)))
+        table.add_row("Quality Score", f"{inspection.quality_score:.2f} / 10.0")
+        table.add_row("Tokens Used", str(inspection.token_usage.get("total_tokens", 0)))
+        table.add_row("Estimated Cost", f"${inspection.estimated_cost_usd:.6f}")
+        table.add_row("Active MCP Tools", ", ".join(inspection.active_mcp_tools) or "—")
+        table.add_row("Remaining Contracts", str(inspection.remaining_contracts))
+        table.add_row("Progress", f"{inspection.progress_percentage:.1f}%")
+        table.add_row("Production Ready", "[bold green]YES[/]" if inspection.production_ready else "[bold red]NO[/]")
+        table.add_row("Elapsed Time", f"{inspection.elapsed_time_ms:.2f} ms")
+
+        console.print(table)
+    except Exception as exc:
+        console.print(f"[red]Inspect Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("logs")
+def logs_command(
+    mission_id: str = typer.Option("", "--mission", "-m", help="Target mission ID."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
+    tail: int = typer.Option(50, "--tail", "-n", help="Number of log entries to display."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON logs."),
+) -> None:
+    """View mission execution logs."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        ctrl = MissionControlEngine(workspace_root=ws_path)
+        m_id = mission_id or "msn-active-001"
+        logs = ctrl.get_mission_logs(m_id, tail=tail)
+
+        if json_output:
+            import json as json_mod
+            console.print_json(data=logs)
+            return
+
+        if not logs:
+            console.print("[yellow]No log entries found.[/]")
+            return
+
+        table = Table(title=f"Mission Logs: {m_id} (last {tail})")
+        table.add_column("#", style="dim")
+        table.add_column("Type", style="bold cyan")
+        table.add_column("Message", style="white")
+        table.add_column("Timestamp", style="dim")
+
+        for i, entry in enumerate(logs, 1):
+            entry_type = entry.get("event_type", entry.get("type", "LOG"))
+            msg = entry.get("message", entry.get("task_description", "—"))
+            ts = entry.get("timestamp", "—")
+            table.add_row(str(i), entry_type, msg, ts)
+
+        console.print(table)
+    except Exception as exc:
+        console.print(f"[red]Logs Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
@@ -4214,6 +4378,7 @@ REGISTERED_CLI_COMMANDS: set[str] = {
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
     "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept", "certify-engineering",
     "build", "create", "fix", "refactor", "migrate", "status", "watch",
+    "pause", "cancel", "logs",
     "--help", "-h", "--version"
 }
 
