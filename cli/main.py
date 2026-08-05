@@ -38,7 +38,7 @@ from runtime.mission import (
     MissionResolutionError,
     MissionResolver,
 )
-from runtime.agent import SessionCoordinator
+from runtime.agent import AgentExecutionEngine, SessionCoordinator
 from runtime.organization import CapabilityResolver, ExecutionBlueprintAssembler, OrganizationAssembler
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
@@ -954,11 +954,84 @@ def session_command(
         raise typer.Exit(1)
 
 
+@app.command("execute")
+def execute_command(
+    command: list[str] = typer.Argument(None, help="Natural language mission command to execute."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON RuntimeReport."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+) -> None:
+    """Execute a mission end-to-end: Blueprint → Sessions → Execution → RuntimeReport."""
+    if command and "--json" in command:
+        json_output = True
+        command = [c for c in command if c != "--json"]
+    raw_prompt = " ".join(command) if command else "Execute workspace mission"
+
+    try:
+        # 1. Full pipeline: intake → resolve → orchestrate → blueprint
+        intake = MissionIntake()
+        mission_request = intake.process_intake(raw_prompt, explicit_workspace=workspace)
+        resolver = MissionResolver()
+        resolved_mission = resolver.resolve_mission(mission_request)
+        orchestrator = MissionOrchestrator()
+        exec_request = orchestrator.orchestrate_mission(resolved_mission)
+        bp_assembler = ExecutionBlueprintAssembler(repository_root=repository_root)
+        blueprint = bp_assembler.assemble_blueprint(exec_request, repository_root=repository_root)
+
+        # 2. Session initialization
+        coordinator = SessionCoordinator()
+        context, sessions, _session_report = coordinator.initialize_sessions(blueprint)
+
+        # 3. Execute all READY sessions
+        engine = AgentExecutionEngine(repository_root=repository_root)
+        results, report = engine.execute_all(blueprint, coordinator.registry)
+
+        if json_output:
+            console.print_json(data=report.model_dump(mode="json"))
+            return
+
+        # 4. Render rich output
+        result_table = Table(title=f"Execution Results: {blueprint.blueprint_id}")
+        result_table.add_column("Session ID", style="bold cyan")
+        result_table.add_column("Role", style="bold green")
+        result_table.add_column("State")
+        result_table.add_column("Status")
+        result_table.add_column("Artifacts")
+        result_table.add_column("Events")
+
+        for session in coordinator.registry.list_sessions():
+            result_table.add_row(
+                session.session_id,
+                session.role_title,
+                session.state.value.upper(),
+                session.status.value.upper(),
+                str(len(session.artifacts)),
+                str(len(session.events)),
+            )
+        console.print(result_table)
+
+        summary_table = Table(title="Runtime Execution Report")
+        summary_table.add_column("Metric", style="bold green")
+        summary_table.add_column("Value")
+        summary_table.add_row("Blueprint ID", report.blueprint_id)
+        summary_table.add_row("Mission ID", report.mission_id)
+        summary_table.add_row("Total Sessions", str(report.total_sessions))
+        summary_table.add_row("Completed", str(report.completed_sessions))
+        summary_table.add_row("Failed", str(report.failed_sessions))
+        summary_table.add_row("Total Artifacts", str(report.total_artifacts))
+        summary_table.add_row("Total Events", str(report.total_events))
+        console.print(summary_table)
+
+    except (MissionIntakeError, MissionResolutionError, MissionOrchestrationError) as exc:
+        console.print(f"[red]Execution Error:[/] {getattr(exc, 'message', str(exc))}")
+        raise typer.Exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
-    "providers", "capabilities", "capability", "organization", "blueprint", "session", "recommend-model", "tools",
+    "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "--help", "-h", "--version"
 }
 
