@@ -618,6 +618,9 @@ def mission_default(
 ) -> None:
     if ctx.invoked_subcommand is not None:
         return
+    if command and "--json" in command:
+        json_output = True
+        command = [c for c in command if c != "--json"]
     if command and command[0] == "orchestrate":
         mission_orchestrate(command=command[1:], workspace=workspace, json_output=json_output)
         return
@@ -659,7 +662,11 @@ def mission_orchestrate(
     json_output: bool = typer.Option(False, "--json", help="Output raw JSON ExecutionRequest."),
 ) -> None:
     """Orchestrate a validated Mission and display the prepared ExecutionRequest without executing."""
+    if command and "--json" in command:
+        json_output = True
+        command = [c for c in command if c != "--json"]
     raw_prompt = " ".join(command) if command else "Orchestrate workspace mission"
+
     try:
         intake = MissionIntake()
         mission_request = intake.process_intake(raw_prompt, explicit_workspace=workspace)
