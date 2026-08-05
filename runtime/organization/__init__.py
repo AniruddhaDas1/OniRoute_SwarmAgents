@@ -1,4 +1,4 @@
-"""Engineering Organization Builder Architecture package for OniRoute (ACR-005 Phase S1)."""
+"""Engineering Organization Builder package for OniRoute (ACR-005 Phase S1 & S2)."""
 
 from .blueprint import ExecutionBlueprint, ExecutionReadiness
 from .capability import (
@@ -10,6 +10,8 @@ from .capability import (
     CapabilityReport,
     CapabilityRequirement,
 )
+from .capability_resolver import CapabilityResolver
+from .capability_validator import CapabilityValidator
 from .contracts import (
     CapabilityAnalyzerContract,
     ExecutionBlueprintBuilderContract,
@@ -52,6 +54,8 @@ __all__ = [
     "CapabilityRequirement",
     "CapabilityEvidence",
     "CapabilityReport",
+    "CapabilityResolver",
+    "CapabilityValidator",
     # Organization
     "MemberStatus",
     "DependencyType",

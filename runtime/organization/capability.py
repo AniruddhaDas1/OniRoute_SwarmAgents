@@ -31,9 +31,16 @@ class Capability(BaseModel):
     domain: str = Field(..., description="Engineering domain category (e.g. backend, database, security)")
     description: str = Field(..., description="Detailed capability description")
     version: str = Field(default="1.0.0", description="Capability definition version")
+    priority: CapabilityPriority = Field(default=CapabilityPriority.HIGH, description="Capability priority ranking")
+    confidence: float = Field(default=1.0, description="Confidence score of resolution (0.0 to 1.0)")
+    dependencies: list[str] = Field(default_factory=list, description="IDs of capabilities this capability depends on")
     required_skills: list[str] = Field(default_factory=list, description="Declarative required skill references")
     required_knowledge: list[str] = Field(default_factory=list, description="Declarative required knowledge references")
     required_packages: list[str] = Field(default_factory=list, description="Declarative required package references")
+    required_workflows: list[str] = Field(default_factory=list, description="Declarative required workflow references")
+    constraints: list[CapabilityConstraint] = Field(default_factory=list, description="Capability-level operational constraints")
+    evidence: list[CapabilityEvidence] = Field(default_factory=list, description="Evidence records attached to this capability")
+    is_optional: bool = Field(default=False, description="Flag indicating if capability is optional")
     metadata: dict[str, Any] = Field(default_factory=dict, description="Extensible capability metadata")
 
 
@@ -78,8 +85,8 @@ class CapabilityEvidence(BaseModel):
 
     evidence_id: str = Field(..., description="Unique evidence record identifier")
     capability_id: str = Field(..., description="Target capability ID")
-    source_stage: str = Field(default="capability_analysis", description="Analysis pipeline stage")
-    asserted_by: str = Field(..., description="Component asserting capability (e.g. CapabilityAnalyzer)")
+    source_stage: str = Field(default="capability_resolution", description="Analysis pipeline stage")
+    asserted_by: str = Field(..., description="Component asserting capability (e.g. CapabilityResolver)")
     provenance_details: dict[str, Any] = Field(default_factory=dict, description="Provenance and reasoning metadata")
     timestamp: str = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat(),
@@ -97,6 +104,11 @@ class CapabilityReport(BaseModel):
     groups: list[CapabilityGroup] = Field(default_factory=list, description="List of capability groups")
     requirements: list[CapabilityRequirement] = Field(default_factory=list, description="Required capability specifications")
     evidence: list[CapabilityEvidence] = Field(default_factory=list, description="Collected capability evidence records")
+    capability_priorities: dict[str, str] = Field(default_factory=dict, description="Mapping of capability_id to priority string")
+    capability_constraints: list[CapabilityConstraint] = Field(default_factory=list, description="Consolidated capability constraints")
+    dependency_summary: dict[str, list[str]] = Field(default_factory=dict, description="Directed dependency mapping between capabilities")
+    coverage_summary: dict[str, Any] = Field(default_factory=dict, description="Summary of domain coverage and requirement mappings")
+    readiness: dict[str, Any] = Field(default_factory=dict, description="Readiness assessment and validation status")
     generated_at: str = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat(),
         description="Report generation timestamp",

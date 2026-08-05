@@ -38,6 +38,7 @@ from runtime.mission import (
     MissionResolutionError,
     MissionResolver,
 )
+from runtime.organization import CapabilityResolver
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -699,11 +700,74 @@ def mission_orchestrate(
         raise typer.Exit(1)
 
 
+@app.command("capability")
+def capability_command(
+    command: list[str] = typer.Argument(None, help="Natural language command or prompt for capability resolution."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON CapabilityReport."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+) -> None:
+    """Resolve and display required engineering capabilities for a mission without execution."""
+    if command and "--json" in command:
+        json_output = True
+        command = [c for c in command if c != "--json"]
+    raw_prompt = " ".join(command) if command else "Resolve capabilities for workspace"
+
+    try:
+        intake = MissionIntake()
+        mission_request = intake.process_intake(raw_prompt, explicit_workspace=workspace)
+        resolver = MissionResolver()
+        resolved_mission = resolver.resolve_mission(mission_request)
+        orchestrator = MissionOrchestrator()
+        exec_request = orchestrator.orchestrate_mission(resolved_mission)
+        cap_resolver = CapabilityResolver(repository_root=repository_root)
+        cap_report = cap_resolver.resolve_capabilities(exec_request)
+
+        if json_output:
+            console.print_json(data=cap_report.model_dump(mode="json"))
+            return
+
+        table = Table(title=f"Resolved Capability Report: {cap_report.report_id}")
+        table.add_column("Capability ID", style="bold cyan")
+        table.add_column("Domain", style="bold yellow")
+        table.add_column("Capability Name")
+        table.add_column("Priority")
+        table.add_column("Confidence")
+        table.add_column("Dependencies")
+
+        for cap in cap_report.capabilities:
+            table.add_row(
+                cap.capability_id,
+                cap.domain.upper(),
+                cap.name,
+                cap.priority.value.upper(),
+                f"{cap.confidence * 100:.0f}%",
+                ", ".join(cap.dependencies) if cap.dependencies else "None",
+            )
+
+        console.print(table)
+
+        summary_table = Table(title="Capability Validation & Readiness Summary")
+        summary_table.add_column("Metric", style="bold green")
+        summary_table.add_column("Value")
+        summary_table.add_row("Total Capabilities", str(cap_report.total_capabilities_analyzed))
+        summary_table.add_row("Total Groups", str(len(cap_report.groups)))
+        summary_table.add_row("Total Requirements Mapped", str(len(cap_report.requirements)))
+        summary_table.add_row("Evidence Records Attached", str(len(cap_report.evidence)))
+        summary_table.add_row("Validation Status", "PASSED" if cap_report.readiness.get("is_ready", True) else "FAILED")
+
+        console.print(summary_table)
+
+    except (MissionIntakeError, MissionResolutionError, MissionOrchestrationError) as exc:
+        console.print(f"[red]Capability Resolution Error:[/] {getattr(exc, 'message', str(exc))}")
+        raise typer.Exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
-    "providers", "capabilities", "recommend-model", "tools",
+    "providers", "capabilities", "capability", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "--help", "-h", "--version"
 }
 
