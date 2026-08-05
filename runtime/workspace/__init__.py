@@ -49,6 +49,7 @@ from .models import (
     WorkspaceStatus,
 )
 from .intelligence import WorkspaceContext, WorkspaceIntelligence, WorkspaceState
+from .plan import EngineeringExecutionPlan, EngineeringPlanGenerator, RepositoryStrategy
 from .project import ProjectDetector
 from .repository import RepositoryContext, RepositoryIntelligence
 from .session_storage import SessionStorage
@@ -69,6 +70,8 @@ __all__ = [
     "EngineResolver",
     "EngineResolverContract",
     "EngineWriteViolation",
+    "EngineeringExecutionPlan",
+    "EngineeringPlanGenerator",
     "ExecutionHistoryStorage",
     "ExecutionContext",
     "LogStorage",
@@ -79,6 +82,7 @@ __all__ = [
     "ReportStorage",
     "RepositoryContext",
     "RepositoryIntelligence",
+    "RepositoryStrategy",
     "SessionStorage",
     "TraceStorage",
     "TrustLevel",

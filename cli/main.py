@@ -13,6 +13,7 @@ from runtime.workspace import ArtifactRouter, ReportStorage, WorkspaceManager, W
 from runtime.workspace import SessionStorage, ExecutionHistoryStorage, TraceStorage, LogStorage
 from runtime.workspace import WorkspaceContext, WorkspaceIntelligence, WorkspaceState
 from runtime.workspace import RepositoryContext, RepositoryIntelligence
+from runtime.workspace import EngineeringExecutionPlan, EngineeringPlanGenerator, RepositoryStrategy
 from runtime.context.builder import ContextBuilder
 from runtime.context.serializer import ContextSerializer
 from runtime.execution.engine import WorkflowEngine
@@ -287,6 +288,70 @@ def context_skill(identifier: str, repository_root: Path = typer.Option(Path.cwd
 @app.command()
 def search(query: str, repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False)):
     _table(_resolver(repository_root).search(query))
+
+@plan_app.callback(invoke_without_command=True)
+def plan_default(
+    ctx: typer.Context,
+    request: list[str] = typer.Argument(None, help="Natural language request string to plan."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+) -> None:
+    if ctx.invoked_subcommand is not None:
+        return
+
+    raw_prompt = " ".join(request) if request else "Build CRM"
+    if request and "--json" in request:
+        json_output = True
+        raw_prompt = " ".join([r for r in request if r != "--json"])
+        if not raw_prompt.strip():
+            raw_prompt = "Build CRM"
+
+    intent_analyzer = IntentAnalyzer()
+    intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=workspace)
+
+    ws_intelligence = WorkspaceIntelligence()
+    ws_ctx = ws_intelligence.analyze_workspace(cwd=repository_root, explicit_workspace=workspace)
+
+    repo_intelligence = RepositoryIntelligence()
+    repo_ctx = repo_intelligence.analyze_repository(ws_ctx)
+
+    generator = EngineeringPlanGenerator()
+    plan = generator.generate_plan(intent_report, ws_ctx, repo_ctx)
+
+    if json_output:
+        console.print_json(data=plan.model_dump(mode="json"))
+        return
+
+    table = Table(title=f"Engineering Execution Plan: {plan.plan_id}")
+    table.add_column("Category", style="bold cyan")
+    table.add_column("Property")
+    table.add_column("Value")
+
+    table.add_row("Overview", "Plan ID", plan.plan_id)
+    table.add_row("Overview", "Mission ID", plan.mission_id)
+    table.add_row("Overview", "Project Goal", plan.project_goal)
+    table.add_row("Overview", "Project Type", plan.project_type)
+
+    strat_val = plan.repository_strategy.value if hasattr(plan.repository_strategy, "value") else str(plan.repository_strategy)
+    table.add_row("Strategy", "Repository Strategy", strat_val)
+    table.add_row("Strategy", "Current State", plan.current_project_state)
+    table.add_row("Strategy", "Target State", plan.target_project_state)
+
+    table.add_row("Stack", "Technology Stack", ", ".join(plan.technology_stack) if plan.technology_stack else "None")
+    table.add_row("Disciplines", "Required Disciplines", ", ".join(plan.required_disciplines) if plan.required_disciplines else "None")
+    table.add_row("Deliverables", "Planned Deliverables", ", ".join(plan.required_deliverables) if plan.required_deliverables else "None")
+
+    table.add_row("Milestones", "High-Level Milestones", f"{len(plan.high_level_milestones)} milestones planned")
+    for m in plan.high_level_milestones:
+        table.add_row("Milestones", f"Stage {m['step']}: {m['name']}", m["objective"])
+
+    table.add_row("Constraints", "Known Constraints", ", ".join(plan.known_constraints) if plan.known_constraints else "None")
+    table.add_row("Risks", "Identified Risks", ", ".join(plan.risks) if plan.risks else "None")
+    table.add_row("Missing Info", "Missing Information", ", ".join(plan.missing_information) if plan.missing_information else "None")
+
+    console.print(table)
+
 
 @plan_app.command("workflow")
 def plan_workflow(
@@ -1884,6 +1949,9 @@ def main(args: list[str] | None = None) -> None:
             repo_intel = RepositoryIntelligence()
             repo_context = repo_intel.analyze_repository(ws_context)
 
+            plan_gen = EngineeringPlanGenerator()
+            exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
             if intent_report.confidence_score < 0.80:
                 console.print(f"[yellow]Warning:[/] Intent confidence score is low ({intent_report.confidence_score:.2f}).")
                 if intent_report.unknown_items:
@@ -1897,6 +1965,7 @@ def main(args: list[str] | None = None) -> None:
                     "intent_report": intent_report.model_dump(mode="json"),
                     "workspace_context": ws_context.model_dump(mode="json"),
                     "repository_context": repo_context.model_dump(mode="json"),
+                    "engineering_execution_plan": exec_plan.model_dump(mode="json"),
                 },
             )
             resolver = MissionResolver()
