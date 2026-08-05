@@ -54,9 +54,12 @@ def test_mission_state_transitions():
 
 def test_mission_model_instantiation():
     req = MissionRequest(
+        mission_id="msn-1001",
         request_id="req-1001",
+        original_command="Create a premium SaaS landing page",
+        normalized_command="Create a premium SaaS landing page",
         raw_prompt="Create a premium SaaS landing page",
-        explicit_workspace=Path("/tmp/ws"),
+        workspace=Path("/tmp/ws"),
     )
     reqs = MissionRequirements(
         intent_category="create",

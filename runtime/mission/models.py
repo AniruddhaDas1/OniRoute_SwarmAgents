@@ -1,7 +1,7 @@
-"""Immutable Mission models for OniRoute Mission Orchestrator (ACR-004 Phase O1).
+"""Immutable Mission models for OniRoute Mission Orchestrator (ACR-004 Phase O1 & O2).
 
-This module defines declarative Pydantic schemas for the Mission Orchestrator without
-introducing runtime execution logic.
+This module defines declarative Pydantic schemas for the Mission Orchestrator and
+Mission Intake without introducing planning or runtime execution logic.
 """
 
 from __future__ import annotations
@@ -17,16 +17,28 @@ from .states import MissionState
 
 
 class MissionRequest(BaseModel):
-    """Raw mission intake request from CLI or API."""
+    """Canonical mission intake request produced by Mission Intake."""
 
-    request_id: str = Field(..., description="Unique intake request identifier")
-    raw_prompt: str = Field(..., description="Unparsed natural language command from CLI")
-    explicit_workspace: Path | None = Field(default=None, description="Optional explicit workspace override path")
-    parameters: dict[str, Any] = Field(default_factory=dict, description="Additional CLI options or flag parameters")
+    mission_id: str = Field(..., description="Assigned unique mission identifier (e.g. msn-123456)")
+    request_id: str = Field(default="", description="Unique intake request identifier")
+    original_command: str = Field(..., description="Original raw CLI command as received")
+    normalized_command: str = Field(..., description="Normalized CLI command text")
+    raw_prompt: str = Field(..., description="Preserved unparsed prompt string")
+    workspace: Path | None = Field(default=None, description="Resolved workspace root path")
+    workspace_metadata: dict[str, Any] | None = Field(default=None, description="Attached workspace metadata snapshot")
+    timestamp: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        description="ISO-8601 UTC timestamp when intake occurred",
+    )
     requested_at: str = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat(),
         description="ISO-8601 UTC timestamp when request was submitted",
     )
+    mission_state: MissionState = Field(default=MissionState.RECEIVED, description="Initial mission state")
+    source: str = Field(default="cli", description="Intake source (e.g. cli, api)")
+    version: str = Field(default="1.0.0", description="Mission request schema version")
+    parameters: dict[str, Any] = Field(default_factory=dict, description="Additional CLI options or flag parameters")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional intake metadata")
 
 
 class MissionRequirements(BaseModel):

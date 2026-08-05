@@ -30,6 +30,7 @@ from runtime.optimization.conversation_optimizer import optimize_conversation
 from runtime.optimization.prompt_optimizer import optimize_prompt
 from runtime.optimization.repository_optimizer import lookup_symbols
 from runtime.optimization.terminal_optimizer import summarize_terminal
+from runtime.mission import MissionIntake, MissionIntakeError
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -597,4 +598,48 @@ def optimize_explain(repository_root: Path = typer.Option(Path.cwd(), exists=Tru
     manager=_models(repository_root); policy=manager.config.get("optimization",{})
     console.print_json(data={"pipeline":"Context Engine -> ICOE -> UMAL -> Invocation","policy":policy,"native_plugin":"Healthy","optional_plugins":{"rtk":"Unavailable","ast":"Unavailable","repository-graph":"Unavailable"},"bypass":"oniroute run workflow <id> --no-optimization"})
 
-if __name__ == "__main__": app()
+
+REGISTERED_CLI_COMMANDS: set[str] = {
+    "workspace", "doctor", "history", "events", "list", "inspect",
+    "context", "run", "plan", "models", "explain", "policy",
+    "optimize", "audit", "approvals", "permissions", "budget",
+    "providers", "capabilities", "recommend-model", "tools",
+    "mcp", "recommend-tool", "invoke", "search", "--help", "-h", "--version"
+}
+
+
+def main(args: list[str] | None = None) -> None:
+    import sys
+    raw_args = sys.argv[1:] if args is None else list(args)
+
+    first_cmd = None
+    explicit_ws = None
+    idx = 0
+    cmd_args = []
+    while idx < len(raw_args):
+        token = raw_args[idx]
+        if token in ("--workspace", "-w") and idx + 1 < len(raw_args):
+            explicit_ws = Path(raw_args[idx + 1])
+            idx += 2
+            continue
+        if not token.startswith("-"):
+            first_cmd = token
+            cmd_args = raw_args[idx:]
+            break
+        idx += 1
+
+    if first_cmd is not None and first_cmd not in REGISTERED_CLI_COMMANDS:
+        try:
+            intake = MissionIntake()
+            mission_request = intake.parse_cli_command(cmd_args, explicit_workspace=explicit_ws)
+            console.print_json(data=mission_request.model_dump(mode="json"))
+            return
+        except MissionIntakeError as exc:
+            console.print(f"[red]Mission Intake Error:[/] {exc.message}")
+            raise typer.Exit(1)
+
+    app(args=raw_args)
+
+
+if __name__ == "__main__":
+    main()
