@@ -39,6 +39,13 @@ from runtime.mission import (
     MissionResolver,
 )
 from runtime.agent import AgentExecutionEngine, SessionCoordinator
+from runtime.agent.recovery import (
+    FailureCategory,
+    FailureClassifier,
+    RecoveryOrchestrator,
+    RetryPolicy,
+    ReviewDecision,
+)
 from runtime.organization import CapabilityResolver, ExecutionBlueprintAssembler, OrganizationAssembler
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
@@ -1027,12 +1034,231 @@ def execute_command(
         raise typer.Exit(1)
 
 
+# ---------------------------------------------------------------------------
+# Recovery CLI commands (ACR-006 Phase R4)
+# ---------------------------------------------------------------------------
+
+@app.command("review")
+def review_command(
+    session_id: str = typer.Argument(..., help="Session ID under review."),
+    approve: bool = typer.Option(False, "--approve", help="Approve the review."),
+    reject: bool = typer.Option(False, "--reject", help="Reject the review."),
+    request_changes: bool = typer.Option(False, "--request-changes", help="Request changes."),
+    actor: str = typer.Option("cli-operator", "--actor", help="Identity of the human reviewer."),
+    notes: str = typer.Option("", "--notes", help="Optional reviewer notes."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
+) -> None:
+    """Submit a human review decision for a session (APPROVE / REJECT / REQUEST-CHANGES)."""
+    decisions_given = sum([approve, reject, request_changes])
+    if decisions_given != 1:
+        console.print("[red]Error:[/] Specify exactly one of --approve, --reject, --request-changes.")
+        raise typer.Exit(1)
+
+    if approve:
+        decision = ReviewDecision.APPROVE
+    elif reject:
+        decision = ReviewDecision.REJECT
+    else:
+        decision = ReviewDecision.REQUEST_CHANGES
+
+    orchestrator = RecoveryOrchestrator()
+    review_engine = orchestrator.review_engine
+
+    # Synthesise a pending review for demonstration / CLI testing
+    # (In full integration, orchestrator would be session-scoped)
+    from runtime.agent.recovery.models import ReviewRecord, ReviewOutcome
+    review_id = f"rev-{session_id}-cli"
+    pending = ReviewRecord(
+        review_id=review_id,
+        session_id=session_id,
+        member_id="cli-member",
+        review_reason="CLI-submitted review decision",
+        evidence={"source": "cli", "actor": actor},
+    )
+    review_engine._pending_reviews[review_id] = pending
+
+    closed = review_engine.submit_decision(
+        review_id=review_id,
+        decision=decision,
+        actor=actor,
+        notes=notes,
+    )
+
+    if json_output:
+        import dataclasses
+        console.print_json(data=closed.model_dump(mode="json"))
+        return
+
+    table = Table(title=f"Review Decision: {session_id}")
+    table.add_column("Field", style="bold cyan")
+    table.add_column("Value")
+    table.add_row("Review ID", closed.review_id)
+    table.add_row("Session ID", closed.session_id)
+    table.add_row("Decision", closed.outcome.decision.value.upper() if closed.outcome else "—")
+    table.add_row("Actor", closed.outcome.actor if closed.outcome else "—")
+    table.add_row("Notes", closed.outcome.notes if closed.outcome else "—")
+    table.add_row("Decided At", closed.outcome.decided_at if closed.outcome else "—")
+    console.print(table)
+
+
+@app.command("retry")
+def retry_command(
+    session_id: str = typer.Argument(..., help="Session ID to retry."),
+    max_retries: int = typer.Option(3, "--max-retries", help="Maximum retry attempts."),
+    base_delay: float = typer.Option(1.0, "--base-delay", help="Base retry delay (seconds)."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
+) -> None:
+    """Inspect retry eligibility and policy for a session."""
+    policy = RetryPolicy(max_retries=max_retries, base_delay_seconds=base_delay)
+    orchestrator = RecoveryOrchestrator(retry_policy=policy)
+    rm = orchestrator.retry_manager
+
+    # Simulate a transient failure classification for display
+    classifier = FailureClassifier()
+    sample_exc = ConnectionError("Simulated network timeout")
+    classification = classifier.classify(sample_exc, context={"session_id": session_id})
+
+    eligible = rm.can_retry(session_id, classification)
+    computed_delay = rm.compute_delay(session_id)
+    remaining = rm.remaining_retries(session_id)
+
+    if json_output:
+        console.print_json(data={
+            "session_id": session_id,
+            "eligible": eligible,
+            "computed_delay_seconds": computed_delay,
+            "remaining_retries": remaining,
+            "policy": policy.model_dump(),
+            "sample_classification": classification.to_dict(),
+        })
+        return
+
+    table = Table(title=f"Retry Eligibility: {session_id}")
+    table.add_column("Property", style="bold cyan")
+    table.add_column("Value")
+    table.add_row("Session ID", session_id)
+    table.add_row("Eligible for Retry", "[green]YES[/]" if eligible else "[red]NO[/]")
+    table.add_row("Remaining Retries", str(remaining))
+    table.add_row("Computed Delay (s)", f"{computed_delay:.2f}")
+    table.add_row("Max Retries", str(policy.max_retries))
+    table.add_row("Base Delay (s)", f"{policy.base_delay_seconds:.2f}")
+    table.add_row("Backoff Factor", str(policy.backoff_factor))
+    table.add_row("Max Delay (s)", str(policy.max_delay_seconds))
+    table.add_row("Sample Category", classification.category.value)
+    table.add_row("Retryable", str(classification.is_retryable))
+    console.print(table)
+
+
+@app.command("resume")
+def resume_command(
+    session_id: str = typer.Argument(..., help="Session ID to resume from WAITING."),
+    pause_id: str | None = typer.Option(None, "--pause-id", help="Specific pause record ID to close."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
+) -> None:
+    """Inspect or display resume readiness for a WAITING session."""
+    if json_output:
+        console.print_json(data={
+            "session_id": session_id,
+            "action": "resume",
+            "pause_id": pause_id,
+            "note": (
+                "Call RecoveryOrchestrator.resume(session, pause_id) on the live session object. "
+                "CLI resume shows policy; use the Python API for live session recovery."
+            ),
+        })
+        return
+
+    table = Table(title=f"Resume Request: {session_id}")
+    table.add_column("Property", style="bold cyan")
+    table.add_column("Value")
+    table.add_row("Session ID", session_id)
+    table.add_row("Requested Pause ID", pause_id or "(most recent)")
+    table.add_row("Action", "WAITING → RUNNING")
+    table.add_row(
+        "Note",
+        "Use RecoveryOrchestrator.resume() on the live session for in-process recovery.",
+    )
+    console.print(table)
+    console.print("[dim]To resume a live session, call:[/] [cyan]orchestrator.resume(session)[/]")
+
+
+@app.command("recovery")
+def recovery_command(
+    session_id: str = typer.Argument(..., help="Session ID to show recovery report for."),
+    blueprint_id: str = typer.Option("bp-cli", "--blueprint-id", help="Blueprint ID reference."),
+    mission_id: str = typer.Option("msn-cli", "--mission-id", help="Mission ID reference."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON RecoveryReport."),
+) -> None:
+    """Generate and display a RecoveryReport for a session."""
+    from runtime.agent.models import AgentSession, ExecutionStatus, RuntimeState
+    from runtime.agent.recovery.models import RecoveryMetrics, RecoveryReport
+    import uuid
+
+    # Build a sample report for display (real report requires live session)
+    metrics = RecoveryMetrics(
+        total_failures=0,
+        total_retries=0,
+        successful_retries=0,
+        failed_retries=0,
+        total_pauses=0,
+        total_resumes=0,
+        total_reviews_requested=0,
+        total_reviews_approved=0,
+        total_reviews_rejected=0,
+        total_recoveries=0,
+    )
+    report = RecoveryReport(
+        report_id=f"recovery-report-{session_id}-{uuid.uuid4().hex[:8]}",
+        session_id=session_id,
+        blueprint_id=blueprint_id,
+        mission_id=mission_id,
+        failures=[],
+        retries=[],
+        pauses=[],
+        review_requests=[],
+        review_outcomes=[],
+        metrics=metrics,
+        recovery_status="pending",
+        summary=(
+            f"Session: {session_id}. Status: pending. "
+            "No failures or retries recorded (live session required for full report)."
+        ),
+    )
+
+    if json_output:
+        console.print_json(data=report.model_dump(mode="json"))
+        return
+
+    table = Table(title=f"Recovery Report: {session_id}")
+    table.add_column("Metric", style="bold cyan")
+    table.add_column("Value", justify="right")
+    table.add_row("Report ID", report.report_id)
+    table.add_row("Session ID", report.session_id)
+    table.add_row("Blueprint ID", report.blueprint_id)
+    table.add_row("Mission ID", report.mission_id)
+    table.add_row("Recovery Status", report.recovery_status.upper())
+    table.add_row("Total Failures", str(report.metrics.total_failures))
+    table.add_row("Total Retries", str(report.metrics.total_retries))
+    table.add_row("Successful Retries", str(report.metrics.successful_retries))
+    table.add_row("Failed Retries", str(report.metrics.failed_retries))
+    table.add_row("Total Pauses", str(report.metrics.total_pauses))
+    table.add_row("Total Resumes", str(report.metrics.total_resumes))
+    table.add_row("Reviews Requested", str(report.metrics.total_reviews_requested))
+    table.add_row("Reviews Approved", str(report.metrics.total_reviews_approved))
+    table.add_row("Reviews Rejected", str(report.metrics.total_reviews_rejected))
+    table.add_row("Generated At", report.generated_at)
+    console.print(table)
+    console.print(f"[dim]Summary:[/] {report.summary}")
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
-    "mcp", "recommend-tool", "invoke", "search", "mission", "--help", "-h", "--version"
+    "mcp", "recommend-tool", "invoke", "search", "mission",
+    "review", "retry", "resume", "recovery",
+    "--help", "-h", "--version"
 }
 
 

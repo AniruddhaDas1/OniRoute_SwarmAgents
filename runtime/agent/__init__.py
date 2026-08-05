@@ -1,4 +1,4 @@
-"""OniRoute Agent Runtime package (ACR-006 Phase R1, R2 & R3)."""
+"""OniRoute Agent Runtime package (ACR-006 Phase R1, R2, R3 & R4)."""
 
 from .artifact_collector import ArtifactCollector
 from .contracts import (
@@ -31,6 +31,23 @@ from .runtime_initializer import RuntimeInitializer
 from .session_coordinator import SessionCoordinator
 from .session_manager import SessionManager
 from .session_registry import SessionRegistry
+from .recovery import (
+    FailureCategory,
+    FailureClassification,
+    FailureClassifier,
+    PauseRecord,
+    RecoveryEventType,
+    RecoveryMetrics,
+    RecoveryOrchestrator,
+    RecoveryReport,
+    RetryManager,
+    RetryPolicy,
+    RetryRecord,
+    ReviewDecision,
+    ReviewOutcome,
+    ReviewRecord,
+    RuntimeReviewEngine,
+)
 
 __all__ = [
     # Runtime States & Transitions
@@ -70,4 +87,20 @@ __all__ = [
     "ArtifactCollector",
     "ExecutionReporter",
     "AgentExecutionEngine",
+    # R4 — Recovery Engine
+    "FailureCategory",
+    "FailureClassification",
+    "FailureClassifier",
+    "PauseRecord",
+    "RecoveryEventType",
+    "RecoveryMetrics",
+    "RecoveryOrchestrator",
+    "RecoveryReport",
+    "RetryManager",
+    "RetryPolicy",
+    "RetryRecord",
+    "ReviewDecision",
+    "ReviewOutcome",
+    "ReviewRecord",
+    "RuntimeReviewEngine",
 ]
