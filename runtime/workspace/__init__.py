@@ -63,6 +63,7 @@ from runtime.contracts import EngineeringContractEngine, EngineeringContractRepo
 from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssemblyCertificationReport, ProjectAssemblyError
 from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError
 from runtime.review import QualityGateEngine, QualityReport, QualityGateError
+from runtime.healing import SelfHealingEngine, RepairPlanner, RepairPlan, UpdatedEngineeringResult, SelfHealingError
 
 __all__ = [
     "WorkspaceScaffoldEngine",
@@ -86,6 +87,11 @@ __all__ = [
     "QualityGateEngine",
     "QualityReport",
     "QualityGateError",
+    "SelfHealingEngine",
+    "RepairPlanner",
+    "RepairPlan",
+    "UpdatedEngineeringResult",
+    "SelfHealingError",
     "WorkspaceValidator",
     "ArtifactCategory",
     "ArtifactCollisionError",

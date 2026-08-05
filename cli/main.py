@@ -72,6 +72,7 @@ from runtime.contracts import EngineeringContractEngine, EngineeringContractRepo
 from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssemblyCertificationReport, AssemblyCertificationError
 from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError
 from runtime.review import QualityGateEngine, QualityReport, QualityGateError
+from runtime.healing import SelfHealingEngine, RepairPlanner, RepairPlan, UpdatedEngineeringResult, SelfHealingError
 
 
 
@@ -3592,13 +3593,137 @@ def review_command(
         sys.exit(1)
 
 
+@app.command("heal")
+def heal_command(
+    report_path: Path | None = typer.Option(
+        None, "--report", "-r", help="Path to QualityReport JSON file."
+    ),
+    result_path: Path | None = typer.Option(
+        None, "--result", "-e", help="Path to EngineeringResult JSON file."
+    ),
+    workspace_path: Path | None = typer.Option(
+        None, "--workspace", "-w", help="Target workspace path."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output raw JSON list of UpdatedEngineeringResults."
+    ),
+) -> None:
+    """Execute Self-Healing code repairs based on approved QualityReport findings."""
+    import sys
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        quality_reports: List[QualityReport] = []
+        eng_results: List[EngineeringResult] = []
+
+        if report_path is not None and result_path is not None:
+            rep_file = report_path.resolve()
+            res_file = result_path.resolve()
+            if not rep_file.exists() or not res_file.exists():
+                console.print("[red]Heal Error:[/] Input report or result file does not exist.")
+                sys.exit(1)
+
+            raw_rep = json.loads(rep_file.read_text(encoding="utf-8"))
+            raw_res = json.loads(res_file.read_text(encoding="utf-8"))
+
+            quality_reports = [QualityReport.model_validate(item) for item in (raw_rep if isinstance(raw_rep, list) else [raw_rep])]
+            eng_results = [EngineeringResult.model_validate(item) for item in (raw_res if isinstance(raw_res, list) else [raw_res])]
+        else:
+            ws_intel = WorkspaceIntelligence()
+            ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+            repo_intel = RepositoryIntelligence()
+            repo_context = repo_intel.analyze_repository(ws_context)
+
+            intent_report = IntentReport(
+                raw_request="Execute self-healing for workspace",
+                primary_intent="scaffold",
+                extracted_domain="engineering",
+                confidence_score=1.0,
+            )
+            plan_gen = EngineeringPlanGenerator()
+            exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+            registry = Resolver().load_registry()
+            resolver = Resolver()
+            discovery_engine = SkillDiscoveryEngine(registry, resolver)
+            ranking_engine = SkillRankingEngine(registry, resolver)
+            bundling_engine = SkillBundlingEngine(registry, resolver)
+            builder_engine = AgentProfileBuilderEngine(registry, resolver)
+            deployment_planner = MissionDeploymentPlanner()
+
+            sel_report = discovery_engine.discover_skills(exec_plan)
+            rnk_report = ranking_engine.rank_skills(sel_report, exec_plan)
+            bnd_report = bundling_engine.bundle_skills(rnk_report, exec_plan, sel_report)
+            prf_report = builder_engine.build_profiles(bnd_report, exec_plan)
+            deployment_plan = deployment_planner.create_deployment_plan(exec_plan, prf_report)
+
+            init_engine = SwarmInitializationEngine()
+            snapshot = init_engine.initialize_swarm(deployment_plan)
+
+            scaffold_engine = WorkspaceScaffoldEngine()
+            scaffold_report = scaffold_engine.scaffold_workspace(snapshot, workspace_override=ws_path)
+
+            blueprint_engine = ProjectBlueprintEngine()
+            blueprint_report = blueprint_engine.generate_blueprint(scaffold_report)
+
+            allocation_engine = ImplementationAllocationEngine()
+            allocation_report = allocation_engine.allocate_implementation(blueprint_report)
+
+            contract_engine = EngineeringContractEngine()
+            contract_report = contract_engine.generate_contracts(allocation_report)
+
+            worker_engine = EngineeringWorkerEngine()
+            eng_results = worker_engine.execute_all_contracts(contract_report)
+
+            gate_engine = QualityGateEngine()
+            quality_reports = gate_engine.review_all_results(eng_results)
+
+        planner = RepairPlanner()
+        healing_engine = SelfHealingEngine()
+        updated_results: List[UpdatedEngineeringResult] = []
+
+        result_map = {r.result_id: r for r in eng_results}
+
+        for q_rep in quality_reports:
+            repair_plan = planner.create_repair_plan(q_rep)
+            orig_res = result_map.get(q_rep.engineering_result_id, eng_results[0])
+            upd_res = healing_engine.apply_repairs(repair_plan, orig_res, str(ws_path))
+            updated_results.append(upd_res)
+
+        if json_output:
+            console.print_json(data=[r.model_dump(mode="json") for r in updated_results])
+            return
+
+        console.print(f"[bold green]✓ Self-Healing Execution Complete[/] ({len(updated_results)} repair plans applied)")
+
+        summary_table = Table(title="Self-Healing Execution Summary")
+        summary_table.add_column("Updated Result ID", style="bold cyan")
+        summary_table.add_column("Original Result ID", style="bold yellow")
+        summary_table.add_column("Applied Repairs", style="bold green")
+        summary_table.add_column("Resolved Findings", style="bold magenta")
+        summary_table.add_column("Modified Files", style="bold white")
+
+        for u in updated_results:
+            summary_table.add_row(
+                u.updated_result_id,
+                u.original_result_id,
+                str(len(u.applied_repairs)),
+                str(len(u.resolved_findings)),
+                ", ".join(u.modified_files),
+            )
+        console.print(summary_table)
+
+    except Exception as exc:
+        console.print(f"[red]Self-Healing Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
-    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts", "certify-assembly", "engineer",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts", "certify-assembly", "engineer", "heal",
     "--help", "-h", "--version"
 }
 
