@@ -7,11 +7,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from .artifact_router import ArtifactRouter
 from .contracts import WorkspaceManagerContract
 from .discovery import WorkspaceResolver
 from .engine import EngineResolver
 from .models import ExecutionContext, ProjectMetadata, WorkspaceMetadata
 from .project import ProjectDetector
+from .storage import WorkspaceStorage
 from .validation import WorkspaceValidator
 
 
@@ -57,3 +59,11 @@ class WorkspaceManager(WorkspaceManagerContract):
     def detect_project(self, workspace_root: Path) -> ProjectMetadata:
         """Declaratively identify project type and metadata within workspace."""
         return self.project_detector.detect_project(workspace_root)
+
+    def create_storage(self, workspace_metadata: WorkspaceMetadata) -> WorkspaceStorage:
+        """Build a WorkspaceStorage manager for the resolved workspace."""
+        return WorkspaceStorage(workspace_metadata)
+
+    def create_artifact_router(self, workspace_metadata: WorkspaceMetadata) -> ArtifactRouter:
+        """Build an ArtifactRouter bound to the resolved workspace."""
+        return ArtifactRouter(workspace_metadata)

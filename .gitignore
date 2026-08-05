@@ -18,6 +18,7 @@ build/
 coverage/
 tmp/
 *.log
+.oniroute/
 
 # Python tooling (if introduced by future agents)
 __pycache__/

@@ -67,3 +67,13 @@ class WorkspaceManagerContract(ABC):
     def detect_project(self, workspace_root: Path) -> ProjectMetadata:
         """Declaratively identify project type and metadata within workspace."""
         ...
+
+    @abstractmethod
+    def create_storage(self, workspace_metadata: WorkspaceMetadata) -> "WorkspaceStorage":
+        """Build a WorkspaceStorage manager for the resolved workspace."""
+        ...
+
+    @abstractmethod
+    def create_artifact_router(self, workspace_metadata: WorkspaceMetadata) -> "ArtifactRouter":
+        """Build an ArtifactRouter bound to the resolved workspace."""
+        ...

@@ -9,7 +9,8 @@ from rich.table import Table
 from runtime.loader import RepositoryLoader
 from runtime.resolver import Resolver
 from runtime.validator import ValidationEngine
-from runtime.workspace import WorkspaceManager
+from runtime.workspace import ArtifactRouter, WorkspaceManager, WorkspaceStorage
+from runtime.workspace import SessionStorage, ExecutionHistoryStorage, TraceStorage, LogStorage
 from runtime.context.builder import ContextBuilder
 from runtime.context.serializer import ContextSerializer
 from runtime.execution.engine import WorkflowEngine
@@ -100,6 +101,42 @@ def workspace(
     table.add_row("Validation Status", status_str)
 
     console.print(table)
+
+    # ── Storage diagnostics ────────────────────────────────────────────
+    if ctx.workspace_metadata is not None:
+        storage = manager.create_storage(ctx.workspace_metadata)
+        sessions = SessionStorage(ctx.workspace_metadata)
+        history = ExecutionHistoryStorage(ctx.workspace_metadata)
+        traces = TraceStorage(ctx.workspace_metadata)
+        logs = LogStorage(ctx.workspace_metadata)
+
+        status_table = Table(title="Workspace Storage")
+        status_table.add_column("Item", style="bold cyan")
+        status_table.add_column("Value", justify="right")
+
+        status_table.add_row(".oniroute/", str(storage.root))
+        status_table.add_row("Sessions", str(sessions.session_count()))
+        status_table.add_row("Artifacts", str(storage.count_entries("artifacts")))
+        status_table.add_row("History", str(history.count()))
+        status_table.add_row("Traces", str(traces.count()))
+        status_table.add_row("Logs", str(logs.count()))
+        initialized = "YES" if storage.exists() else "NO"
+        status_table.add_row("Storage Initialized", f"[green]{initialized}[/]" if storage.exists() else f"[red]{initialized}[/]")
+
+        console.print(status_table)
+
+        # Detailed subdirectory status
+        detail = Table(title="Storage Directory Status")
+        detail.add_column("Directory", style="bold cyan")
+        detail.add_column("Exists", justify="right")
+        detail.add_column("Entries", justify="right")
+        dir_status = storage.storage_status()
+        for name in storage.all_subdir_names:
+            exists = dir_status.get(name, False)
+            count = storage.count_entries(name) if exists else 0
+            mark = "[green]\u2713[/]" if exists else "[dim]\u2014[/]"
+            detail.add_row(f".oniroute/{name}/", mark, str(count))
+        console.print(detail)
 
 
 @app.command()

@@ -136,6 +136,18 @@ class WorkspaceMetadata(BaseModel):
     logs_root: Path
     memory_root: Path
     configuration_root: Path
+    plans_root: Path | None = None
+    history_root: Path | None = None
+    traces_root: Path | None = None
+    generated_root: Path | None = None
+    temporary_root: Path | None = None
+    reports_root: Path | None = None
+    approvals_root: Path | None = None
+    cache_root: Path | None = None
+    context_root: Path | None = None
+    knowledge_root: Path | None = None
+    runtime_root: Path | None = None
+    locks_root: Path | None = None
     validation: ValidationState = Field(default_factory=ValidationState)
     trust: TrustLevel = TrustLevel.TRUSTED
     discovery_method: DiscoveryPriority | str = DiscoveryPriority.CURRENT_WORKING_DIRECTORY
@@ -223,3 +235,83 @@ class DiscoveryRuleSpec(BaseModel):
     name: str
     description: str
     enabled: bool = True
+
+
+class ArtifactOwnership(BaseModel):
+    """Provenance and ownership metadata declared by every generated artifact.
+
+    Fields required by ACR-003 Phase W3:
+    Workspace, Owner, Mission, Workflow, Agent, Timestamp, Artifact Type,
+    Generation Source, Provenance, Validation.
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    workspace_id: str
+    owner: str
+    mission: str | None = None
+    workflow: str | None = None
+    agent: str | None = None
+    timestamp: str
+    artifact_type: ArtifactCategory
+    generation_source: str
+    provenance: str
+    validation: ValidationState = Field(default_factory=ValidationState)
+
+
+class ArtifactRecord(BaseModel):
+    """A routed artifact paired with its ownership provenance."""
+
+    model_config = ConfigDict(extra="allow")
+
+    destination: ArtifactDestination
+    ownership: ArtifactOwnership
+    filename: str
+
+
+class WorkspaceStorageSpec(BaseModel):
+    """Canonical specification of all `.oniroute/` subdirectory names.
+
+    Used by ``WorkspaceStorage`` to derive root paths from the workspace root.
+    Centralized here so new categories can be added in one place.
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    sessions: str = "sessions"
+    history: str = "history"
+    traces: str = "traces"
+    artifacts: str = "artifacts"
+    generated: str = "generated"
+    temporary: str = "temporary"
+    reports: str = "reports"
+    approvals: str = "approvals"
+    cache: str = "cache"
+    logs: str = "logs"
+    memory: str = "memory"
+    context: str = "context"
+    knowledge: str = "knowledge"
+    plans: str = "plans"
+    runtime: str = "runtime"
+    locks: str = "locks"
+
+    @property
+    def all_names(self) -> tuple[str, ...]:
+        return (
+            self.sessions,
+            self.history,
+            self.traces,
+            self.artifacts,
+            self.generated,
+            self.temporary,
+            self.reports,
+            self.approvals,
+            self.cache,
+            self.logs,
+            self.memory,
+            self.context,
+            self.knowledge,
+            self.plans,
+            self.runtime,
+            self.locks,
+        )

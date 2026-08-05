@@ -21,6 +21,8 @@ from .models import (
 from .project import ProjectDetector
 from .validation import WorkspaceValidator
 
+_ONIROUTE_BASENAME = ".oniroute"
+
 
 class WorkspaceResolver(WorkspaceResolverContract):
     """Deterministic workspace discovery resolver using priority rules."""
@@ -62,6 +64,7 @@ class WorkspaceResolver(WorkspaceResolverContract):
 
         status = WorkspaceStatus.VALID if validation_state.valid else WorkspaceStatus.INVALID
 
+        oniroute_base = workspace_root / _ONIROUTE_BASENAME
         now_str = datetime.now(timezone.utc).isoformat()
         ws_id = f"ws-{abs(hash(str(workspace_root))) % 1000000:06d}"
 
@@ -75,11 +78,24 @@ class WorkspaceResolver(WorkspaceResolverContract):
             status=status,
             created=now_str,
             version="1.0.0",
-            artifact_root=workspace_root / ".oniroute" / "artifacts",
-            session_root=workspace_root / ".oniroute" / "sessions",
-            logs_root=workspace_root / ".oniroute" / "logs",
-            memory_root=workspace_root / ".oniroute" / "memory",
-            configuration_root=workspace_root / ".oniroute" / "config",
+            owner=None,
+            artifact_root=oniroute_base / "artifacts",
+            session_root=oniroute_base / "sessions",
+            logs_root=oniroute_base / "logs",
+            memory_root=oniroute_base / "memory",
+            configuration_root=oniroute_base / "config",
+            plans_root=oniroute_base / "plans",
+            history_root=oniroute_base / "history",
+            traces_root=oniroute_base / "traces",
+            generated_root=oniroute_base / "generated",
+            temporary_root=oniroute_base / "temporary",
+            reports_root=oniroute_base / "reports",
+            approvals_root=oniroute_base / "approvals",
+            cache_root=oniroute_base / "cache",
+            context_root=oniroute_base / "context",
+            knowledge_root=oniroute_base / "knowledge",
+            runtime_root=oniroute_base / "runtime",
+            locks_root=oniroute_base / "locks",
             validation=validation_state,
             trust=TrustLevel.TRUSTED,
             discovery_method=discovery_priority,
