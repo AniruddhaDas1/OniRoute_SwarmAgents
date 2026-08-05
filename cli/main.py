@@ -51,6 +51,7 @@ from runtime.agent.recovery import (
     ReviewDecision,
 )
 from runtime.organization import CapabilityResolver, ExecutionBlueprintAssembler, OrganizationAssembler
+from runtime.skills import SkillDiscoveryEngine, SkillSelectionReport
 
 app = typer.Typer(help="Local OniRoute repository diagnostics.")
 list_app = typer.Typer(help="List repository metadata.")
@@ -63,6 +64,7 @@ explain_app = typer.Typer(help="Explain Workflow and execution resolution.")
 policy_app = typer.Typer(help="Inspect governance policy.",invoke_without_command=True)
 optimize_app = typer.Typer(help="Optimize context deterministically before invocation.")
 mission_app = typer.Typer(help="Mission Orchestrator inspection and orchestration commands.", invoke_without_command=True)
+skills_app = typer.Typer(help="Automatic skill discovery and reporting.", invoke_without_command=True)
 app.add_typer(list_app, name="list")
 app.add_typer(inspect_app, name="inspect")
 app.add_typer(context_app, name="context")
@@ -73,6 +75,8 @@ app.add_typer(explain_app, name="explain")
 app.add_typer(policy_app, name="policy")
 app.add_typer(optimize_app, name="optimize")
 app.add_typer(mission_app, name="mission")
+app.add_typer(skills_app, name="skills")
+
 
 _session_engines: dict[str, WorkflowEngine] = {}
 console = Console()
@@ -298,6 +302,11 @@ def plan_default(
     json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
 ) -> None:
     if ctx.invoked_subcommand is not None:
+        return
+
+    if request and request[0] == "workflow":
+        wf_id = request[1] if len(request) > 1 else ""
+        plan_workflow(identifier=wf_id, workspace=workspace, repository_root=repository_root)
         return
 
     raw_prompt = " ".join(request) if request else "Build CRM"
@@ -1906,15 +1915,113 @@ def repository_cmd(
     console.print(table)
 
 
+@skills_app.callback(invoke_without_command=True)
+def skills_default(
+    ctx: typer.Context,
+    request: list[str] = typer.Argument(None, help="Natural language request or plan prompt."),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    repository_root: Path = typer.Option(Path.cwd(), exists=True, file_okay=False),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON representation."),
+) -> None:
+    """Discover skills required to execute the EngineeringExecutionPlan."""
+    if ctx.invoked_subcommand is not None:
+        return
+
+    raw_prompt = " ".join(request) if request else "Build application"
+    if request and "--json" in request:
+        json_output = True
+        raw_prompt = " ".join([r for r in request if r != "--json"])
+        if not raw_prompt.strip():
+            raw_prompt = "Build application"
+
+    intent_analyzer = IntentAnalyzer()
+    intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=workspace)
+
+    ws_intelligence = WorkspaceIntelligence()
+    ws_ctx = ws_intelligence.analyze_workspace(cwd=repository_root, explicit_workspace=workspace)
+
+    repo_intelligence = RepositoryIntelligence()
+    repo_ctx = repo_intelligence.analyze_repository(ws_ctx)
+
+    generator = EngineeringPlanGenerator()
+    plan = generator.generate_plan(intent_report, ws_ctx, repo_ctx)
+
+    loader = RepositoryLoader(repository_root)
+    registry = loader.load()
+    resolver = Resolver(registry)
+    engine = SkillDiscoveryEngine(registry, resolver)
+    report = engine.discover_skills(plan)
+
+    if json_output:
+        console.print_json(data=report.model_dump(mode="json"))
+        return
+
+    console.print(f"\n[bold cyan]Skill Discovery Report:[/] {report.report_id} (Plan: {report.execution_plan_id})")
+
+    # 1. Skills Table
+    skills_table = Table(title="Discovered Skills")
+    skills_table.add_column("Skill ID", style="bold cyan")
+    skills_table.add_column("Category")
+    skills_table.add_column("Display Name")
+    skills_table.add_column("Discovery Reason")
+
+    for skill in report.discovered_skills:
+        skills_table.add_row(skill.skill_id, skill.category, skill.display_name, skill.discovery_reason)
+    console.print(skills_table)
+
+    # 2. Coverage Table
+    cov_table = Table(title="Skill Coverage")
+    cov_table.add_column("Metric", style="bold cyan")
+    cov_table.add_column("Value")
+
+    cov_table.add_row("Coverage Percentage", f"{report.coverage.coverage_percent}%")
+    cov_table.add_row("Registry Hits", str(report.coverage.registry_hits))
+    cov_table.add_row("Required Domains", ", ".join(report.coverage.required_skills) if report.coverage.required_skills else "None")
+    cov_table.add_row("Missing Skills", ", ".join(report.coverage.missing_skills) if report.coverage.missing_skills else "None")
+    cov_table.add_row("Selection Confidence", f"{report.confidence * 100:.1f}%")
+    console.print(cov_table)
+
+    # 3. Knowledge Table
+    know_table = Table(title="Required Knowledge Sources")
+    know_table.add_column("Knowledge Source ID", style="bold cyan")
+    if report.required_knowledge:
+        for k in report.required_knowledge:
+            know_table.add_row(k)
+    else:
+        know_table.add_row("None required")
+    console.print(know_table)
+
+    # 4. Packages Table
+    pkg_table = Table(title="Required Packages & Dependencies")
+    pkg_table.add_column("Package / Dependency ID", style="bold cyan")
+    if report.required_packages:
+        for p in report.required_packages:
+            pkg_table.add_row(p)
+    else:
+        pkg_table.add_row("None required")
+    console.print(pkg_table)
+
+    # 5. MCP Table
+    mcp_table = Table(title="Required MCP Tools")
+    mcp_table.add_column("MCP Tool / Capability", style="bold cyan")
+    if report.required_mcp_tools:
+        for m in report.required_mcp_tools:
+            mcp_table.add_row(m)
+    else:
+        mcp_table.add_row("None required")
+    console.print(mcp_table)
+
+
 REGISTERED_CLI_COMMANDS: set[str] = {
     "workspace", "workspace-context", "repository", "doctor", "history", "events", "list", "inspect",
     "context", "run", "plan", "models", "explain", "policy",
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
-    "mcp", "recommend-tool", "invoke", "search", "mission", "intent",
+    "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills",
     "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact",
     "--help", "-h", "--version"
 }
+
 
 
 def main(args: list[str] | None = None) -> None:
