@@ -1,7 +1,12 @@
-"""RuntimeReviewEngine for the OniRoute Recovery Engine (ACR-006 Phase R4).
+"""RuntimeReviewEngine for the OniRoute Recovery Engine (ACR-006 Phase R5).
 
 Determines whether artifacts require human review, pauses the session,
 emits REVIEW_REQUESTED, and awaits a decision (APPROVE / REJECT / REQUEST_CHANGES).
+
+As of R5, review eligibility is determined by a declarative ``ReviewPolicy``
+rather than a hardcoded set of artifact types.  The default policy preserves
+R4 behavior.  Pass a different policy to override review rules without modifying
+the engine.
 
 No AI. Pure deterministic human-in-the-loop gate.
 """
@@ -20,24 +25,7 @@ from .models import (
     ReviewOutcome,
     ReviewRecord,
 )
-
-
-# ---------------------------------------------------------------------------
-# Review eligibility criteria
-# ---------------------------------------------------------------------------
-
-_REVIEW_REQUIRED_ARTIFACT_TYPES: frozenset[str] = frozenset({
-    "review",
-    "schema",
-    "config",
-    "binary",
-})
-"""Artifact types that always trigger a review gate."""
-
-
-def _requires_review(artifact: ArtifactRecord) -> bool:
-    """Return True if *artifact* requires human review."""
-    return artifact.artifact_type.value in _REVIEW_REQUIRED_ARTIFACT_TYPES
+from .policy import DefaultReviewPolicy, ReviewPolicy
 
 
 # ---------------------------------------------------------------------------
@@ -47,8 +35,12 @@ def _requires_review(artifact: ArtifactRecord) -> bool:
 class RuntimeReviewEngine:
     """Deterministic human review gate.
 
+    Review eligibility is determined by a declarative ``ReviewPolicy``.
+    The default policy preserves R4 behavior (schema, config, binary, review
+    artifact types require human approval).
+
     The engine:
-    1. Inspects a session's artifacts to decide whether review is needed.
+    1. Consults the policy to decide whether review is needed.
     2. If required, records a ReviewRecord and emits REVIEW_REQUESTED.
     3. Awaits a decision delivered via ``submit_decision()``.
     4. On APPROVE  → records ReviewOutcome, emits REVIEW_APPROVED.
@@ -59,7 +51,8 @@ class RuntimeReviewEngine:
     state transitions via the existing SessionManager.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, policy: ReviewPolicy | None = None) -> None:
+        self._policy: ReviewPolicy = policy or DefaultReviewPolicy()
         self._pending_reviews: dict[str, ReviewRecord] = {}
         """review_id → ReviewRecord for open reviews."""
 
@@ -69,6 +62,11 @@ class RuntimeReviewEngine:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
+
+    @property
+    def policy(self) -> ReviewPolicy:
+        """The active review policy."""
+        return self._policy
 
     @property
     def pending_review_ids(self) -> tuple[str, ...]:
@@ -81,8 +79,8 @@ class RuntimeReviewEngine:
         return tuple(self._pending_reviews.values()) + tuple(self._completed_reviews)
 
     def needs_review(self, session: AgentSession) -> bool:
-        """Return True if the session has any artifacts that require human review."""
-        return any(_requires_review(art) for art in session.artifacts)
+        """Return True if the session has any artifacts that require review per policy."""
+        return any(self._policy.requires_review(art) for art in session.artifacts)
 
     def request_review(
         self,
@@ -113,7 +111,7 @@ class RuntimeReviewEngine:
         artifact_ids = [
             art.artifact_id
             for art in session.artifacts
-            if _requires_review(art)
+            if self._policy.requires_review(art)
         ]
 
         record = ReviewRecord(

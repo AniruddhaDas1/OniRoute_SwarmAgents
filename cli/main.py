@@ -1046,6 +1046,7 @@ def review_command(
     request_changes: bool = typer.Option(False, "--request-changes", help="Request changes."),
     actor: str = typer.Option("cli-operator", "--actor", help="Identity of the human reviewer."),
     notes: str = typer.Option("", "--notes", help="Optional reviewer notes."),
+    policy_name: str = typer.Option("default", "--policy", help="Review policy: default, strict, permissive, security, infrastructure, deployment."),
     json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
 ) -> None:
     """Submit a human review decision for a session (APPROVE / REJECT / REQUEST-CHANGES)."""
@@ -1061,19 +1062,36 @@ def review_command(
     else:
         decision = ReviewDecision.REQUEST_CHANGES
 
-    orchestrator = RecoveryOrchestrator()
-    review_engine = orchestrator.review_engine
+    from runtime.agent.recovery.policy import (
+        DEPLOYMENT_POLICY,
+        INFRASTRUCTURE_POLICY,
+        SECURITY_POLICY,
+        DefaultReviewPolicy,
+        PermissiveReviewPolicy,
+        StrictReviewPolicy,
+    )
+    policy_map = {
+        "default": DefaultReviewPolicy(),
+        "strict": StrictReviewPolicy(),
+        "permissive": PermissiveReviewPolicy(),
+        "security": SECURITY_POLICY,
+        "infrastructure": INFRASTRUCTURE_POLICY,
+        "deployment": DEPLOYMENT_POLICY,
+    }
+    selected_policy = policy_map.get(policy_name.lower(), DefaultReviewPolicy())
+
+    from runtime.agent.recovery.review import RuntimeReviewEngine
+    review_engine = RuntimeReviewEngine(policy=selected_policy)
 
     # Synthesise a pending review for demonstration / CLI testing
-    # (In full integration, orchestrator would be session-scoped)
-    from runtime.agent.recovery.models import ReviewRecord, ReviewOutcome
+    from runtime.agent.recovery.models import ReviewRecord
     review_id = f"rev-{session_id}-cli"
     pending = ReviewRecord(
         review_id=review_id,
         session_id=session_id,
         member_id="cli-member",
-        review_reason="CLI-submitted review decision",
-        evidence={"source": "cli", "actor": actor},
+        review_reason=f"CLI-submitted review decision under policy '{selected_policy.policy_name()}'",
+        evidence={"source": "cli", "actor": actor, "policy": selected_policy.policy_name()},
     )
     review_engine._pending_reviews[review_id] = pending
 
@@ -1085,8 +1103,9 @@ def review_command(
     )
 
     if json_output:
-        import dataclasses
-        console.print_json(data=closed.model_dump(mode="json"))
+        data = closed.model_dump(mode="json")
+        data["policy"] = selected_policy.policy_name()
+        console.print_json(data=data)
         return
 
     table = Table(title=f"Review Decision: {session_id}")
@@ -1094,6 +1113,7 @@ def review_command(
     table.add_column("Value")
     table.add_row("Review ID", closed.review_id)
     table.add_row("Session ID", closed.session_id)
+    table.add_row("Policy", selected_policy.policy_name())
     table.add_row("Decision", closed.outcome.decision.value.upper() if closed.outcome else "—")
     table.add_row("Actor", closed.outcome.actor if closed.outcome else "—")
     table.add_row("Notes", closed.outcome.notes if closed.outcome else "—")

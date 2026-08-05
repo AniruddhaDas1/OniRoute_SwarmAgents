@@ -836,3 +836,121 @@ class TestRegressionR1R2R3:
         waiting_targets = ALLOWED_RUNTIME_TRANSITIONS[RuntimeState.RUNNING]
         assert RuntimeState.WAITING in waiting_targets
         assert RuntimeState.REVIEW in waiting_targets
+
+
+# ===========================================================================
+# 10. Phase R5 — Declarative Policy & Certification Tests
+# ===========================================================================
+
+class TestReviewPolicy:
+    """Test R5 review policies."""
+
+    def _make_artifact(self, artifact_type_val: str) -> object:
+        from runtime.agent.models import ArtifactRecord, ArtifactType
+        return ArtifactRecord(
+            artifact_id="art-test-p1",
+            artifact_type=ArtifactType(artifact_type_val),
+            owner_session_id="sess-p1",
+            owner_member_id="mem-p1",
+            capability_id="cap-p1",
+            name="Test Artifact",
+        )
+
+    def test_default_policy(self):
+        from runtime.agent.recovery.policy import DefaultReviewPolicy
+        policy = DefaultReviewPolicy()
+        assert policy.policy_name() == "default"
+        assert policy.requires_review(self._make_artifact("schema")) is True
+        assert policy.requires_review(self._make_artifact("config")) is True
+        assert policy.requires_review(self._make_artifact("binary")) is True
+        assert policy.requires_review(self._make_artifact("review")) is True
+        assert policy.requires_review(self._make_artifact("code")) is False
+        assert policy.requires_review(self._make_artifact("documentation")) is False
+
+    def test_strict_policy(self):
+        from runtime.agent.recovery.policy import StrictReviewPolicy
+        policy = StrictReviewPolicy()
+        assert policy.policy_name() == "strict"
+        assert policy.requires_review(self._make_artifact("code")) is True
+        assert policy.requires_review(self._make_artifact("documentation")) is True
+
+    def test_permissive_policy(self):
+        from runtime.agent.recovery.policy import PermissiveReviewPolicy
+        policy = PermissiveReviewPolicy()
+        assert policy.policy_name() == "permissive"
+        assert policy.requires_review(self._make_artifact("schema")) is False
+        assert policy.requires_review(self._make_artifact("config")) is False
+
+    def test_rule_based_policy(self):
+        from runtime.agent.recovery.policy import RuleBasedReviewPolicy, ReviewRule
+        policy = RuleBasedReviewPolicy(
+            rules=[
+                ReviewRule(artifact_types=["code"], requires_review=True, reason="Code review required"),
+            ],
+            default_requires_review=False,
+            name="custom_rule",
+        )
+        assert policy.policy_name() == "custom_rule"
+        assert policy.requires_review(self._make_artifact("code")) is True
+        assert policy.requires_review(self._make_artifact("documentation")) is False
+
+    def test_preset_policies(self):
+        from runtime.agent.recovery.policy import SECURITY_POLICY, INFRASTRUCTURE_POLICY, DEPLOYMENT_POLICY
+        assert SECURITY_POLICY.requires_review(self._make_artifact("schema")) is True
+        assert SECURITY_POLICY.requires_review(self._make_artifact("documentation")) is False
+        assert INFRASTRUCTURE_POLICY.requires_review(self._make_artifact("config")) is True
+        assert DEPLOYMENT_POLICY.requires_review(self._make_artifact("documentation")) is True
+
+
+class TestR5CLIReviewPolicy:
+    """Test CLI review command policy options."""
+
+    def test_cli_review_with_policy_option(self):
+        result = runner.invoke(app, ["review", "sess-cli-p1", "--approve", "--policy", "strict"])
+        assert result.exit_code == 0
+        assert "strict" in result.output
+
+    def test_cli_review_json_with_policy(self):
+        result = runner.invoke(app, ["review", "sess-cli-p2", "--approve", "--policy", "security", "--json"])
+        assert result.exit_code == 0
+        assert "security" in result.output
+
+
+class TestR5FreezeAndCertification:
+    """Certification tests validating exports and frozen contracts."""
+
+    def test_r5_exports_present(self):
+        from runtime.agent import (
+            ReviewPolicy,
+            DefaultReviewPolicy,
+            StrictReviewPolicy,
+            PermissiveReviewPolicy,
+            RuleBasedReviewPolicy,
+            ReviewRule,
+            SECURITY_POLICY,
+            INFRASTRUCTURE_POLICY,
+            DEPLOYMENT_POLICY,
+        )
+        assert ReviewPolicy is not None
+        assert DefaultReviewPolicy is not None
+        assert StrictReviewPolicy is not None
+        assert PermissiveReviewPolicy is not None
+        assert RuleBasedReviewPolicy is not None
+        assert ReviewRule is not None
+        assert SECURITY_POLICY is not None
+        assert INFRASTRUCTURE_POLICY is not None
+        assert DEPLOYMENT_POLICY is not None
+
+    def test_documentation_files_exist(self):
+        docs_dir = REPO_ROOT / "docs"
+        expected_docs = [
+            "AGENT_RUNTIME_CERTIFICATION.md",
+            "RUNTIME_VALIDATION.md",
+            "RUNTIME_PERFORMANCE.md",
+            "RUNTIME_FREEZE.md",
+            "RUNTIME_USER_GUIDE.md",
+            "RUNTIME_DEVELOPER_GUIDE.md",
+            "RUNTIME_POLICY_GUIDE.md",
+        ]
+        for doc in expected_docs:
+            assert (docs_dir / doc).exists(), f"Missing required doc {doc}"
