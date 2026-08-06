@@ -12,10 +12,16 @@ class Resolver:
 
     def __init__(self, registry: RepositoryRegistry):
         self.registry = registry
+        self._all_records: list[MetadataRecord] = [
+            record
+            for name in ("agents", "sub_agents", "skills", "workflows", "knowledge_sources", "packages")
+            for record in getattr(self.registry, name).values()
+        ]
+        self.records_map: dict[str, MetadataRecord] = {record.id: record for record in self._all_records}
         self.graph = self._build_graph()
 
     def _all(self) -> list[MetadataRecord]:
-        return [record for name in ("agents", "sub_agents", "skills", "workflows", "knowledge_sources", "packages") for record in getattr(self.registry, name).values()]
+        return self._all_records
 
     def _record(self, collection: str, identifier: str) -> MetadataRecord | None:
         return getattr(self.registry, collection).get(identifier)
@@ -53,8 +59,7 @@ class Resolver:
         if identifier not in self.graph:
             return []
         nodes = self.graph.successors(identifier) if relationship is None else (edge[1] for edge in self.graph.out_edges(identifier, data=True) if edge[2].get("relationship") == relationship)
-        records = {record.id: record for record in self._all()}
-        return [records[node] for node in nodes if node in records]
+        return [self.records_map[node] for node in nodes if node in self.records_map]
 
     def agent_relationships(self, identifier: str) -> dict[str, list[MetadataRecord]]:
         return {kind: self.related(identifier, kind) for kind in ("parent", "child", "collaborator", "dependency", "owned_skill", "owned_workflow", "knowledge_source", "mapping")}

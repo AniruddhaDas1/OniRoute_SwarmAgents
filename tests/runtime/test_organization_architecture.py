@@ -300,7 +300,7 @@ def test_execution_blueprint_assembly():
 
 
 def test_documentation_files_exist():
-    docs_dir = Path("/Users/aniruddhadas/Ani/Coding Projects/Google Antigravity/Development Products/Open Source Projects/OniRoute_SwarmAgents/docs")
+    docs_dir = Path(__file__).resolve().parents[2] / "docs"
     expected_files = [
         "ORGANIZATION_BUILDER.md",
         "CAPABILITY_MODEL.md",

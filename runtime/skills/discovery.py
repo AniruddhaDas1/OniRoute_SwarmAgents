@@ -71,6 +71,21 @@ class SkillDiscoveryEngine:
             if sid not in category_map[cat_name]:
                 category_map[cat_name].append(sid)
 
+        fw_keywords = ("react", "next", "vue", "angular", "fastapi", "django", "express", "flutter", "spring", "nestjs", "tailwind", "shadcn", "laravel", "svelte")
+        matched_fw = [fw for fw in fw_keywords if fw in tech_stack or any(fw in d for d in deliverables) or any(fw in c for c in constraints)]
+
+        lang_keywords = ("typescript", "javascript", "python", "dart", "go", "rust", "java", "c++", "swift", "kotlin", "sql", "html", "css")
+        matched_lang = [l for l in lang_keywords if l in tech_stack or any(l in c for c in constraints)]
+
+        rule_testing_active = "qa" in disciplines or any("test" in d for d in deliverables) or any(t in tech_stack for t in ("jest", "pytest", "cypress", "playwright")) or "test" in plan.project_goal.lower()
+        rule_sec_active = "security" in disciplines or any("auth" in d for d in deliverables) or any(s in tech_stack or any(s in c for c in constraints) for s in ("auth", "oauth", "jwt", "encryption", "security", "secrets", "threat"))
+        rule_deploy_active = any(d in disciplines for d in ("devops", "infrastructure")) or any("deploy" in d or "container" in d for d in deliverables) or any(t in tech_stack for t in ("docker", "kubernetes", "aws", "gcp", "azure", "vercel", "netlify", "ci/cd"))
+        rule_db_active = "database" in disciplines or any("database" in d for d in deliverables) or any(db in tech_stack or any(db in c for c in constraints) for db in ("postgresql", "mysql", "mongodb", "sqlite", "supabase", "redis", "prisma", "orm", "sql"))
+        rule_ai_active = "ai" in disciplines or any("ai" in d for d in deliverables) or any(ai in tech_stack for ai in ("openai", "gemini", "anthropic", "llm", "agent", "ai", "rag"))
+        rule_doc_active = "documentation" in disciplines or any("doc" in d for d in deliverables) or strategy_val == RepositoryStrategy.DOCUMENTATION.value
+        rule_auto_active = "automation" in disciplines or plan.project_type.lower() in ("cli tool", "automation") or "automation" in tech_stack
+        rule_repo_active = strategy_val in (RepositoryStrategy.REFACTOR_EXISTING.value, RepositoryStrategy.EXTEND_EXISTING.value, RepositoryStrategy.FEATURE_ADDITION.value, RepositoryStrategy.BUG_FIX.value)
+
         for rec in all_skill_records:
             data = rec.data
             rec_id = rec.id.lower()
@@ -83,54 +98,50 @@ class SkillDiscoveryEngine:
                 _add_match(rec, "Engineering Skills", f"Matched engineering domain or foundation category ({rec.data.get('category', 'Engineering')})")
 
             # Rule 2: Framework Skills
-            fw_keywords = ("react", "next", "vue", "angular", "fastapi", "django", "express", "flutter", "spring", "nestjs", "tailwind", "shadcn", "laravel", "svelte")
-            matched_fw = [fw for fw in fw_keywords if fw in tech_stack or any(fw in d for d in deliverables) or any(fw in c for c in constraints)]
             if matched_fw and (any(fw in rec_id or fw in rec_tags or fw in rec_name for fw in matched_fw) or (rec_cat in ("frontend", "backend") and any(d in ("user interface pages", "rest api endpoints", "ui components") for d in deliverables))):
                 _add_match(rec, "Framework Skills", f"Matched framework technology stack ({', '.join(matched_fw)})")
 
             # Rule 3: Language Skills
-            lang_keywords = ("typescript", "javascript", "python", "dart", "go", "rust", "java", "c++", "swift", "kotlin", "sql", "html", "css")
-            matched_lang = [l for l in lang_keywords if l in tech_stack or any(l in c for c in constraints)]
             if matched_lang and (any(l in rec_id or l in rec_tags or l in rec_name for l in matched_lang) or ("sql" in matched_lang and "sql" in rec_id)):
                 _add_match(rec, "Language Skills", f"Matched programming language stack ({', '.join(matched_lang)})")
 
             # Rule 4: Testing Skills
-            if "qa" in disciplines or any("test" in d for d in deliverables) or any(t in tech_stack for t in ("jest", "pytest", "cypress", "playwright")) or "test" in plan.project_goal.lower():
+            if rule_testing_active:
                 if rec_cat == "testing" or any(t in rec_tags for t in ("testing", "qa", "jest", "pytest")) or "testing" in rec_id:
                     _add_match(rec, "Testing Skills", "Matched QA discipline and test suite deliverables")
 
             # Rule 5: Security Skills
-            if "security" in disciplines or any("auth" in d for d in deliverables) or any(s in tech_stack or any(s in c for c in constraints) for s in ("auth", "oauth", "jwt", "encryption", "security", "secrets", "threat")):
+            if rule_sec_active:
                 if rec_cat == "security" or any(t in rec_tags for t in ("security", "authentication", "authorization", "encryption", "secrets-management")) or "security" in rec_id or "auth" in rec_id:
                     _add_match(rec, "Security Skills", "Matched Security discipline, authentication, or access control requirements")
 
             # Rule 6: Deployment Skills
-            if any(d in disciplines for d in ("devops", "infrastructure")) or any("deploy" in d or "container" in d for d in deliverables) or any(t in tech_stack for t in ("docker", "kubernetes", "aws", "gcp", "azure", "vercel", "netlify", "ci/cd")):
+            if rule_deploy_active:
                 if rec_cat in ("devops", "deployment") or any(t in rec_tags for t in ("devops", "ci", "cd", "cloud", "docker", "infrastructure")) or "devops" in rec_id or "cloud" in rec_id:
                     _add_match(rec, "Deployment Skills", "Matched DevOps discipline, containerization, or cloud deployment deliverables")
 
             # Rule 7: Database Skills
-            if "database" in disciplines or any("database" in d for d in deliverables) or any(db in tech_stack or any(db in c for c in constraints) for db in ("postgresql", "mysql", "mongodb", "sqlite", "supabase", "redis", "prisma", "orm", "sql")):
+            if rule_db_active:
                 if rec_cat == "database" or any(t in rec_tags for t in ("database", "sql", "data-modeling", "schema-design")) or "database" in rec_id or "sql" in rec_id:
                     _add_match(rec, "Database Skills", "Matched Database discipline, schema deliverables, or database technology stack")
 
             # Rule 8: AI Skills
-            if "ai" in disciplines or any("ai" in d for d in deliverables) or any(ai in tech_stack for ai in ("openai", "gemini", "anthropic", "llm", "agent", "ai", "rag")):
+            if rule_ai_active:
                 if rec_cat in ("ai", "ai") or any(t in rec_tags for t in ("ai", "agent", "prompt")) or "ai" in rec_id or "agent" in rec_id:
                     _add_match(rec, "AI Skills", "Matched AI discipline, LLM integration, or prompt engineering requirements")
 
             # Rule 9: Documentation Skills
-            if "documentation" in disciplines or any("doc" in d for d in deliverables) or strategy_val == RepositoryStrategy.DOCUMENTATION.value:
+            if rule_doc_active:
                 if rec_cat in ("documentation", "presentation") or any(t in rec_tags for t in ("documentation", "docs")) or "doc" in rec_id or "presentation" in rec_id:
                     _add_match(rec, "Documentation Skills", "Matched Documentation discipline and technical documentation deliverables")
 
             # Rule 10: Automation Skills
-            if "automation" in disciplines or plan.project_type.lower() in ("cli tool", "automation") or "automation" in tech_stack:
+            if rule_auto_active:
                 if rec_cat == "automation" or any(t in rec_tags for t in ("automation", "cli", "background-jobs")) or "jobs" in rec_id:
                     _add_match(rec, "Automation Skills", "Matched Automation discipline or CLI project type")
 
             # Rule 11: Repository Skills
-            if strategy_val in (RepositoryStrategy.REFACTOR_EXISTING.value, RepositoryStrategy.EXTEND_EXISTING.value, RepositoryStrategy.FEATURE_ADDITION.value, RepositoryStrategy.BUG_FIX.value):
+            if rule_repo_active:
                 if rec_cat == "platform" or any(t in rec_tags for t in ("versioning", "migration", "integration", "refactoring")) or "versioning" in rec_id or "migration" in rec_id or "integration" in rec_id:
                     _add_match(rec, "Repository Skills", f"Matched repository strategy ({strategy_val}) and maintenance requirements")
 
