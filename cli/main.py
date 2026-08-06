@@ -1469,35 +1469,56 @@ def retry_command(
 
 @app.command("resume")
 def resume_command(
-    session_id: str = typer.Argument(..., help="Session ID to resume from WAITING."),
+    session_id: str | None = typer.Argument(None, help="Session ID to resume from WAITING."),
     pause_id: str | None = typer.Option(None, "--pause-id", help="Specific pause record ID to close."),
+    mission_id: str | None = typer.Option(None, "--mission", "-m", help="Target mission ID."),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
     json_output: bool = typer.Option(False, "--json", help="Output raw JSON."),
 ) -> None:
-    """Inspect or display resume readiness for a WAITING session."""
-    if json_output:
-        console.print_json(data={
-            "session_id": session_id,
-            "action": "resume",
-            "pause_id": pause_id,
-            "note": (
-                "Call RecoveryOrchestrator.resume(session, pause_id) on the live session object. "
-                "CLI resume shows policy; use the Python API for live session recovery."
-            ),
-        })
+    """Resume a WAITING session or a paused mission."""
+    import sys
+    if session_id:
+        if json_output:
+            console.print_json(data={
+                "session_id": session_id,
+                "action": "resume",
+                "pause_id": pause_id,
+                "note": (
+                    "Call RecoveryOrchestrator.resume(session, pause_id) on the live session object. "
+                    "CLI resume shows policy; use the Python API for live session recovery."
+                ),
+            })
+            return
+
+        table = Table(title=f"Resume Request: {session_id}")
+        table.add_column("Property", style="bold cyan")
+        table.add_column("Value")
+        table.add_row("Session ID", session_id)
+        table.add_row("Requested Pause ID", pause_id or "(most recent)")
+        table.add_row("Action", "WAITING → RUNNING")
+        table.add_row(
+            "Note",
+            "Use RecoveryOrchestrator.resume() on the live session for in-process recovery.",
+        )
+        console.print(table)
+        console.print("[dim]To resume a live session, call:[/] [cyan]orchestrator.resume(session)[/]")
         return
 
-    table = Table(title=f"Resume Request: {session_id}")
-    table.add_column("Property", style="bold cyan")
-    table.add_column("Value")
-    table.add_row("Session ID", session_id)
-    table.add_row("Requested Pause ID", pause_id or "(most recent)")
-    table.add_row("Action", "WAITING → RUNNING")
-    table.add_row(
-        "Note",
-        "Use RecoveryOrchestrator.resume() on the live session for in-process recovery.",
-    )
-    console.print(table)
-    console.print("[dim]To resume a live session, call:[/] [cyan]orchestrator.resume(session)[/]")
+    try:
+        ws_path = (workspace_path or Path.cwd()).resolve()
+        ctrl = MissionControlEngine(workspace_root=ws_path)
+        m_id = mission_id or "msn-active-001"
+        result = ctrl.issue_command("RESUME", m_id)
+        if json_output:
+            console.print_json(data=result.model_dump(mode="json"))
+        elif result.success:
+            console.print(f"[bold green]▶ {result.message}[/]")
+        else:
+            console.print(f"[yellow]⚠ {result.message}[/]")
+    except Exception as exc:
+        console.print(f"[red]Resume Error:[/] {str(exc)}")
+        sys.exit(1)
+
 
 
 @app.command("recovery")
@@ -4244,25 +4265,7 @@ def pause_command(
         sys.exit(1)
 
 
-@app.command("resume")
-def resume_command(
-    mission_id: str = typer.Option("", "--mission", "-m", help="Target mission ID."),
-    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Target workspace path."),
-) -> None:
-    """Resume a paused mission."""
-    import sys
-    try:
-        ws_path = (workspace_path or Path.cwd()).resolve()
-        ctrl = MissionControlEngine(workspace_root=ws_path)
-        m_id = mission_id or "msn-active-001"
-        result = ctrl.issue_command("RESUME", m_id)
-        if result.success:
-            console.print(f"[bold green]▶ {result.message}[/]")
-        else:
-            console.print(f"[yellow]⚠ {result.message}[/]")
-    except Exception as exc:
-        console.print(f"[red]Resume Error:[/] {str(exc)}")
-        sys.exit(1)
+
 
 
 @app.command("cancel")
