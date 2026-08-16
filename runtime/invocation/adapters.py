@@ -84,7 +84,10 @@ class OpenAICompatibleAdapter(BaseAdapter):
             payload["stop"] = list(request.stop_sequences)
         started = perf_counter(); data = self.transport.post(f"{self.endpoint}/chat/completions", payload, self.headers, self.timeout)
         latency = (perf_counter() - started) * 1000
-        choice = (data.get("choices") or [{}])[0]; message = choice.get("message") or {}; usage = data.get("usage") or {}
+        choices = data.get("choices") or []
+        if not choices:
+            raise InvocationError(f"Malformed OpenAI-compatible response: missing choices")
+        choice = choices[0]; message = choice.get("message") or {}; usage = data.get("usage") or {}
         return InvocationResponse(
             text=message.get("content") or "",
             reasoning=message.get("reasoning_content"),
@@ -182,13 +185,16 @@ class OllamaAdapter(BaseAdapter):
             payload["options"]["num_predict"] = request.max_tokens
         started = perf_counter(); data = self.transport.post(f"{self.endpoint}/api/chat", payload, self.headers, self.timeout)
         latency = (perf_counter() - started) * 1000
+        message = data.get("message") or {}
+        if not message or "content" not in message:
+            raise InvocationError(f"Malformed Ollama response: missing message.content")
         usage = Usage(
             input_tokens=data.get("prompt_eval_count", 0),
             output_tokens=data.get("eval_count", 0),
             total_tokens=data.get("prompt_eval_count", 0) + data.get("eval_count", 0),
         )
         return InvocationResponse(
-            text=(data.get("message") or {}).get("content", ""),
+            text=message.get("content", ""),
             usage=usage,
             latency_ms=latency,
             finish_reason=data.get("done_reason"),
