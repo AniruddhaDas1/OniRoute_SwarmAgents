@@ -76,6 +76,26 @@ class ExecutionRenderer:
         elif evt_type == "CANCELLED":
             self.console.print("\n[bold red]⚠ Mission Execution Gracefully Cancelled by Operator.[/]")
 
+        elif evt_type == "STREAM_STARTED":
+            self.console.print(f"▶ [bold blue]Streaming task[/] {event.task_description or event.message}")
+
+        elif evt_type == "STREAM_CHUNK":
+            delta = event.payload.get("delta", "")
+            if delta:
+                self.console.print(f"[dim]{delta}[/]", end="")
+
+        elif evt_type == "STREAM_PROGRESS":
+            self.console.print(f"\n[dim]chunks={event.token_usage.get('chunk_count', 0)} "
+                               f"content={event.token_usage.get('content_length', 0)}[/]")
+
+        elif evt_type == "STREAM_COMPLETED":
+            self.console.print(f"\n[bold green]✓ Stream completed[/] "
+                               f"chunks={event.payload.get('chunk_count', 0)} "
+                               f"finish={event.payload.get('finish_reason', 'stop')}")
+
+        elif evt_type == "STREAM_FAILED":
+            self.console.print(f"\n[bold red]✗ Stream failed:[/] {event.message or event.payload.get('error_message', '')}")
+
     def render_summary_table(self, event: StreamEvent) -> None:
         """Render Rich execution summary table.
 
