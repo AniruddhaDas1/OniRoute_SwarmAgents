@@ -1,8 +1,8 @@
-"""Autonomous Engineering Worker Engine (Phase P5.E1).
+"""Autonomous Engineering Worker Engine (Phase P5.E1 & Phase E1.3).
 
-Consumes EngineeringContract (or EngineeringContractReport) and generates source code,
-configuration, tests, documentation, and assets strictly within contract and workspace
-boundaries without modifying engine root files.
+Consumes EngineeringContract (or EngineeringContractReport) and orchestrates Multi-Step
+InvocationRequests via InvocationPlanner, InvocationEngine, and ResponseAggregator strictly
+within contract and workspace boundaries.
 """
 
 from __future__ import annotations
@@ -20,23 +20,232 @@ from runtime.engineering.exceptions import (
     EngineeringExecutionError,
     EngineeringWorkerError,
 )
-from runtime.engineering.models import EngineeringResult
+from runtime.engineering.models import (
+    BatchResult,
+    EngineeringFailure,
+    EngineeringResult,
+    ExecutionBatch,
+    InvocationTask,
+    TaskContext,
+    TaskState,
+)
+from runtime.invocation import InvocationEngine, InvocationRequest, InvocationResponse
+from runtime.invocation.dispatcher import InvocationDispatcher
+from runtime.invocation.adapters import OllamaAdapter, OpenAICompatibleAdapter
+from runtime.models import Capability, ModelManager, SelectionRequest
+
+
+class InvocationPlanner:
+    """Creates an immutable, ordered ExecutionBatch from an EngineeringContract."""
+
+    def plan_batch(
+        self,
+        contract: EngineeringContract,
+        contract_report: Optional[EngineeringContractReport] = None,
+    ) -> ExecutionBatch:
+        """Split an EngineeringContract into structured, ordered InvocationTasks with TaskContext."""
+        timestamp_iso = datetime.now(timezone.utc).isoformat()
+        batch_id = f"batch-{abs(hash(f'{contract.contract_id}-{timestamp_iso}')) % 1000000:06d}"
+
+        ws_id = contract_report.workspace_id if contract_report else "ws-default"
+        allocation_id = contract_report.allocation_id if contract_report else "blp-default"
+
+        tasks: List[InvocationTask] = []
+
+        # 1. Primary Implementation Task
+        impl_task_id = f"task-impl-{contract.contract_id}"
+        impl_ctx = TaskContext(
+            mission_id="msn-active",
+            workspace_id=ws_id,
+            blueprint_id=allocation_id,
+            engineering_contract_id=contract.contract_id,
+            execution_batch_id=batch_id,
+            invocation_task_id=impl_task_id,
+            agent_profile_id=contract.assigned_profile_id,
+            skill_bundle_id=f"bundle-{contract.assigned_profile_id}",
+            repository_context={"target_path": contract.target_path, "discipline": contract.engineering_discipline},
+            execution_constraints={"architecture": contract.architecture_constraints, "standards": contract.coding_standards},
+            execution_priority=contract.generation_priority,
+        )
+        tasks.append(
+            InvocationTask(
+                task_id=impl_task_id,
+                contract_id=contract.contract_id,
+                target_path=contract.target_path,
+                task_type="implementation",
+                dependencies=[],
+                execution_order=1,
+                required_capabilities=["coding"],
+                expected_artifacts=contract.output_artifacts or [contract.target_path],
+                execution_context=impl_ctx,
+                state=TaskState.QUEUED,
+            )
+        )
+
+        # 2. Documentation Task (if required by contract)
+        if contract.documentation_requirements:
+            doc_task_id = f"task-doc-{contract.contract_id}"
+            doc_ctx = TaskContext(
+                mission_id="msn-active",
+                workspace_id=ws_id,
+                blueprint_id=allocation_id,
+                engineering_contract_id=contract.contract_id,
+                execution_batch_id=batch_id,
+                invocation_task_id=doc_task_id,
+                agent_profile_id=contract.assigned_profile_id,
+                skill_bundle_id=f"bundle-{contract.assigned_profile_id}",
+                repository_context={"target_path": contract.target_path, "discipline": contract.engineering_discipline},
+                execution_constraints={"documentation_rules": contract.documentation_requirements},
+                execution_priority=contract.generation_priority,
+            )
+            tasks.append(
+                InvocationTask(
+                    task_id=doc_task_id,
+                    contract_id=contract.contract_id,
+                    target_path=contract.target_path,
+                    task_type="documentation",
+                    dependencies=[impl_task_id],
+                    execution_order=2,
+                    required_capabilities=["coding", "summarization"],
+                    expected_artifacts=[f"{contract.target_path}.doc.md"],
+                    execution_context=doc_ctx,
+                    state=TaskState.QUEUED,
+                )
+            )
+
+        return ExecutionBatch(
+            batch_id=batch_id,
+            contract_id=contract.contract_id,
+            tasks=tasks,
+            execution_mode="sequential",
+            timestamp=timestamp_iso,
+        )
+
+
+class ResponseAggregator:
+    """Aggregates multiple InvocationTask responses into a single unified EngineeringResult."""
+
+    def aggregate(
+        self,
+        batch_result: BatchResult,
+        contract: EngineeringContract,
+        workspace_root: str,
+        start_time: float,
+    ) -> EngineeringResult:
+        """Merge task outputs, token metrics, latency, failures, and metadata into EngineeringResult."""
+        rel_target = contract.target_path
+        ws_path = Path(workspace_root).resolve()
+        abs_target = (ws_path / rel_target).resolve()
+        created = not abs_target.exists()
+
+        total_prompt_tokens = 0
+        total_completion_tokens = 0
+        total_tokens = 0
+        total_cost = 0.0
+        final_content = ""
+        provider_used = "oniroute-local-engine"
+        model_used = "gemini-2.5-pro"
+        finish_reasons = []
+
+        task_results = batch_result.task_results
+
+        for task_id, res_data in task_results.items():
+            if res_data.get("task_type") == "implementation":
+                final_content = res_data.get("content", "")
+
+            provider_used = res_data.get("provider", provider_used)
+            model_used = res_data.get("model", model_used)
+            total_prompt_tokens += res_data.get("prompt_tokens", 0)
+            total_completion_tokens += res_data.get("completion_tokens", 0)
+            total_tokens += res_data.get("total_tokens", 0)
+            total_cost += res_data.get("cost_usd", 0.0)
+            if res_data.get("finish_reason"):
+                finish_reasons.append(res_data["finish_reason"])
+
+        elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+        timestamp_iso = datetime.now(timezone.utc).isoformat()
+        result_id = f"engres-{abs(hash(f'{contract.contract_id}-{rel_target}-{timestamp_iso}')) % 1000000:06d}"
+
+        token_usage = {
+            "prompt_tokens": total_prompt_tokens,
+            "completion_tokens": total_completion_tokens,
+            "total_tokens": total_tokens,
+        }
+
+        evidence: Dict[str, Any] = {
+            "contract_id": contract.contract_id,
+            "batch_id": batch_result.batch_id,
+            "discipline": contract.engineering_discipline,
+            "assigned_profile_id": contract.assigned_profile_id,
+            "boundary_safety_verified": True,
+            "read_only_engine_verified": True,
+            "bytes_written": len(final_content.encode("utf-8")),
+            "execution_wave": contract.execution_wave,
+            "task_count": len(task_results),
+            "finish_reasons": finish_reasons,
+        }
+
+        if batch_result.failures:
+            evidence["failures"] = [f.model_dump() for f in batch_result.failures]
+        if batch_result.blocked_tasks:
+            evidence["blocked_tasks"] = batch_result.blocked_tasks
+
+        res_hash = hashlib.sha256(
+            f"{result_id}:{contract.contract_id}:{contract.assigned_profile_id}:{rel_target}:{hashlib.sha256(final_content.encode('utf-8')).hexdigest()}".encode("utf-8")
+        ).hexdigest()
+
+        created_files = [rel_target] if created else []
+        modified_files = [] if created else [rel_target]
+
+        return EngineeringResult(
+            result_id=result_id,
+            contract_id=contract.contract_id,
+            profile_id=contract.assigned_profile_id,
+            modified_files=modified_files,
+            created_files=created_files,
+            artifacts=[rel_target],
+            execution_time_ms=round(elapsed_ms, 3),
+            provider=provider_used,
+            model=model_used,
+            token_usage=token_usage,
+            cost_usd=round(total_cost, 6),
+            trace_references=[f"trc-{contract.contract_id}"],
+            evidence=evidence,
+            timestamp=timestamp_iso,
+            result_hash=res_hash,
+        )
 
 
 class EngineeringWorkerEngine:
-    """Autonomous Engineering Worker Engine for Phase P5.E1."""
+    """Autonomous Engineering Worker Engine for Phase P5.E1 & Phase E1.3 Multi-Step Invocation."""
+
+    def __init__(
+        self,
+        invocation_engine: Optional[InvocationEngine] = None,
+        config_path: Optional[Path] = None,
+        planner: Optional[InvocationPlanner] = None,
+        aggregator: Optional[ResponseAggregator] = None,
+    ) -> None:
+        """Initialize EngineeringWorkerEngine with dependencies."""
+        if invocation_engine is not None:
+            self.invocation_engine = invocation_engine
+        else:
+            if config_path is None:
+                config_path = Path(__file__).parents[2] / "config" / "models.yaml"
+            manager = ModelManager(config_path)
+            dispatcher = InvocationDispatcher()
+            dispatcher.register("openai-compatible", OpenAICompatibleAdapter("http://localhost:8000"))
+            dispatcher.register("ollama", OllamaAdapter("http://localhost:11434"))
+            dispatcher.register("local-process", OpenAICompatibleAdapter("http://localhost:8000"))
+            self.invocation_engine = InvocationEngine(manager, dispatcher)
+
+        self.planner = planner or InvocationPlanner()
+        self.aggregator = aggregator or ResponseAggregator()
 
     def execute_all_contracts(
         self, contract_report: EngineeringContractReport
     ) -> List[EngineeringResult]:
-        """Execute code generation for all contracts in an EngineeringContractReport.
-
-        Args:
-            contract_report: Immutable EngineeringContractReport input contract.
-
-        Returns:
-            List[EngineeringResult]: Immutable execution results per contract.
-        """
+        """Execute code generation for all contracts in an EngineeringContractReport."""
         if not isinstance(contract_report, EngineeringContractReport):
             raise EngineeringExecutionError(
                 f"EngineeringWorkerEngine consumes ONLY EngineeringContractReport. "
@@ -47,23 +256,18 @@ class EngineeringWorkerEngine:
         results: List[EngineeringResult] = []
 
         for contract in contract_report.contracts:
-            result = self.execute_contract(contract, ws_root)
+            result = self.execute_contract(contract, ws_root, contract_report)
             results.append(result)
 
         return results
 
     def execute_contract(
-        self, contract: EngineeringContract, workspace_root: str
+        self,
+        contract: EngineeringContract,
+        workspace_root: str,
+        contract_report: Optional[EngineeringContractReport] = None,
     ) -> EngineeringResult:
-        """Execute code generation for a single EngineeringContract.
-
-        Args:
-            contract: Immutable EngineeringContract specification.
-            workspace_root: Absolute workspace root directory path string.
-
-        Returns:
-            EngineeringResult: Immutable execution result.
-        """
+        """Execute Multi-Step code generation for a single EngineeringContract."""
         start_time = time.perf_counter()
 
         if not isinstance(contract, EngineeringContract):
@@ -79,10 +283,189 @@ class EngineeringWorkerEngine:
         abs_target = (ws_path / rel_target).resolve()
         self._enforce_boundary_safety(rel_target, abs_target, ws_path)
 
-        # 2. Generate Content tailored to Contract Specifications
-        content, created = self._generate_target_content(contract, abs_target)
+        # 2. Generate ExecutionBatch via InvocationPlanner
+        batch = self.planner.plan_batch(contract, contract_report)
 
-        # 3. Safely Write Generated File/Directory to Target Workspace
+        # 3. Iterate through ExecutionBatch and execute InvocationTasks
+        completed_task_ids: Set[str] = set()
+        task_results: Dict[str, Any] = {}
+        failures: List[EngineeringFailure] = []
+        blocked_tasks: List[str] = []
+
+        for task in sorted(batch.tasks, key=lambda t: t.execution_order):
+            # Check if dependencies are satisfied
+            unmet_deps = [dep for dep in task.dependencies if dep not in completed_task_ids]
+            if unmet_deps:
+                task = task.transition_to(TaskState.BLOCKED)
+                blocked_tasks.append(task.task_id)
+                continue
+
+            task = task.transition_to(TaskState.READY)
+            task = task.transition_to(TaskState.RUNNING)
+
+            try:
+                req, sel = self._prepare_task_request(task, contract, ws_path, contract_report)
+                response = self.invocation_engine.invoke(req, sel)
+                content, usage_info = self._parse_generation_response(response, contract, abs_target)
+                task = task.transition_to(TaskState.COMPLETED)
+                usage_info["task_type"] = task.task_type
+                usage_info["content"] = content
+                usage_info["task_state"] = task.state
+                usage_info["task_context"] = task.execution_context.model_dump() if task.execution_context else {}
+                task_results[task.task_id] = usage_info
+                completed_task_ids.add(task.task_id)
+            except Exception as exc:
+                task = task.transition_to(TaskState.FAILED)
+                failure_timestamp = datetime.now(timezone.utc).isoformat()
+                failure = EngineeringFailure(
+                    task_id=task.task_id,
+                    contract_id=contract.contract_id,
+                    error_message=str(exc),
+                    timestamp=failure_timestamp,
+                )
+                failures.append(failure)
+
+                # Fallback to local template generation if implementation task fails
+                if task.task_type == "implementation":
+                    content, _ = self._generate_target_content(contract, abs_target)
+                    char_count = len(content)
+                    fallback_info = {
+                        "task_type": "implementation",
+                        "content": content,
+                        "provider": "oniroute-local-engine",
+                        "model": "gemini-2.5-pro",
+                        "prompt_tokens": max(100, char_count // 4),
+                        "completion_tokens": max(50, char_count // 5),
+                        "total_tokens": max(150, (char_count // 4) + (char_count // 5)),
+                        "cost_usd": 0.0,
+                        "finish_reason": "fallback_template",
+                        "task_state": task.state,
+                        "task_context": task.execution_context.model_dump() if task.execution_context else {},
+                        "error": str(exc),
+                    }
+                    task_results[task.task_id] = fallback_info
+                    completed_task_ids.add(task.task_id)
+
+        # 4. Safely Write Generated Artifacts to Workspace
+        primary_content = task_results.get(f"task-impl-{contract.contract_id}", {}).get("content", "")
+        if not primary_content and task_results:
+            first_key = next(iter(task_results))
+            primary_content = task_results[first_key].get("content", "")
+
+        self._write_generated_file(contract, abs_target, primary_content)
+
+        # 5. Aggregate Batch Results into EngineeringResult
+        batch_result = BatchResult(
+            batch_id=batch.batch_id,
+            contract_id=contract.contract_id,
+            task_results=task_results,
+            failures=failures,
+            blocked_tasks=blocked_tasks,
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
+
+        return self.aggregator.aggregate(batch_result, contract, workspace_root, start_time)
+
+    def _prepare_task_request(
+        self,
+        task: InvocationTask,
+        contract: EngineeringContract,
+        workspace_path: Path,
+        contract_report: Optional[EngineeringContractReport] = None,
+    ) -> Tuple[InvocationRequest, SelectionRequest]:
+        """Construct InvocationRequest and SelectionRequest for a specific InvocationTask."""
+        system_prompt = (
+            f"You are an autonomous AI engineering worker ({contract.assigned_profile_role}).\n"
+            f"Task: {task.task_type} generation for target path '{contract.target_path}'.\n"
+            f"Discipline: {contract.engineering_discipline}\n"
+            f"Coding Standards: {', '.join(contract.coding_standards) if contract.coding_standards else 'Standard'}\n"
+            f"Return ONLY the output content without markdown commentary code block fences."
+        )
+
+        user_prompt = (
+            f"Execute task {task.task_id} for contract {contract.contract_id}.\n"
+            f"Task Type: {task.task_type}\n"
+            f"Target Path: {contract.target_path}\n"
+            f"Technology Stack: {contract_report.technology_stack if contract_report else 'Python'}\n"
+            f"Architecture Constraints: {', '.join(contract.architecture_constraints)}"
+        )
+
+        request = InvocationRequest(
+            prompt=user_prompt,
+            system_prompt=system_prompt,
+            capabilities=frozenset([Capability.CODING]),
+            temperature=0.2,
+            max_tokens=4096,
+            context={
+                "workspace_path": str(workspace_path),
+                "contract_id": contract.contract_id,
+                "task_id": task.task_id,
+            },
+        )
+
+        selection = SelectionRequest(
+            capabilities=frozenset([Capability.CODING]),
+            local_preference=True,
+        )
+
+        return request, selection
+
+    def _prepare_generation_request(
+        self,
+        contract: EngineeringContract,
+        workspace_path: Path,
+        contract_report: Optional[EngineeringContractReport] = None,
+    ) -> Tuple[InvocationRequest, SelectionRequest]:
+        """Construct single InvocationRequest and SelectionRequest from contract metadata."""
+        impl_task = InvocationTask(
+            task_id=f"task-impl-{contract.contract_id}",
+            contract_id=contract.contract_id,
+            target_path=contract.target_path,
+            task_type="implementation",
+            dependencies=[],
+            execution_order=1,
+            required_capabilities=["coding"],
+            expected_artifacts=[contract.target_path],
+        )
+        return self._prepare_task_request(impl_task, contract, workspace_path, contract_report)
+
+    def _parse_generation_response(
+        self,
+        response: InvocationResponse,
+        contract: EngineeringContract,
+        abs_target: Path,
+    ) -> Tuple[str, Dict[str, Any]]:
+        """Parse InvocationResponse into content string and accounting metadata."""
+        content = response.text or ""
+
+        # Clean markdown fences if present
+        if content.startswith("```"):
+            lines = content.splitlines()
+            if len(lines) >= 2 and lines[-1].startswith("```"):
+                content = "\n".join(lines[1:-1])
+
+        meta = response.metadata or {}
+        usage_info = {
+            "provider": meta.get("provider", "oniroute-local-engine"),
+            "model": meta.get("model", "gemini-2.5-pro"),
+            "prompt_tokens": response.usage.input_tokens,
+            "completion_tokens": response.usage.output_tokens,
+            "total_tokens": response.usage.total_tokens,
+            "cost_usd": 0.0,
+            "finish_reason": response.finish_reason or "stop",
+        }
+
+        return content, usage_info
+
+    def _write_generated_file(
+        self,
+        contract: EngineeringContract,
+        abs_target: Path,
+        content: str,
+    ) -> bool:
+        """Safely write generated content to file/directory in target workspace."""
+        created = not abs_target.exists()
+
         if contract.target_type == "directory":
             if abs_target.is_file():
                 abs_target.unlink()
@@ -97,65 +480,7 @@ class EngineeringWorkerEngine:
                 abs_target.parent.mkdir(parents=True, exist_ok=True)
                 abs_target.write_text(content, encoding="utf-8")
 
-        created_files = [rel_target] if created else []
-        modified_files = [] if created else [rel_target]
-        artifacts = [rel_target]
-
-        elapsed_ms = (time.perf_counter() - start_time) * 1000.0
-        timestamp_iso = datetime.now(timezone.utc).isoformat()
-        result_id = f"engres-{abs(hash(f'{contract.contract_id}-{rel_target}-{timestamp_iso}')) % 1000000:06d}"
-
-        # 4. Token & Cost Estimation
-        char_count = len(content)
-        prompt_tokens = max(100, char_count // 4)
-        completion_tokens = max(50, char_count // 5)
-        total_tokens = prompt_tokens + completion_tokens
-        cost_usd = round(total_tokens * 0.000002, 6)
-
-        token_usage = {
-            "prompt_tokens": prompt_tokens,
-            "completion_tokens": completion_tokens,
-            "total_tokens": total_tokens,
-        }
-
-        trace_refs = [f"trc-{contract.contract_id}"]
-
-        evidence: Dict[str, Any] = {
-            "contract_id": contract.contract_id,
-            "discipline": contract.engineering_discipline,
-            "assigned_profile_id": contract.assigned_profile_id,
-            "boundary_safety_verified": True,
-            "read_only_engine_verified": True,
-            "bytes_written": len(content.encode("utf-8")),
-            "execution_wave": contract.execution_wave,
-        }
-
-        # 5. Compute Result Hash
-        res_hash = self._compute_result_hash(
-            result_id=result_id,
-            contract_id=contract.contract_id,
-            profile_id=contract.assigned_profile_id,
-            rel_target=rel_target,
-            content=content,
-        )
-
-        return EngineeringResult(
-            result_id=result_id,
-            contract_id=contract.contract_id,
-            profile_id=contract.assigned_profile_id,
-            modified_files=modified_files,
-            created_files=created_files,
-            artifacts=artifacts,
-            execution_time_ms=round(elapsed_ms, 3),
-            provider="oniroute-local-engine",
-            model="gemini-2.5-pro",
-            token_usage=token_usage,
-            cost_usd=cost_usd,
-            trace_references=trace_refs,
-            evidence=evidence,
-            timestamp=timestamp_iso,
-            result_hash=res_hash,
-        )
+        return created
 
     def _enforce_boundary_safety(
         self, rel_target: str, abs_target: Path, ws_path: Path
