@@ -29,9 +29,13 @@ from runtime.engineering.models import (
     TaskContext,
     TaskState,
 )
+from runtime.experience import ExecutionEventStream, StreamEventType
 from runtime.invocation import InvocationEngine, InvocationRequest, InvocationResponse
 from runtime.invocation.dispatcher import InvocationDispatcher
 from runtime.invocation.adapters import OllamaAdapter, OpenAICompatibleAdapter
+from runtime.invocation.exceptions import StreamConnectionError, StreamUnsupportedError
+from runtime.invocation.models import StreamChunk
+from runtime.invocation.streaming import assemble_stream
 from runtime.models import Capability, ModelManager, SelectionRequest
 
 
@@ -131,12 +135,17 @@ class ResponseAggregator:
         contract: EngineeringContract,
         workspace_root: str,
         start_time: float,
+        created: bool | None = None,
     ) -> EngineeringResult:
         """Merge task outputs, token metrics, latency, failures, and metadata into EngineeringResult."""
         rel_target = contract.target_path
         ws_path = Path(workspace_root).resolve()
         abs_target = (ws_path / rel_target).resolve()
-        created = not abs_target.exists()
+        # `created` is captured before the artifact is written (callers pass the
+        # pre-write value). Falling back to a post-write existence check would
+        # always report False because the file already exists.
+        if created is None:
+            created = not abs_target.exists()
 
         total_prompt_tokens = 0
         total_completion_tokens = 0
@@ -225,6 +234,7 @@ class EngineeringWorkerEngine:
         config_path: Optional[Path] = None,
         planner: Optional[InvocationPlanner] = None,
         aggregator: Optional[ResponseAggregator] = None,
+        event_stream: Optional[ExecutionEventStream] = None,
     ) -> None:
         """Initialize EngineeringWorkerEngine with dependencies."""
         if invocation_engine is not None:
@@ -241,6 +251,7 @@ class EngineeringWorkerEngine:
 
         self.planner = planner or InvocationPlanner()
         self.aggregator = aggregator or ResponseAggregator()
+        self.event_stream = event_stream
 
     def execute_all_contracts(
         self, contract_report: EngineeringContractReport
@@ -352,6 +363,7 @@ class EngineeringWorkerEngine:
             first_key = next(iter(task_results))
             primary_content = task_results[first_key].get("content", "")
 
+        created = not abs_target.exists()
         self._write_generated_file(contract, abs_target, primary_content)
 
         # 5. Aggregate Batch Results into EngineeringResult
@@ -364,7 +376,193 @@ class EngineeringWorkerEngine:
             timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
-        return self.aggregator.aggregate(batch_result, contract, workspace_root, start_time)
+        return self.aggregator.aggregate(batch_result, contract, workspace_root, start_time, created=created)
+
+    def stream_all_contracts(
+        self, contract_report: EngineeringContractReport
+    ) -> List[EngineeringResult]:
+        """Execute multi-step code generation with real streaming for all contracts."""
+        if not isinstance(contract_report, EngineeringContractReport):
+            raise EngineeringExecutionError(
+                f"EngineeringWorkerEngine consumes ONLY EngineeringContractReport. "
+                f"Received invalid input type: {type(contract_report).__name__}"
+            )
+        ws_root = contract_report.workspace_root
+        results: List[EngineeringResult] = []
+        for contract in contract_report.contracts:
+            result = self.stream_execute_contract(contract, ws_root, contract_report)
+            results.append(result)
+        return results
+
+    def stream_execute_contract(
+        self,
+        contract: EngineeringContract,
+        workspace_root: str,
+        contract_report: Optional[EngineeringContractReport] = None,
+        event_stream: Optional[ExecutionEventStream] = None,
+    ) -> EngineeringResult:
+        """Execute multi-step code generation using real provider streaming.
+
+        Consumes incremental ``StreamChunk`` objects from ``InvocationEngine.stream()``
+        and accumulates partial content. On a clean stream completion the final
+        artifact is assembled and written. On failure or unsupported streaming,
+        partial content is preserved as diagnostic state but is NOT certified
+        as a successful generated artifact (no artifact write occurs).
+        """
+        start_time = time.perf_counter()
+        if not isinstance(contract, EngineeringContract):
+            raise EngineeringExecutionError(
+                f"EngineeringWorkerEngine contract execution requires EngineeringContract. "
+                f"Received: {type(contract).__name__}"
+            )
+
+        ws_path = Path(workspace_root).resolve()
+        rel_target = contract.target_path
+        abs_target = (ws_path / rel_target).resolve()
+        self._enforce_boundary_safety(rel_target, abs_target, ws_path)
+
+        batch = self.planner.plan_batch(contract, contract_report)
+
+        completed_task_ids: Set[str] = set()
+        task_results: Dict[str, Any] = {}
+        failures: List[EngineeringFailure] = []
+        blocked_tasks: List[str] = []
+        partial_content: Dict[str, str] = {}
+
+        event_stream = event_stream or self.event_stream
+
+        for task in sorted(batch.tasks, key=lambda t: t.execution_order):
+            unmet_deps = [dep for dep in task.dependencies if dep not in completed_task_ids]
+            if unmet_deps:
+                task = task.transition_to(TaskState.BLOCKED)
+                blocked_tasks.append(task.task_id)
+                continue
+
+            task = task.transition_to(TaskState.READY)
+            task = task.transition_to(TaskState.RUNNING)
+
+            context = task.execution_context
+            mission_id = context.mission_id if context else "msn-active"
+
+            self._emit_stream_event(
+                event_stream, "STREAM_STARTED", mission_id, task_id=task.task_id,
+                contract_id=contract.contract_id, task_type=task.task_type, target_path=contract.target_path,
+            )
+
+            req, sel = self._prepare_task_request(task, contract, ws_path, contract_report)
+            req = req.model_copy(update={"streaming": True})
+
+            collected: List[StreamChunk] = []
+            try:
+                for chunk in self.invocation_engine.stream(req, sel):
+                    collected.append(chunk)
+                    self._emit_stream_event(
+                        event_stream, "STREAM_CHUNK", mission_id, task_id=task.task_id,
+                        sequence=chunk.sequence, delta=chunk.delta, finish_reason=chunk.finish_reason,
+                    )
+            except StreamConnectionError as exc:
+                task = task.transition_to(TaskState.FAILED)
+                failures.append(EngineeringFailure(
+                    task_id=task.task_id,
+                    contract_id=contract.contract_id,
+                    error_message=f"stream_connection_error: {exc}",
+                    timestamp=datetime.now(timezone.utc).isoformat(),
+                ))
+                partial_content[task.task_id] = "".join(c.delta for c in collected)
+                self._emit_stream_event(
+                    event_stream, "STREAM_FAILED", mission_id, task_id=task.task_id,
+                    error_message=str(exc), partial_length=len(partial_content[task.task_id]),
+                )
+                continue
+
+            assembly = assemble_stream(collected)
+            finish_reason = assembly.finish_reason
+            content = assembly.content
+            usage = assembly.usage
+            provider = "oniroute-local-engine"
+            model = "gemini-2.5-pro"
+            if collected:
+                last = collected[-1]
+                provider = last.provider or provider
+                model = last.model or model
+
+            if finish_reason == "streaming_unsupported":
+                task = task.transition_to(TaskState.FAILED)
+                failures.append(EngineeringFailure(
+                    task_id=task.task_id,
+                    contract_id=contract.contract_id,
+                    error_message="streaming_unsupported",
+                    timestamp=datetime.now(timezone.utc).isoformat(),
+                ))
+                partial_content[task.task_id] = content
+                self._emit_stream_event(
+                    event_stream, "STREAM_FAILED", mission_id, task_id=task.task_id,
+                    error_message="streaming_unsupported", partial_length=len(content),
+                )
+                continue
+
+            task = task.transition_to(TaskState.COMPLETED)
+            chunk_count = assembly.chunk_count
+            self._emit_stream_event(
+                event_stream, "STREAM_COMPLETED", mission_id, task_id=task.task_id,
+                content_length=len(content), chunk_count=chunk_count, finish_reason=finish_reason,
+            )
+
+            usage_info: Dict[str, Any] = {
+                "task_type": task.task_type,
+                "content": content,
+                "provider": provider,
+                "model": model,
+                "prompt_tokens": usage.input_tokens or 0 if usage else 0,
+                "completion_tokens": usage.output_tokens or 0 if usage else 0,
+                "total_tokens": usage.total_tokens or 0 if usage else 0,
+                "cost_usd": 0.0,
+                "finish_reason": finish_reason,
+                "task_state": task.state,
+                "task_context": context.model_dump() if context else {},
+                "streaming": True,
+                "chunk_count": chunk_count,
+                "sequences": assembly.sequences,
+            }
+            task_results[task.task_id] = usage_info
+            completed_task_ids.add(task.task_id)
+
+        # Only write the final artifact when no task failed. Partial content is
+        # never certified as a generated artifact.
+        impl_key = f"task-impl-{contract.contract_id}"
+        primary_content = task_results.get(impl_key, {}).get("content", "")
+        created = not abs_target.exists()
+        if primary_content and not failures:
+            self._write_generated_file(contract, abs_target, primary_content)
+
+        batch_result = BatchResult(
+            batch_id=batch.batch_id,
+            contract_id=contract.contract_id,
+            task_results=task_results,
+            failures=failures,
+            blocked_tasks=blocked_tasks,
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
+
+        result = self.aggregator.aggregate(batch_result, contract, workspace_root, start_time, created=created if primary_content else None)
+        extra_evidence: Dict[str, Any] = {"streaming": True, "task_count": len(task_results)}
+        if partial_content:
+            extra_evidence["partial_content"] = partial_content
+            extra_evidence["partial_content_lengths"] = {k: len(v) for k, v in partial_content.items()}
+            extra_evidence["failed_during_streaming"] = True
+        return result.model_copy(update={"evidence": {**result.evidence, **extra_evidence}})
+
+    def _emit_stream_event(
+        self,
+        event_stream: Optional[ExecutionEventStream],
+        event_type: StreamEventType,
+        mission_id: str,
+        **payload: Any,
+    ) -> Optional[Any]:
+        """Publish an immutable STREAM_* lifecycle event when an event stream is bound."""
+        if event_stream is None:
+            return None
+        return event_stream.publish_event(event_type, mission_id=mission_id, stage_name="ENGINEERING", payload=payload)
 
     def _prepare_task_request(
         self,
