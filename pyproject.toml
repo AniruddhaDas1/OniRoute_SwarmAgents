@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "oniroute-swarmagents"
-version = "1.2.0"
+version = "1.2.1"
 description = "Organization Level Swarm Coding AI Agents — Local-first, provider-independent swarm agent architecture and runtime"
 readme = "README.md"
 license = "Apache-2.0"
@@ -43,10 +43,11 @@ packages = [
     "runtime.agent", "runtime.organization", "runtime.skills",
     "runtime.swarm", "runtime.scaffold", "runtime.blueprint",
     "runtime.allocation", "runtime.contracts", "runtime.assembly",
-    "runtime.engineering", "runtime.review", "runtime.healing",
-    "runtime.validation", "runtime.router", "runtime.experience",
-    "runtime.control", "runtime.distribution", "runtime.deployment",
-    "cli",
+ "runtime.engineering", "runtime.review", "runtime.healing",
+ "runtime.validation", "runtime.router", "runtime.experience",
+ "runtime.control", "runtime.distribution", "runtime.deployment",
+ "runtime.freeze", "runtime.verification",
+ "cli",
 ]
 
 [tool.setuptools.data-files]

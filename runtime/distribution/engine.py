@@ -22,7 +22,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 # ── Version ───────────────────────────────────────────────────────────────
 
-ONIROUTE_VERSION = "1.2.0"
+ONIROUTE_VERSION = "1.2.1"
 ONIROUTE_CODENAME = "Swarm Intelligence"
 
 # ── Data Contracts ────────────────────────────────────────────────────────
@@ -431,26 +431,26 @@ class DistributionPreparer:
                     "install": "brew install oniroute/tap/oniroute",
                 },
                 "docker": {
-                    "image": "oniroute/oniroute:1.2.0",
+                    "image": "oniroute/oniroute:1.2.1",
                     "dockerfile": "Dockerfile",
-                    "run": "docker run --rm -v $(pwd):/workspace oniroute/oniroute:1.2.0 build 'my app'",
+                    "run": "docker run --rm -v $(pwd):/workspace oniroute/oniroute:1.2.1 build 'my app'",
                 },
                 "standalone": {
-                    "macos_arm64": "oniroute-1.2.0-macos-arm64",
-                    "macos_x64": "oniroute-1.2.0-macos-x64",
-                    "linux_x64": "oniroute-1.2.0-linux-x64",
-                    "windows_x64": "oniroute-1.2.0-windows-x64.exe",
+                    "macos_arm64": "oniroute-1.2.1-macos-arm64",
+                    "macos_x64": "oniroute-1.2.1-macos-x64",
+                    "linux_x64": "oniroute-1.2.1-linux-x64",
+                    "windows_x64": "oniroute-1.2.1-windows-x64.exe",
                     "build_tool": "PyInstaller",
                 },
                 "github_release": {
-                    "tag": "v1.2.0",
+                    "tag": "v1.2.1",
                     "assets": [
-                        "oniroute-1.2.0-macos-arm64",
-                        "oniroute-1.2.0-macos-x64",
-                        "oniroute-1.2.0-linux-x64",
-                        "oniroute-1.2.0-windows-x64.exe",
-                        "oniroute-swarmagents-1.2.0.tar.gz",
-                        "oniroute-swarmagents-1.2.0-py3-none-any.whl",
+                        "oniroute-1.2.1-macos-arm64",
+                        "oniroute-1.2.1-macos-x64",
+                        "oniroute-1.2.1-linux-x64",
+                        "oniroute-1.2.1-windows-x64.exe",
+                        "oniroute-swarmagents-1.2.1.tar.gz",
+                        "oniroute-swarmagents-1.2.1-py3-none-any.whl",
                     ],
                 },
             },
