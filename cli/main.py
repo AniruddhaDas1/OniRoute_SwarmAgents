@@ -77,6 +77,14 @@ from runtime.contracts import (
     DeliverableContract,
     AcceptanceCriteria,
     ContractTraceability,
+    ContractDecompositionEngine,
+    ContractDecompositionReport,
+    SubContract,
+    DependencyGraph,
+    DependencyEdge,
+    ArtifactRoute,
+    ExecutionWave,
+    ParallelExecutionGroup,
 )
 from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssemblyCertificationReport, AssemblyCertificationError
 from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError, AutonomousEngineeringCertificationEngine, EngineeringCertificationReport
@@ -3456,6 +3464,150 @@ def dynamic_contracts_command(
         sys.exit(1)
 
 
+@app.command("decompose-contracts")
+def decompose_contracts_command(
+    request: list[str] = typer.Argument(None, help='Natural language request string (e.g. "Build a real estate website").'),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON ContractDecompositionReport."),
+) -> None:
+    """E2.2: Decompose EngineeringContracts into SubContracts, Dependency Graph, and Execution Waves.
+
+    Consumes: EngineeringContractReport (from E2.1)
+    Produces: ContractDecompositionReport (diagnostic only — no execution, no code generation)
+    """
+    import sys
+    try:
+        ws_path = workspace_path or Path.cwd()
+        raw_prompt = " ".join(request) if request else "Build application"
+        if request and "--json" in request:
+            json_output = True
+            raw_prompt = " ".join([r for r in request if r != "--json"])
+            if not raw_prompt.strip():
+                raw_prompt = "Build application"
+
+        ws_intel = WorkspaceIntelligence()
+        ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+        repo_intel = RepositoryIntelligence()
+        repo_context = repo_intel.analyze_repository(ws_context)
+
+        intent_analyzer = IntentAnalyzer()
+        intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=ws_path)
+
+        plan_gen = EngineeringPlanGenerator()
+        exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+        loader = RepositoryLoader(Path.cwd())
+        registry = loader.load()
+        resolver = Resolver(registry)
+
+        discovery_engine = SkillDiscoveryEngine(registry, resolver)
+        selection_report = discovery_engine.discover_skills(exec_plan)
+
+        ranking_engine = SkillRankingEngine(registry, resolver)
+        ranked_report = ranking_engine.rank_skills(selection_report, exec_plan)
+
+        bundling_engine = SkillBundlingEngine(registry, resolver)
+        bundle_report = bundling_engine.bundle_skills(ranked_report, exec_plan, selection_report)
+
+        profile_builder = AgentProfileBuilderEngine(registry, resolver)
+        profile_report = profile_builder.build_profiles(bundle_report, exec_plan)
+
+        contract_builder = EngineeringContractBuilder()
+        contract_report = contract_builder.build(exec_plan, bundle_report, profile_report)
+
+        decomposer = ContractDecompositionEngine()
+        decomposition_report = decomposer.decompose(contract_report)
+
+        if json_output:
+            console.print_json(data=decomposition_report.model_dump(mode="json"))
+            return
+
+        console.print(f"[bold green]✓ Contract Decomposition Complete[/] ({decomposition_report.report_id})")
+
+        overview_table = Table(title="E2.2 Contract Decomposition Report")
+        overview_table.add_column("Property", style="bold cyan")
+        overview_table.add_column("Value", style="bold yellow")
+        overview_table.add_row("Report ID", decomposition_report.report_id)
+        overview_table.add_row("Mission ID", decomposition_report.mission_id)
+        overview_table.add_row("Parent Contract Report", decomposition_report.parent_contract_report_id)
+        overview_table.add_row("Total Sub-Contracts", str(decomposition_report.total_sub_contracts))
+        overview_table.add_row("Execution Waves", str(decomposition_report.total_waves))
+        overview_table.add_row("Artifact Routes", str(decomposition_report.total_artifact_routes))
+        overview_table.add_row("Parallel Groups", str(decomposition_report.parallelizable_groups))
+        overview_table.add_row("Coverage", f"{decomposition_report.coverage.get('coverage_percent', 0):.1f}%")
+        overview_table.add_row("Deterministic", str(decomposition_report.deterministic))
+        console.print(overview_table)
+
+        sub_contracts_table = Table(title="Sub-Contracts")
+        sub_contracts_table.add_column("SubContract ID", style="bold cyan")
+        sub_contracts_table.add_column("Parent Contract", style="bold yellow")
+        sub_contracts_table.add_column("Atomic", style="bold green")
+        sub_contracts_table.add_column("Wave", style="bold blue")
+        sub_contracts_table.add_column("Deliverables", style="bold white")
+        sub_contracts_table.add_column("Repository Scope")
+        for s in decomposition_report.sub_contracts:
+            sub_contracts_table.add_row(
+                s.sub_contract_id,
+                s.parent_contract_id,
+                "YES" if s.is_atomic else "NO",
+                str(s.execution_wave),
+                str(len(s.owned_deliverables)),
+                s.repository_scope,
+            )
+        console.print(sub_contracts_table)
+
+        waves_table = Table(title="Execution Waves")
+        waves_table.add_column("Wave", style="bold yellow")
+        waves_table.add_column("Name", style="bold cyan")
+        waves_table.add_column("Sub-Contracts", style="bold green")
+        waves_table.add_column("Parallel", style="bold magenta")
+        waves_table.add_column("Blocking Waves")
+        for w in decomposition_report.execution_waves:
+            waves_table.add_row(
+                str(w.wave_number),
+                w.wave_name,
+                str(len(w.sub_contract_ids)),
+                "YES" if w.parallelizable else "NO",
+                ", ".join(map(str, w.blocking_waves)) if w.blocking_waves else "None",
+            )
+        console.print(waves_table)
+
+        if decomposition_report.dependency_graph.edges:
+            dep_table = Table(title="Dependency Graph Edges")
+            dep_table.add_column("From", style="bold cyan")
+            dep_table.add_column("To", style="bold yellow")
+            dep_table.add_column("Type", style="bold green")
+            for edge in decomposition_report.dependency_graph.edges[:20]:
+                dep_table.add_row(edge.from_id, edge.to_id, edge.dependency_type.value)
+            console.print(dep_table)
+
+        if decomposition_report.artifact_routes:
+            art_table = Table(title="Artifact Routes")
+            art_table.add_column("Route ID", style="bold cyan")
+            art_table.add_column("Artifact", style="bold yellow")
+            art_table.add_column("Producer", style="bold green")
+            art_table.add_column("Type", style="bold magenta")
+            art_table.add_column("Path", style="bold white")
+            for r in decomposition_report.artifact_routes[:15]:
+                art_table.add_row(r.route_id, r.artifact_id, r.producing_sub_contract_id, r.artifact_type, r.repository_path)
+            console.print(art_table)
+
+        validation_table = Table(title="Decomposition Validation Results")
+        validation_table.add_column("Check", style="bold cyan")
+        validation_table.add_column("Status", style="bold green")
+        validation_table.add_column("Detail")
+        for check_name, result in decomposition_report.validation_results.items():
+            status = "PASS" if result.get("passed") else "FAIL"
+            detail = result.get("detail", "")
+            validation_table.add_row(check_name, status, str(detail))
+        console.print(validation_table)
+        console.print(f"[dim]E2.2 — No LLM calls, no code generation, no agent execution.[/]")
+
+    except Exception as exc:
+        console.print(f"[red]Decomposition Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 @app.command("contracts")
 def contracts_command(
     allocation_path: Path | None = typer.Option(
@@ -4687,7 +4839,7 @@ REGISTERED_CLI_COMMANDS: set[str] = {
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
-    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "dynamic-contracts", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept", "certify-engineering",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "dynamic-contracts", "decompose-contracts", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept", "certify-engineering",
     "build", "create", "fix", "refactor", "migrate", "status", "watch",
     "pause", "cancel", "logs",
     "init", "config", "update", "version",
