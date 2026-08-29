@@ -1,8 +1,22 @@
 from __future__ import annotations
 
+# E2.1 builder
 from runtime.contracts.builder import EngineeringContractBuilder
-from runtime.contracts.decomposition import (
+from runtime.contracts.e21_models import (
     ACCEPTANCE_CRITERIA_TEMPLATES,
+    DELIVERABLE_VERIFICATION_METHOD,
+    DISCIPLINE_DELIVERABLE_TYPE,
+    DISCIPLINE_REPOSITORY_SCOPE,
+    PRIORITY_RANK,
+    SKILL_PRIORITY_TO_GENERATION,
+    AcceptanceCriteria,
+    ContractCoverageMetrics,
+    ContractTraceability,
+    DeliverableContract,
+)
+# E2.2 decomposition
+from runtime.contracts.decomposition import (
+    ACCEPTANCE_CRITERIA_TEMPLATES as E22_AC_TEMPLATES,
     ArtifactRoute,
     CONTRACT_DECOMPOSITION_RULES,
     CONTRACT_DELIVERABLE_TYPE,
@@ -26,19 +40,41 @@ from runtime.contracts.decomposition import (
     WaveOrderingError,
 )
 from runtime.contracts.decomposer import ContractDecompositionEngine
-from runtime.contracts.e21_models import (
-    ACCEPTANCE_CRITERIA_TEMPLATES as E21_AC_TEMPLATES,
-    DELIVERABLE_VERIFICATION_METHOD,
-    DISCIPLINE_DELIVERABLE_TYPE,
-    DISCIPLINE_REPOSITORY_SCOPE,
-    PRIORITY_RANK,
-    SKILL_PRIORITY_TO_GENERATION,
-    AcceptanceCriteria,
-    ContractCoverageMetrics,
-    ContractTraceability,
-    DeliverableContract,
+# E2.3 artifact execution planning
+from runtime.contracts.e23_models import (
+    ArtifactDependencyGraph,
+    ArtifactDependencyEdge,
+    ArtifactDependencyType,
+    ArtifactDependencyInput,
+    ArtifactExecutionPlan,
+    ArtifactExecutionUnit,
+    ArtifactExecutionWave,
+    ArtifactExecutionOrder,
+    ArtifactPlanningError,
+    ConflictReport,
+    GenerationStrategy,
+    GenerationStrategySummary,
+    PathResolutionError,
+    PathType,
+    RepositoryBoundary,
+    RepositoryScopeSummary,
+    StrategyUnresolvedError,
+    ValidationCategory,
+    ValidationCheckpoint,
+    OverwritePolicy,
+    ConflictType,
+    Conflict,
+    compute_artifact_execution_id,
+    compute_artifact_execution_hash,
+    compute_plan_hash,
+    normalize_path,
+    validate_absolute_path,
+    validate_no_traversal,
 )
+from runtime.contracts.planner import ArtifactExecutionPlanner
+# P4.G4 engine
 from runtime.contracts.engine import DISCIPLINE_WAVE_MAP, EngineeringContractEngine
+# P4.G4 models
 from runtime.contracts.exceptions import (
     ContractConstraintError,
     ContractCoverageError,
@@ -88,6 +124,37 @@ __all__ = [
     "TechnologyMismatchError",
     "TraceabilityError",
     "WaveOrderingError",
+    # E2.3 artifact execution planning
+    "ArtifactExecutionPlanner",
+    "ArtifactExecutionPlan",
+    "ArtifactExecutionUnit",
+    "ArtifactExecutionWave",
+    "ArtifactExecutionOrder",
+    "ArtifactDependencyGraph",
+    "ArtifactDependencyEdge",
+    "ArtifactDependencyType",
+    "ArtifactDependencyInput",
+    "GenerationStrategy",
+    "GenerationStrategySummary",
+    "PathType",
+    "OverwritePolicy",
+    "ValidationCategory",
+    "ValidationCheckpoint",
+    "RepositoryBoundary",
+    "RepositoryScopeSummary",
+    "ConflictType",
+    "Conflict",
+    "ConflictReport",
+    "ArtifactPlanningError",
+    "PathResolutionError",
+    "StrategyUnresolvedError",
+    # Helpers
+    "compute_artifact_execution_id",
+    "compute_artifact_execution_hash",
+    "compute_plan_hash",
+    "normalize_path",
+    "validate_absolute_path",
+    "validate_no_traversal",
     # Discipline mappings
     "DISCIPLINE_REPOSITORY_SCOPE",
     "DISCIPLINE_DELIVERABLE_TYPE",

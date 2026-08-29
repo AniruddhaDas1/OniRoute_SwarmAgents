@@ -85,6 +85,17 @@ from runtime.contracts import (
     ArtifactRoute,
     ExecutionWave,
     ParallelExecutionGroup,
+    # E2.3 artifact execution planning
+    ArtifactExecutionPlanner,
+    ArtifactExecutionPlan,
+    ArtifactExecutionUnit,
+    ArtifactExecutionWave,
+    ArtifactDependencyGraph,
+    GenerationStrategy,
+    GenerationStrategySummary,
+    ConflictReport,
+    Conflict,
+    ArtifactPlanningError,
 )
 from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssemblyCertificationReport, AssemblyCertificationError
 from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError, AutonomousEngineeringCertificationEngine, EngineeringCertificationReport
@@ -3464,6 +3475,165 @@ def dynamic_contracts_command(
         sys.exit(1)
 
 
+@app.command("prepare-artifacts")
+def prepare_artifacts_command(
+    request: list[str] = typer.Argument(None, help='Natural language request string (e.g. "Build a real estate website").'),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON ArtifactExecutionPlan."),
+) -> None:
+    """E2.3: Generate ArtifactExecutionPlan from Contract Decomposition Report.
+
+    Consumes: ContractDecompositionReport
+    Produces: ArtifactExecutionPlan (primary input for E3.1 Real Code Generation)
+    """
+    import sys
+    try:
+        ws_path = workspace_path or Path.cwd()
+        raw_prompt = " ".join(request) if request else "Build application"
+        if request and "--json" in request:
+            json_output = True
+            raw_prompt = " ".join([r for r in request if r != "--json"])
+            if not raw_prompt.strip():
+                raw_prompt = "Build application"
+
+        ws_intel = WorkspaceIntelligence()
+        ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+        repo_intel = RepositoryIntelligence()
+        repo_context = repo_intel.analyze_repository(ws_context)
+
+        intent_analyzer = IntentAnalyzer()
+        intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=ws_path)
+
+        plan_gen = EngineeringPlanGenerator()
+        exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+        loader = RepositoryLoader(Path.cwd())
+        registry = loader.load()
+        resolver = Resolver(registry)
+
+        discovery_engine = SkillDiscoveryEngine(registry, resolver)
+        selection_report = discovery_engine.discover_skills(exec_plan)
+
+        ranking_engine = SkillRankingEngine(registry, resolver)
+        ranked_report = ranking_engine.rank_skills(selection_report, exec_plan)
+
+        bundling_engine = SkillBundlingEngine(registry, resolver)
+        bundle_report = bundling_engine.bundle_skills(ranked_report, exec_plan, selection_report)
+
+        profile_builder = AgentProfileBuilderEngine(registry, resolver)
+        profile_report = profile_builder.build_profiles(bundle_report, exec_plan)
+
+        # E2.1: Build contracts
+        contract_builder = EngineeringContractBuilder()
+        contract_report = contract_builder.build(exec_plan, bundle_report, profile_report)
+
+        # E2.2: Decompose contracts
+        decomposer = ContractDecompositionEngine()
+        decomposition_report = decomposer.decompose(contract_report)
+
+        # E2.3: Plan artifact execution
+        planner = ArtifactExecutionPlanner()
+        execution_plan = planner.plan(decomposition_report)
+
+        if json_output:
+            console.print_json(data=execution_plan.model_dump(mode="json"))
+            return
+
+        console.print(f"[bold green]✓ Artifact Execution Planning Complete[/] ({execution_plan.plan_id})")
+
+        # Plan overview
+        overview_table = Table(title="E2.3 Artifact Execution Plan")
+        overview_table.add_column("Property", style="bold cyan")
+        overview_table.add_column("Value", style="bold yellow")
+        overview_table.add_row("Plan ID", execution_plan.plan_id)
+        overview_table.add_row("Mission ID", execution_plan.mission_id)
+        overview_table.add_row("Decomposition Report ID", execution_plan.contract_decomposition_report_id)
+        overview_table.add_row("Total Artifacts", str(execution_plan.total_artifacts))
+        overview_table.add_row("Total Waves", str(execution_plan.total_waves))
+        overview_table.add_row("Deterministic", str(execution_plan.deterministic))
+        overview_table.add_row("Validation Passed", str(execution_plan.validation_passed))
+        console.print(overview_table)
+
+        # Generation strategy summary
+        ss = execution_plan.generation_strategy_summary
+        strategy_table = Table(title="Generation Strategy Summary")
+        strategy_table.add_column("Strategy", style="bold cyan")
+        strategy_table.add_column("Count", style="bold yellow")
+        strategy_table.add_row("TEMPLATE", str(ss.template_count))
+        strategy_table.add_row("PATTERN", str(ss.pattern_count))
+        strategy_table.add_row("LLM_GENERATED", str(ss.llm_generated_count))
+        strategy_table.add_row("UNRESOLVED", str(ss.unresolved_count))
+        console.print(strategy_table)
+
+        if ss.unresolved_artifacts:
+            console.print(f"[yellow]⚠ UNRESOLVED artifacts:[/] {', '.join(ss.unresolved_artifacts)}")
+
+        # Artifact execution units
+        units_table = Table(title="Artifact Execution Units")
+        units_table.add_column("Unit ID", style="bold cyan")
+        units_table.add_column("Artifact Type", style="bold yellow")
+        units_table.add_column("Target Path", style="bold green")
+        units_table.add_column("Strategy", style="bold magenta")
+        units_table.add_column("Wave", style="bold blue")
+        for unit in execution_plan.execution_units:
+            units_table.add_row(
+                unit.artifact_execution_id,
+                unit.artifact_type,
+                unit.target_path,
+                unit.generation_strategy.value,
+                str(unit.execution_wave),
+            )
+        console.print(units_table)
+
+        # Execution waves
+        waves_table = Table(title="Execution Waves")
+        waves_table.add_column("Wave", style="bold cyan")
+        waves_table.add_column("Name", style="bold yellow")
+        waves_table.add_column("Artifacts", style="bold green")
+        waves_table.add_column("Parallel", style="bold magenta")
+        waves_table.add_column("Blocking Waves", style="bold blue")
+        for wave in execution_plan.execution_waves:
+            waves_table.add_row(
+                str(wave.wave_number),
+                wave.wave_name,
+                str(len(wave.artifact_execution_ids)),
+                "✓" if wave.parallelizable else "✗",
+                str(wave.blocking_waves) if wave.blocking_waves else "None",
+            )
+        console.print(waves_table)
+
+        # Repository scope summary
+        rs = execution_plan.repository_scope_summary
+        scope_table = Table(title="Repository Scope Summary")
+        scope_table.add_column("Scope", style="bold cyan")
+        scope_table.add_column("Unit Count", style="bold yellow")
+        for scope, count in sorted(rs.scopes.items()):
+            scope_table.add_row(scope, str(count))
+        console.print(scope_table)
+
+        # Conflict report
+        cr = execution_plan.conflict_report
+        if cr.total_conflicts > 0:
+            conflict_table = Table(title=f"Conflicts ({cr.errors} errors, {cr.warnings} warnings)")
+            conflict_table.add_column("Type", style="bold red")
+            conflict_table.add_column("Description", style="bold yellow")
+            conflict_table.add_column("Severity")
+            for cf in cr.conflicts:
+                conflict_table.add_row(cf.conflict_type.value, cf.description[:80], cf.severity)
+            console.print(conflict_table)
+        else:
+            console.print("[bold green]✓ No planning conflicts detected[/]")
+
+        console.print(f"[dim]E2.3 — No LLM calls, no code generation, no agent execution.[/]")
+
+    except ArtifactPlanningError as exc:
+        console.print(f"[red]Artifact Planning Error:[/] {str(exc)}")
+        sys.exit(1)
+    except Exception as exc:
+        console.print(f"[red]Prepare Artifacts Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 @app.command("decompose-contracts")
 def decompose_contracts_command(
     request: list[str] = typer.Argument(None, help='Natural language request string (e.g. "Build a real estate website").'),
@@ -4839,7 +5009,7 @@ REGISTERED_CLI_COMMANDS: set[str] = {
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
-    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "dynamic-contracts", "decompose-contracts", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept", "certify-engineering",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "dynamic-contracts", "decompose-contracts", "prepare-artifacts", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept", "certify-engineering",
     "build", "create", "fix", "refactor", "migrate", "status", "watch",
     "pause", "cancel", "logs",
     "init", "config", "update", "version",
