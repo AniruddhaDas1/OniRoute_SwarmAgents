@@ -68,7 +68,16 @@ from runtime.swarm import AutonomousExecutionEngine, ExecutionTaskQueue, Runtime
 from runtime.scaffold import WorkspaceScaffoldEngine, WorkspaceScaffoldReport, WorkspaceScaffoldError
 from runtime.blueprint import ProjectBlueprintEngine, ProjectBlueprintReport, ProjectBlueprintError
 from runtime.allocation import ImplementationAllocationEngine, ImplementationAllocationReport, ImplementationAllocationError
-from runtime.contracts import EngineeringContractEngine, EngineeringContractReport, EngineeringContractError
+from runtime.contracts import (
+    EngineeringContractEngine,
+    EngineeringContractBuilder,
+    EngineeringContractReport,
+    EngineeringContractError,
+    ContractValidator,
+    DeliverableContract,
+    AcceptanceCriteria,
+    ContractTraceability,
+)
 from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssemblyCertificationReport, AssemblyCertificationError
 from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError, AutonomousEngineeringCertificationEngine, EngineeringCertificationReport
 from runtime.review import QualityGateEngine, QualityReport, QualityGateError
@@ -3318,6 +3327,135 @@ def allocate_command(
         sys.exit(1)
 
 
+@app.command("dynamic-contracts")
+def dynamic_contracts_command(
+    request: list[str] = typer.Argument(None, help='Natural language request string (e.g. "Build a real estate website").'),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON EngineeringContractReport."),
+) -> None:
+    """E2.1: Generate Dynamic Engineering Contracts from Plan + Skill Bundles + Agent Profiles.
+
+    Consumes: EngineeringExecutionPlan + ExecutionSkillBundleReport + AgentProfileReport
+    Produces: EngineeringContractReport (diagnostic only — no execution, no code generation)
+    """
+    import sys
+    try:
+        ws_path = workspace_path or Path.cwd()
+        raw_prompt = " ".join(request) if request else "Build application"
+        if request and "--json" in request:
+            json_output = True
+            raw_prompt = " ".join([r for r in request if r != "--json"])
+            if not raw_prompt.strip():
+                raw_prompt = "Build application"
+
+        ws_intel = WorkspaceIntelligence()
+        ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+        repo_intel = RepositoryIntelligence()
+        repo_context = repo_intel.analyze_repository(ws_context)
+
+        intent_analyzer = IntentAnalyzer()
+        intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=ws_path)
+
+        plan_gen = EngineeringPlanGenerator()
+        exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+        loader = RepositoryLoader(Path.cwd())
+        registry = loader.load()
+        resolver = Resolver(registry)
+
+        discovery_engine = SkillDiscoveryEngine(registry, resolver)
+        selection_report = discovery_engine.discover_skills(exec_plan)
+
+        ranking_engine = SkillRankingEngine(registry, resolver)
+        ranked_report = ranking_engine.rank_skills(selection_report, exec_plan)
+
+        bundling_engine = SkillBundlingEngine(registry, resolver)
+        bundle_report = bundling_engine.bundle_skills(ranked_report, exec_plan, selection_report)
+
+        profile_builder = AgentProfileBuilderEngine(registry, resolver)
+        profile_report = profile_builder.build_profiles(bundle_report, exec_plan)
+
+        contract_builder = EngineeringContractBuilder()
+        contract_report = contract_builder.build(exec_plan, bundle_report, profile_report)
+
+        validator = ContractValidator()
+        validation_results = validator.validate(contract_report)
+
+        if json_output:
+            console.print_json(data=contract_report.model_dump(mode="json"))
+            return
+
+        console.print(f"[bold green]✓ Dynamic Engineering Contracts Complete[/] ({contract_report.report_id})")
+
+        overview_table = Table(title="E2.1 Dynamic Engineering Contract Report")
+        overview_table.add_column("Property", style="bold cyan")
+        overview_table.add_column("Value", style="bold yellow")
+        overview_table.add_row("Report ID", contract_report.report_id)
+        overview_table.add_row("Mission ID", contract_report.mission_id)
+        overview_table.add_row("Execution Plan ID", contract_report.execution_plan_id)
+        overview_table.add_row("Bundle Report ID", contract_report.bundle_report_id)
+        overview_table.add_row("Profile Report ID", contract_report.agent_profile_report_id)
+        overview_table.add_row("Technology Stack", contract_report.technology_stack)
+        overview_table.add_row("Coverage", f"{contract_report.coverage.get('coverage_percent', 0):.1f}%")
+        overview_table.add_row("Total Contracts", str(len(contract_report.contracts)))
+        overview_table.add_row("Total Deliverables", str(len(contract_report.deliverables)))
+        overview_table.add_row("Total Acceptance Criteria", str(len(contract_report.acceptance_criteria_models)))
+        overview_table.add_row("Total Traceability Records", str(len(contract_report.traceability)))
+        overview_table.add_row("Deterministic", str(contract_report.deterministic))
+        console.print(overview_table)
+
+        contracts_table = Table(title="Engineering Contracts")
+        contracts_table.add_column("Contract ID", style="bold cyan")
+        contracts_table.add_column("Discipline", style="bold yellow")
+        contracts_table.add_column("Agent Profile", style="bold green")
+        contracts_table.add_column("Priority", style="bold magenta")
+        contracts_table.add_column("Wave", style="bold blue")
+        contracts_table.add_column("Repository Scope")
+        contracts_table.add_column("Deliverables", style="bold white")
+        for c in contract_report.contracts:
+            deliv_count = len([d for d in contract_report.deliverables if d.contract_id == c.contract_id])
+            contracts_table.add_row(
+                c.contract_id,
+                c.engineering_discipline,
+                c.assigned_profile_id or c.agent_profile_id,
+                c.generation_priority,
+                str(c.execution_wave),
+                c.repository_scope,
+                f"{deliv_count} deliverable(s)",
+            )
+        console.print(contracts_table)
+
+        dependency_table = Table(title="Contract Dependencies (DAG)")
+        dependency_table.add_column("Contract ID", style="bold cyan")
+        dependency_table.add_column("Dependencies", style="bold yellow")
+        for c in contract_report.contracts:
+            deps_str = ", ".join(c.dependencies) if c.dependencies else "None"
+            dependency_table.add_row(c.contract_id, deps_str)
+        console.print(dependency_table)
+
+        validation_table = Table(title="Contract Validation Results")
+        validation_table.add_column("Check", style="bold cyan")
+        validation_table.add_column("Status", style="bold green")
+        validation_table.add_column("Detail")
+        all_passed = all(v.get("passed", False) for v in validation_results.values())
+        for check_name, result in validation_results.items():
+            status = "✓ PASS" if result.get("passed") else "✗ FAIL"
+            detail = result.get("detail", "")
+            validation_table.add_row(check_name, status, str(detail))
+        console.print(validation_table)
+        console.print(f"[dim]E2.1 — No LLM calls, no code generation, no agent execution.[/]")
+
+    except ContractCoverageError as exc:
+        console.print(f"[red]Coverage Error:[/] {str(exc)}")
+        sys.exit(1)
+    except ContractValidationError as exc:
+        console.print(f"[red]Validation Error:[/] {str(exc)}")
+        sys.exit(1)
+    except Exception as exc:
+        console.print(f"[red]Dynamic Contracts Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 @app.command("contracts")
 def contracts_command(
     allocation_path: Path | None = typer.Option(
@@ -4549,7 +4687,7 @@ REGISTERED_CLI_COMMANDS: set[str] = {
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
-    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept", "certify-engineering",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "dynamic-contracts", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept", "certify-engineering",
     "build", "create", "fix", "refactor", "migrate", "status", "watch",
     "pause", "cancel", "logs",
     "init", "config", "update", "version",

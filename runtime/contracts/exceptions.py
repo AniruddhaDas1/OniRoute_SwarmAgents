@@ -15,7 +15,19 @@ class ContractValidationError(EngineeringContractError):
     pass
 
 
-class ContractConstraintError(EngineeringContractError):
-    """Raised when constraint completeness or dependency validation fails."""
+class ContractDependencyError(EngineeringContractError):
+ """Raised when a circular dependency or invalid dependency is detected among engineering contracts."""
 
-    pass
+ pass
+
+
+class ContractCoverageError(EngineeringContractError):
+ """Raised when contract coverage is below 100%."""
+
+ pass
+
+
+class ContractConstraintError(EngineeringContractError):
+ """Raised when constraint completeness or dependency validation fails."""
+
+ pass
