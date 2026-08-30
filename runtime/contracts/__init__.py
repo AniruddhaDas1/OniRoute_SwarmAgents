@@ -141,6 +141,35 @@ from runtime.contracts.integration import (
     ProjectGenerator,
     WorkspaceResolver,
 )
+# E4.1 Review Pipeline
+from runtime.contracts.e4_models import (
+    ReviewCheckResult,
+    ReviewError,
+    ReviewExecutionError,
+    ReviewFinding,
+    ReviewHistoryEntry,
+    ReviewReport,
+    ReviewRequest,
+    ReviewSeverity,
+    ReviewVerdict,
+    QualityGateResult,
+    WorkspaceBoundaryViolation,
+    calculate_verdict,
+    compute_finding_hash,
+    compute_check_result_hash,
+    compute_review_report_hash,
+    generate_check_id,
+    generate_finding_id,
+    generate_report_id,
+    generate_review_id,
+    validate_path_within_workspace,
+)
+from runtime.contracts.review import ReviewEngine
+from runtime.contracts.e4_integration import (
+    ReviewIntegration,
+    ReviewHistory,
+    ReviewFailureBoundary,
+)
 
 __all__ = [
     # P4.G4 core
@@ -256,6 +285,31 @@ __all__ = [
     "ProjectExecutionEngine",
     "ProjectGenerator",
     "WorkspaceResolver",
+    # E4.1 Review Pipeline
+    "ReviewEngine",
+    "ReviewIntegration",
+    "ReviewHistory",
+    "ReviewFailureBoundary",
+    "ReviewReport",
+    "ReviewRequest",
+    "ReviewFinding",
+    "ReviewCheckResult",
+    "ReviewHistoryEntry",
+    "QualityGateResult",
+    "ReviewSeverity",
+    "ReviewVerdict",
+    "ReviewError",
+    "ReviewExecutionError",
+    "WorkspaceBoundaryViolation",
+    "calculate_verdict",
+    "compute_finding_hash",
+    "compute_check_result_hash",
+    "compute_review_report_hash",
+    "generate_check_id",
+    "generate_finding_id",
+    "generate_report_id",
+    "generate_review_id",
+    "validate_path_within_workspace",
     # Helpers
     "compute_artifact_execution_id",
     "compute_artifact_execution_hash",
