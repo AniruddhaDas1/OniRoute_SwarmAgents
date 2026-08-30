@@ -234,13 +234,19 @@ class GenerationRequestConstructor:
     information to produce the actual artifact.
     """
 
-    def __init__(self):
-        """Initialize the request constructor."""
+    def __init__(self, include_related_artifacts: bool = True):
+        """Initialize the request constructor.
+
+        Args:
+            include_related_artifacts: If True, include context about related artifacts
+        """
         self._counter = 0
+        self._include_related = include_related_artifacts
 
     def construct(
         self,
         context: GenerationContext,
+        related_units: Optional[List["ArtifactExecutionUnit"]] = None,
         skill_bundle_id: Optional[str] = None,
         agent_profile_id: Optional[str] = None,
     ) -> GenerationRequest:
@@ -248,6 +254,7 @@ class GenerationRequestConstructor:
 
         Args:
             context: Generation context with all artifact information
+            related_units: Optional list of related artifact execution units for context
             skill_bundle_id: Optional skill bundle ID for specialized generation
             agent_profile_id: Optional agent profile ID
 
@@ -260,8 +267,8 @@ class GenerationRequestConstructor:
         # Build system prompt
         system_prompt = self._build_system_prompt(context)
 
-        # Build user prompt
-        user_prompt = self._build_user_prompt(context)
+        # Build user prompt with enhanced context
+        user_prompt = self._build_user_prompt(context, related_units)
 
         # Build generation constraints
         constraints = self._build_constraints(context, skill_bundle_id, agent_profile_id)
@@ -302,117 +309,142 @@ class GenerationRequestConstructor:
     def _build_system_prompt(self, context: GenerationContext) -> str:
         """Build system prompt for generation."""
         prompt_parts = [
-            "You are an expert software engineer generating code artifacts.",
+            "You are an expert software engineer generating production-ready code artifacts.",
             "",
-            f"You are generating a {context.artifact_type} artifact.",
+            f"You are generating a {context.artifact_type} artifact for a {context.project_objective}.",
             "",
-            "IMPORTANT: Produce ONLY the complete source code for this artifact.",
-            "Do NOT include explanations, markdown wrappers, or design discussions.",
-            "Do NOT use placeholder comments like TODO, FIXME, or INSERT_CODE_HERE.",
-            "The output must be the complete, working implementation.",
+            "IMPORTANT GUIDELINES:",
+            "1. Produce ONLY complete, working source code",
+            "2. Do NOT include markdown code blocks (```), explanations, or documentation",
+            "3. Do NOT use placeholder comments like TODO, FIXME, PLACEHOLDER, or INSERT_CODE_HERE",
+            "4. Do NOT use empty stubs or skeleton code",
+            "5. The output must be syntactically correct and immediately usable",
+            "6. Follow language and framework best practices",
             "",
         ]
 
         # Add technology context
         if context.language:
-            prompt_parts.append(f"Language: {context.language}")
+            prompt_parts.append(f"Target Language: {context.language}")
         if context.framework:
             prompt_parts.append(f"Framework: {context.framework}")
         if context.technology_context:
             prompt_parts.append(f"Tech Stack: {', '.join(context.technology_context)}")
 
-        prompt_parts.append("")
-
-        # Add constraints
         prompt_parts.extend([
-            "Constraints:",
-            "- Output ONLY the artifact content, no surrounding text",
-            "- File format must match the requested format",
-            "- Code must be syntactically correct and complete",
+            "",
+            "OUTPUT FORMAT:",
+            "Return ONLY the raw source code file content.",
+            "Start with the first line of actual code.",
+            "End with the last line of actual code.",
         ])
 
         return "\n".join(prompt_parts)
 
-    def _build_user_prompt(self, context: GenerationContext) -> str:
-        """Build user prompt with artifact specifics."""
+    def _build_user_prompt(
+        self,
+        context: GenerationContext,
+        related_units: Optional[List["ArtifactExecutionUnit"]] = None,
+    ) -> str:
+        """Build user prompt with artifact specifics and related context."""
         prompt_parts = [
-            f"# Artifact Generation Request",
+            f"## Mission",
+            context.project_objective,
+            "",
+            f"## Artifact to Generate",
+            f"Type: {context.artifact_type}",
+            f"Target: {context.target_path}",
+        ]
+
+        if context.language:
+            prompt_parts.append(f"Language: {context.language}")
+        if context.framework:
+            prompt_parts.append(f"Framework: {context.framework}")
+        if context.file_format:
+            prompt_parts.append(f"Format: {context.file_format}")
+
+        prompt_parts.extend([
             "",
             f"## Objective",
             context.artifact_objective,
             "",
-            f"## Project Context",
-            context.project_objective,
-            "",
-        ]
-
-        # Add contract context
-        if context.parent_contract_objective:
-            prompt_parts.extend([
-                f"## Contract Context",
-                f"Parent Contract: {context.parent_contract_objective}",
-                "",
-            ])
-
-        if context.sub_contract_objective:
-            prompt_parts.extend([
-                f"Sub-Contract: {context.sub_contract_objective}",
-                "",
-            ])
-
-        # Add artifact specifications
-        prompt_parts.extend([
-            f"## Artifact Specifications",
-            f"- Type: {context.artifact_type}",
-            f"- Target Path: {context.target_path}",
         ])
 
-        if context.language:
-            prompt_parts.append(f"- Language: {context.language}")
-        if context.framework:
-            prompt_parts.append(f"- Framework: {context.framework}")
-        if context.file_format:
-            prompt_parts.append(f"- Format: {context.file_format}")
-
-        prompt_parts.append("")
+        # Add contract context
+        if context.parent_contract_objective and context.parent_contract_objective != DEFAULT_CONTRACT_OBJECTIVE:
+            prompt_parts.extend([
+                f"## Contract Context",
+                f"Parent: {context.parent_contract_objective}",
+            ])
+            if context.sub_contract_objective and context.sub_contract_objective != DEFAULT_SUBCONTRACT_OBJECTIVE:
+                prompt_parts.append(f"Sub-Contract: {context.sub_contract_objective}")
+            prompt_parts.append("")
 
         # Add expected outputs if available
         if context.expected_outputs:
             prompt_parts.extend([
-                f"## Expected Outputs",
-                "This artifact must produce:",
+                f"## Required Outputs",
+                "This artifact must produce/provide:",
             ])
             for output in context.expected_outputs:
                 prompt_parts.append(f"- {output}")
             prompt_parts.append("")
 
-        # Add required inputs/dependencies
+        # Add dependencies
         if context.required_inputs:
             prompt_parts.extend([
-                f"## Required Inputs",
-                "This artifact depends on the following artifacts (already generated):",
+                f"## Dependencies",
+                "This artifact will receive inputs from:",
             ])
             for inp in context.required_inputs:
                 prompt_parts.append(f"- {inp}")
             prompt_parts.append("")
 
-        # Add validation checkpoints
-        if context.validation_checkpoints:
+        # Add related artifacts for coherence
+        if related_units and self._include_related:
             prompt_parts.extend([
-                f"## Validation Requirements",
-                "Generated code must satisfy:",
+                f"## Related Artifacts",
+                "This project includes the following related files (for consistency):",
             ])
-            for checkpoint in context.validation_checkpoints:
-                if checkpoint.category.value != "ACCEPTANCE_CRITERIA_LINKAGE":
-                    prompt_parts.append(f"- {checkpoint.description}")
+            for unit in related_units[:10]:  # Limit to avoid token explosion
+                if unit.artifact_execution_id != context.artifact_execution_id:
+                    rel_info = f"- {unit.target_path} ({unit.artifact_type}"
+                    if unit.language:
+                        rel_info += f", {unit.language}"
+                    if unit.framework:
+                        rel_info += f", {unit.framework}"
+                    rel_info += ")"
+                    prompt_parts.append(rel_info)
             prompt_parts.append("")
 
-        # Add final instruction
+        # Add validation requirements
+        if context.validation_checkpoints:
+            prompt_parts.extend([
+                f"## Quality Requirements",
+                "Generated code must:",
+            ])
+            for cp in context.validation_checkpoints:
+                prompt_parts.append(f"- {cp.description}")
+            prompt_parts.append("")
+
+        # Add generation priority context
+        if context.generation_priority:
+            priority_context = {
+                "CRITICAL": "This is a critical artifact - code must be complete and correct.",
+                "HIGH": "This is a high-priority artifact - code must be production-ready.",
+                "MEDIUM": "This is a medium-priority artifact.",
+                "LOW": "This is a low-priority artifact.",
+            }.get(context.generation_priority, "")
+            if priority_context:
+                prompt_parts.extend(["", priority_context])
+
         prompt_parts.extend([
-            f"## Final Instruction",
             "",
-            f"Generate the complete source code for this {context.artifact_type} artifact.",
-            f"Output ONLY the file content, no explanations or markdown.",
+            f"## Task",
+            "",
+            f"Generate the complete source code for: {context.target_path}",
+            "",
+            "Return ONLY the raw file content - no markdown, no explanations.",
             "",
         ])
 
@@ -439,6 +471,8 @@ class GenerationRequestConstructor:
             "mission_id": context.mission_id,
             "project_objective": context.project_objective,
             "artifact_objective": context.artifact_objective,
+            "path_type": context.path_type.value if hasattr(context.path_type, 'value') else str(context.path_type),
+            "technology_context": list(context.technology_context),
         }
 
     def to_invocation_request(
@@ -462,7 +496,7 @@ class GenerationRequestConstructor:
             Message(role="user", content=generation_request.user_prompt),
         ]
 
-        # Build invocation request
+        # Build invocation request using the correct model fields
         return InvocationRequest(
             messages=tuple(messages),
             capabilities=frozenset([Capability.CODING]),

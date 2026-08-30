@@ -118,6 +118,9 @@ class RealCodeGenerationEngine:
         _InvocationEngine = invocation_engine
         self._invocation_engine = invocation_engine
 
+        # Store plan units for related artifact lookup
+        self._plan_units: List[ArtifactExecutionUnit] = []
+
     def generate(self, plan: ArtifactExecutionPlan) -> GenerationReport:
         """Generate all artifacts from an ArtifactExecutionPlan.
 
@@ -135,6 +138,9 @@ class RealCodeGenerationEngine:
         """
         start_time = time.time()
         generation_started = datetime.now(timezone.utc).isoformat()
+
+        # Store plan units for related artifact lookup
+        self._plan_units = list(plan.execution_units)
 
         # Step 1: Validate plan
         if not self._validate_plan(plan):
@@ -392,9 +398,12 @@ class RealCodeGenerationEngine:
                 "InvocationEngine not provided - cannot perform LLM generation"
             )
 
-        # Build generation request
-        request_constructor = GenerationRequestConstructor()
-        generation_request = request_constructor.construct(context)
+        # Get related units for coherent generation
+        related_units = self._get_related_units(unit)
+
+        # Build generation request with enhanced context
+        request_constructor = GenerationRequestConstructor(include_related_artifacts=True)
+        generation_request = request_constructor.construct(context, related_units)
 
         # Convert to InvocationRequest
         invocation_request = request_constructor.to_invocation_request(generation_request)
@@ -405,21 +414,22 @@ class RealCodeGenerationEngine:
             local_preference=False,
         )
 
-        # Invoke
-        response = self._invocation_engine.invoke(
-            request=invocation_request,
-            selection=selection,
-        )
+        # Invoke with error handling
+        try:
+            response = self._invocation_engine.invoke(
+                request=invocation_request,
+                selection=selection,
+            )
+        except PermissionError as e:
+            raise CodeGenerationError(f"LLM invocation denied: {e}")
+        except Exception as e:
+            raise CodeGenerationError(f"LLM invocation failed: {e}")
 
         # Extract content from response
-        if hasattr(response, 'content') and response.content:
-            raw_content = response.content
-        elif hasattr(response, 'text') and response.text:
-            raw_content = response.text
-        elif hasattr(response, 'message') and response.message:
-            raw_content = response.message.content if hasattr(response.message, 'content') else str(response.message)
-        else:
-            raw_content = str(response)
+        raw_content = self._extract_response_content(response)
+
+        if not raw_content:
+            raise CodeGenerationError("LLM returned empty content")
 
         # Normalize output
         normalized_content = self.output_normalizer.normalize(
@@ -428,9 +438,67 @@ class RealCodeGenerationEngine:
         )
 
         if not normalized_content:
-            raise CodeGenerationError("LLM returned empty content")
+            raise CodeGenerationError("LLM returned invalid/empty content after normalization")
 
         return normalized_content
+
+    def _get_related_units(self, unit: ArtifactExecutionUnit) -> List[ArtifactExecutionUnit]:
+        """Get related artifact units for coherent generation context.
+
+        Returns units in the same wave or that this unit depends on.
+        """
+        related = []
+        required_ids = set(unit.required_inputs) if unit.required_inputs else set()
+
+        for u in self._plan_units:
+            # Skip self
+            if u.artifact_execution_id == unit.artifact_execution_id:
+                continue
+
+            # Include units from same wave
+            if u.execution_wave == unit.execution_wave:
+                related.append(u)
+                continue
+
+            # Include units this unit depends on
+            if u.artifact_id in required_ids:
+                related.append(u)
+                continue
+
+        return related
+
+    def _extract_response_content(self, response) -> str:
+        """Extract content from InvocationResponse.
+
+        Handles various response formats from different providers.
+        """
+        # Try various common response patterns
+        if hasattr(response, 'content') and response.content:
+            return response.content
+        if hasattr(response, 'text') and response.text:
+            return response.text
+        if hasattr(response, 'message'):
+            msg = response.message
+            if hasattr(msg, 'content') and msg.content:
+                return msg.content
+            if hasattr(msg, 'text') and msg.text:
+                return msg.text
+        if hasattr(response, 'choices') and response.choices:
+            # OpenAI-style response
+            choice = response.choices[0]
+            if hasattr(choice, 'message') and choice.message:
+                msg = choice.message
+                if hasattr(msg, 'content') and msg.content:
+                    return msg.content
+                if hasattr(msg, 'text') and msg.text:
+                    return msg.text
+        if hasattr(response, 'output') and response.output:
+            return response.output
+        if hasattr(response, 'result') and response.result:
+            return response.result
+
+        # Last resort - convert to string
+        return str(response)
 
     def _validate_plan(self, plan: ArtifactExecutionPlan) -> bool:
         """Validate the artifact execution plan."""

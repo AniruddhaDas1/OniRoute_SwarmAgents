@@ -339,8 +339,9 @@ class TestGenerationRequestConstructor:
         constructor = GenerationRequestConstructor()
         request = constructor.construct(context)
 
-        assert "complete source code" in request.system_prompt.lower()
-        assert "explanations" in request.system_prompt.lower() or "do not" in request.system_prompt.lower()
+        assert "complete" in request.system_prompt.lower()
+        assert "source code" in request.system_prompt.lower()
+        assert "do not" in request.system_prompt.lower()
 
     def test_user_prompt_includes_objectives(self, sample_plan, sample_unit):
         """Test that user prompt includes objectives."""
