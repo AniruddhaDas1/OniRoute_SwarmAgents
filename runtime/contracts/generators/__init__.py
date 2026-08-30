@@ -26,6 +26,27 @@ Architecture:
 """
 
 from runtime.contracts.generators.context import GenerationContextBuilder, GenerationRequestConstructor
+from runtime.contracts.e31_models import (
+    BlockingConflict,
+    BlockingConflictReport,
+    CodeGenerationError,
+    ContentValidationCheck,
+    ContentValidationError,
+    ContentValidationResult,
+    GeneratedContent,
+    GenerationContext,
+    GenerationContextError,
+    GenerationReport,
+    GenerationRequest,
+    GenerationResult,
+    PatternResolution,
+    PatternResolutionError,
+    RepositoryWriteError,
+    RepositoryWriteResult,
+    TemplateResolution,
+    TemplateResolutionError,
+    WaveGenerationResult,
+)
 from runtime.contracts.generators.engine import (
     RealCodeGenerationEngine,
     get_invocation_engine,

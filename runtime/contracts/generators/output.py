@@ -221,14 +221,17 @@ class ContentValidator:
     """
 
     # Forbidden patterns that indicate placeholder/invalid content
+    # These reject stub/scaffold content while allowing legitimate syntax
     FORBIDDEN_PATTERNS = [
-        r"^\s*TODO\s*$",
-        r"^\s*FIXME\s*$",
-        r"^\s*PLACEHOLDER\s*$",
-        r"^\s*INSERT\s+CODE\s+HERE\s*$",
-        r"^\s*NOT\s+IMPLEMENTED\s*$",
-        r"^\s*...+\s*$",  # Ellipsis only
-        r"^\s*\.\.\./\*[\s\S]*?\*/",  # Incomplete block comment
+        r"^\s*TODO\s*$",  # Line with only TODO
+        r"^\s*FIXME\s*$",  # Line with only FIXME
+        r"^\s*PLACEHOLDER\s*$",  # Line with only PLACEHOLDER
+        r"^\s*INSERT\s+CODE\s+HERE\s*$",  # Explicit placeholder instruction
+        r"^\s*NOT\s+IMPLEMENTED\s*$",  # Explicit not implemented marker
+        r"^\s*\{\{\s*\}\}\s*$",  # Empty template variable
+        r"^\s*#\s*(TODO|FIXME|PLACEHOLDER)\s*$",  # Comment-only TODO/FIXME
+        r"^\s*//\s*(TODO|FIXME|PLACEHOLDER)\s*$",  # JS comment-only TODO/FIXME
+        r"^\s*/\*\s*(TODO|FIXME|PLACEHOLDER)\s*\*/\s*$",  # Single-line block comment stub
     ]
 
     def __init__(self, min_lines: int = 1, strict: bool = False):

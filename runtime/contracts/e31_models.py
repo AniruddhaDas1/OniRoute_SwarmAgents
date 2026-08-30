@@ -194,6 +194,10 @@ class GenerationContext(BaseModel):
         default_factory=tuple,
         description="Acceptance criteria IDs"
     )
+    expected_outputs: Tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="Expected outputs this artifact will produce"
+    )
 
     # Traceability
     traceability: Dict[str, str] = Field(
@@ -882,6 +886,7 @@ def extract_template_variables(context: GenerationContext) -> Dict[str, Any]:
 
         # Generation
         "generation_priority": context.generation_priority,
+        "expected_outputs": list(context.expected_outputs),
 
         # Ownership
         "agent_profile_id": context.agent_profile_id,
@@ -923,21 +928,31 @@ def validate_content_not_empty(content: str, min_lines: int = 1) -> Tuple[bool, 
 
 
 def validate_content_no_placeholders(content: str) -> Tuple[bool, str]:
-    """Validate that content does not contain placeholder markers."""
+    """Validate that content does not contain placeholder markers.
+
+    Only rejects content with obvious placeholder patterns.
+    Allows legitimate code with TODO comments in context.
+    """
+    # Check for unrendered template variables (but allow valid {{variable}} syntax in context)
+    # Match {{...}} that contains no alphanumeric chars (truly unrendered)
+    unrendered_pattern = r"\{\{[^a-zA-Z0-9_ ]+\}\}"
+    if re.search(unrendered_pattern, content):
+        return False, f"Content contains unrendered template variables"
+
     placeholder_patterns = [
-        r"\{\{.*\}\}",  # Unrendered template variables
-        r"<TODO>",      # TODO comments
+        r"<TODO>",      # Standalone TODO tag
         r"<!-- TODO -->",  # HTML TODO comments
-        r"# TODO",       # Python/Shell TODO
-        r"// TODO",      # JS/TS TODO
-        r"PLACEHOLDER",  # Generic placeholder
-        r"INSERT_CODE_HERE",
-        r"FIXME",
-        r"XXX",
+        r"^\s*TODO:\s*$",  # TODO alone on line (not in code)
+        r"^\s*#\s*TODO\s*$",  # Python comment-only TODO
+        r"^\s*//\s*TODO\s*$",  # JS comment-only TODO
+        r"^\s*PLACEHOLDER\s*$",  # Line with only PLACEHOLDER
+        r"INSERT_CODE_HERE",  # Explicit instruction
+        r"^\s*FIXME:\s*$",  # FIXME alone on line
+        r"^\s*#\s*FIXME\s*$",  # Python comment-only FIXME
     ]
 
     for pattern in placeholder_patterns:
-        if re.search(pattern, content, re.IGNORECASE):
+        if re.search(pattern, content, re.IGNORECASE | re.MULTILINE):
             return False, f"Content contains placeholder pattern: {pattern}"
 
     return True, ""

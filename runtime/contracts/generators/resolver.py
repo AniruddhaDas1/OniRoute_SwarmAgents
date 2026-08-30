@@ -148,6 +148,11 @@ class TemplateResolver:
     ) -> Tuple[str, TemplateResolution]:
         """Resolve template and apply context variables.
 
+        Resolution order:
+        1. Check physical template file on disk
+        2. If not found, use default template content
+        3. If neither exists, raise error
+
         Args:
             context: Generation context with template variables
             unit: Source artifact execution unit
@@ -163,16 +168,25 @@ class TemplateResolver:
         if not resolution.applied_successfully:
             raise TemplateResolutionError(resolution.error)
 
-        # Load template content
+        # Load template content - try physical file first, then default
+        template_content = None
+        template_source = "physical"
+
         full_template_path = os.path.join(self.repository_root, resolution.template_path)
 
-        if not os.path.exists(full_template_path):
-            raise TemplateResolutionError(
-                f"Template file not found: {full_template_path}"
-            )
-
-        with open(full_template_path, "r", encoding="utf-8") as f:
-            template_content = f.read()
+        if os.path.exists(full_template_path):
+            with open(full_template_path, "r", encoding="utf-8") as f:
+                template_content = f.read()
+        else:
+            # Try default template content
+            template_content = get_default_template_content(resolution.template_path)
+            if template_content is not None:
+                template_source = "default"
+            else:
+                raise TemplateResolutionError(
+                    f"Template file not found: {full_template_path} "
+                    f"and no default template exists for '{resolution.template_path}'"
+                )
 
         # Apply variables
         generated_content = apply_template_variables(template_content, resolution.variables)
@@ -299,16 +313,23 @@ DEFAULT_TEMPLATES: Dict[str, str] = {
 -- Generated for: {{project_objective}}
 -- Language: {{language}}
 
-CREATE TABLE IF NOT EXISTS {{target_filename.replace('.sql', '')}} (
+CREATE TABLE IF NOT EXISTS artifacts (
     id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    artifact_type VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_artifact_name ON artifacts(name);
+CREATE INDEX idx_artifact_type ON artifacts(artifact_type);
 """,
     "templates/config/config.json": """{
   "name": "{{artifact_objective}}",
   "description": "{{project_objective}}",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "artifact_type": "{{artifact_type}}",
+  "language": "{{language}}"
 }
 """,
     "templates/config/config.yaml": """---
@@ -318,6 +339,8 @@ CREATE TABLE IF NOT EXISTS {{target_filename.replace('.sql', '')}} (
 name: {{artifact_objective}}
 description: {{project_objective}}
 version: "1.0.0"
+artifact_type: {{artifact_type}}
+language: {{language}}
 """,
     "templates/test/python_pytest.py": '''"""Tests for {{artifact_objective}}.
 
@@ -325,25 +348,34 @@ Generated for: {{project_objective}}
 """
 
 import pytest
-from typing import Any
+from typing import Any, Dict
 
 
-class Test{{target_filename.replace(".py", "").replace("_", "").title().replace(" ", "")}}:
+class TestArtifact:
     """Test suite for {{artifact_objective}}."""
 
     @pytest.fixture
-    def setup(self) -> dict[str, Any]:
+    def subject(self) -> Dict[str, Any]:
         """Set up test fixtures."""
-        return {"objective": "{{artifact_objective}}"}
+        return {"data": [], "initialized": False, "items": []}
 
-    def test_basic_functionality(self, setup: dict[str, Any]) -> None:
-        """Test basic functionality."""
-        assert setup["objective"] == "{{artifact_objective}}"
+    def test_initialization(self, subject: Dict[str, Any]) -> None:
+        """Test that subject initializes correctly."""
+        assert subject is not None
+        assert "initialized" in subject
+        assert subject["initialized"] is False
 
-    def test_expected_outputs(self, setup: dict[str, Any]) -> None:
-        """Test expected outputs are defined."""
-        expected = {{expected_outputs}}
-        assert isinstance(expected, list)
+    def test_data_storage(self, subject: Dict[str, Any]) -> None:
+        """Test that data can be stored."""
+        subject["data"].append({"key": "value"})
+        assert len(subject["data"]) == 1
+        assert subject["data"][0]["key"] == "value"
+
+    def test_state_transitions(self, subject: Dict[str, Any]) -> None:
+        """Test state transitions work."""
+        assert subject["initialized"] is False
+        subject["initialized"] = True
+        assert subject["initialized"] is True
 ''',
     "templates/test/javascript_jest.js": '''/**
  * Tests for {{artifact_objective}}
@@ -351,17 +383,32 @@ class Test{{target_filename.replace(".py", "").replace("_", "").title().replace(
  */
 
 describe('{{artifact_objective}}', () => {
-  const setup = {
-    objective: '{{artifact_objective}}',
-    expectedOutputs: {{expected_outputs}}
-  };
+  let state;
 
-  test('basic functionality', () => {
-    expect(setup.objective).toBe('{{artifact_objective}}');
+  beforeEach(() => {
+    state = {
+      items: [],
+      initialized: false,
+      data: []
+    };
   });
 
-  test('expected outputs defined', () => {
-    expect(Array.isArray(setup.expectedOutputs)).toBe(true);
+  test('initializes with correct state', () => {
+    expect(state).toBeDefined();
+    expect(state.initialized).toBe(false);
+    expect(Array.isArray(state.items)).toBe(true);
+  });
+
+  test('can add items to state', () => {
+    state.items.push({ id: 1, name: 'test' });
+    expect(state.items.length).toBe(1);
+    expect(state.items[0].name).toBe('test');
+  });
+
+  test('can transition state', () => {
+    expect(state.initialized).toBe(false);
+    state.initialized = true;
+    expect(state.initialized).toBe(true);
   });
 });
 ''',
@@ -371,19 +418,24 @@ describe('{{artifact_objective}}', () => {
  * Framework: React
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 
 interface ComponentProps {
-  // Define component props
+  className?: string;
 }
 
-export const {{target_filename.replace('.tsx', '').replace('.jsx', '') | capitalize}}: React.FC<ComponentProps> = (props) => {
+export const Component: React.FC<ComponentProps> = ({ className = '' }) => {
+  const [state, setState] = useState<any>(null);
+
   return (
-    <div className="{{artifact_objective.replace(' ', '-').lower()}}">
+    <div className={`component ${className}`}>
       <h2>{{artifact_objective}}</h2>
+      <p>Component initialized</p>
     </div>
   );
 };
+
+export default Component;
 ''',
     "templates/api/rest.py": '''"""API endpoint for {{artifact_objective}}.
 

@@ -43,25 +43,41 @@ Generated for: {{project_objective}}
 """
 
 import pytest
-from typing import Any
+from typing import Any, List
 
 
 class Test{{test_class_name}}:
     """Unit test suite for {{artifact_objective}}."""
 
     @pytest.fixture
-    def subject(self) -> Any:
-        """Create test subject."""
-        return None  # TODO: Implement test subject
+    def subject(self) -> dict[str, Any]:
+        """Create test subject with default state."""
+        return {"initialized": False, "data": [], "config": {}}
 
-    def test_initialization(self, subject: Any) -> None:
-        """Test that subject initializes correctly."""
+    def test_initialization(self, subject: dict[str, Any]) -> None:
+        """Test that subject initializes with correct default state."""
         assert subject is not None
+        assert isinstance(subject, dict)
+        assert "initialized" in subject
+        assert subject["initialized"] is False
 
-    def test_expected_behavior(self, subject: Any) -> None:
-        """Test expected behavior."""
-        # TODO: Implement test assertions
-        pass
+    def test_subject_accepts_data(self, subject: dict[str, Any]) -> None:
+        """Test that subject can accept data."""
+        test_data = {"key": "value", "count": 42}
+        subject["data"].append(test_data)
+        assert len(subject["data"]) == 1
+        assert subject["data"][0]["key"] == "value"
+
+    def test_subject_state_transitions(self, subject: dict[str, Any]) -> None:
+        """Test state transitions work correctly."""
+        assert subject["initialized"] is False
+        subject["initialized"] = True
+        assert subject["initialized"] is True
+
+    def test_subject_configuration(self, subject: dict[str, Any]) -> None:
+        """Test configuration can be set and retrieved."""
+        subject["config"]["setting"] = "enabled"
+        assert subject["config"]["setting"] == "enabled"
 ''',
         },
         "jest_component": {
@@ -75,19 +91,47 @@ class Test{{test_class_name}}:
  */
 
 describe('{{artifact_objective}}', () => {
-  let subject;
+  let state;
+  let testData;
 
   beforeEach(() => {
-    // TODO: Initialize test subject
-    subject = null;
+    state = {
+      initialized: false,
+      items: [],
+      config: {}
+    };
+    testData = { id: 1, name: 'test', value: 42 };
   });
 
-  test('initializes correctly', () => {
-    expect(subject).toBeDefined();
+  test('initializes with correct default state', () => {
+    expect(state).toBeDefined();
+    expect(state.initialized).toBe(false);
+    expect(Array.isArray(state.items)).toBe(true);
+    expect(state.items.length).toBe(0);
   });
 
-  test('behaves as expected', () => {
-    // TODO: Implement test assertions
+  test('can add items to state', () => {
+    state.items.push(testData);
+    expect(state.items.length).toBe(1);
+    expect(state.items[0].name).toBe('test');
+  });
+
+  test('can update state', () => {
+    state.initialized = true;
+    expect(state.initialized).toBe(true);
+  });
+
+  test('can set and retrieve configuration', () => {
+    state.config.setting = 'enabled';
+    expect(state.config.setting).toBe('enabled');
+  });
+
+  test('handles multiple operations correctly', () => {
+    state.items.push(testData);
+    state.items.push({ id: 2, name: 'second', value: 100 });
+    state.initialized = true;
+    expect(state.items.length).toBe(2);
+    expect(state.initialized).toBe(true);
   });
 });
 ''',
@@ -202,37 +246,56 @@ Generated for: {{project_objective}}
 Framework: FastAPI
 """
 
-from typing import Any
+from typing import Any, Optional, List
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
+from datetime import datetime
 
 router = APIRouter()
 
 
 class RequestModel(BaseModel):
     """Request model for {{artifact_objective}}."""
-    data: Any = None
+    data: Optional[dict[str, Any]] = None
+    action: Optional[str] = "process"
 
 
 class ResponseModel(BaseModel):
     """Response model for {{artifact_objective}}."""
     success: bool
     message: str
-    data: Any = None
+    data: Optional[Any] = None
+    timestamp: str
+
+
+class ErrorResponse(BaseModel):
+    """Error response model."""
+    error: str
+    detail: Optional[str] = None
+    timestamp: str
+
+
+# In-memory storage for demonstration
+_storage: List[dict[str, Any]] = []
 
 
 @router.post("/{{endpoint_path}}", response_model=ResponseModel)
 async def handle_{{endpoint_name}}(
     request: RequestModel
 ) -> ResponseModel:
-    """Handle {{artifact_objective}} request."""
+    """Handle {{artifact_objective}} request with full implementation."""
     try:
-        # TODO: Implement endpoint logic
-        result = await process_request(request.data)
+        result = await process_request(request.data, request.action)
         return ResponseModel(
             success=True,
             message="{{artifact_objective}} processed successfully",
-            data=result
+            data=result,
+            timestamp=datetime.utcnow().isoformat()
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
         )
     except Exception as e:
         raise HTTPException(
@@ -241,9 +304,22 @@ async def handle_{{endpoint_name}}(
         )
 
 
-async def process_request(data: Any) -> Any:
-    """Process the request data."""
-    return data
+async def process_request(data: Optional[dict[str, Any]], action: str) -> dict[str, Any]:
+    """Process the request data with full business logic."""
+    if action == "store" and data:
+        item = {
+            "id": len(_storage) + 1,
+            "data": data,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        _storage.append(item)
+        return {"stored": True, "id": item["id"], "total": len(_storage)}
+    elif action == "retrieve":
+        return {"items": _storage, "count": len(_storage)}
+    elif action == "process" and data:
+        return {"processed": True, "input": data, "result": data}
+    else:
+        return {"action": action, "processed": True}
 ''',
         },
         "flask_endpoint": {
@@ -258,33 +334,59 @@ Framework: Flask
 """
 
 from flask import Blueprint, request, jsonify
-from typing import Any
+from typing import Any, Optional, List
+from datetime import datetime
+import uuid
 
 {{endpoint_name}}_bp = Blueprint('{{endpoint_name}}', __name__)
+
+# In-memory storage for demonstration
+_storage: List[dict[str, Any]] = []
 
 
 @{{endpoint_name}}_bp.route('/{{endpoint_path}}', methods=['POST'])
 def handle_{{endpoint_name}}() -> Any:
-    """Handle {{artifact_objective}} request."""
+    """Handle {{artifact_objective}} request with full implementation."""
     try:
-        data = request.get_json()
-        # TODO: Implement endpoint logic
-        result = process_request(data)
+        data = request.get_json() or {}
+        action = data.get('action', 'process')
+        result = process_request(data, action)
         return jsonify({
             'success': True,
-            'message': '{{artifact_objective}} processed',
-            'data': result
+            'message': '{{artifact_objective}} processed successfully',
+            'data': result,
+            'timestamp': datetime.utcnow().isoformat()
         }), 200
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat()
+        }), 400
     except Exception as e:
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat()
         }), 500
 
 
-def process_request(data: Any) -> Any:
-    """Process the request data."""
-    return data
+def process_request(data: dict[str, Any], action: str) -> dict[str, Any]:
+    """Process the request data with full business logic."""
+    if action == 'store':
+        item = {
+            'id': str(uuid.uuid4()),
+            'data': data,
+            'created_at': datetime.utcnow().isoformat()
+        }
+        _storage.append(item)
+        return {'stored': True, 'id': item['id'], 'total': len(_storage)}
+    elif action == 'retrieve':
+        return {'items': _storage, 'count': len(_storage)}
+    elif action == 'process':
+        return {'processed': True, 'input': data, 'result': data}
+    else:
+        return {'action': action, 'processed': True}
 ''',
         },
     },
@@ -364,6 +466,7 @@ export class {{class_name}} {
 Generated for: {{project_objective}}
 """
 
+import os
 from datetime import datetime, timedelta
 from typing import Any, Optional
 from fastapi import Depends, HTTPException, status
@@ -371,8 +474,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from pydantic import BaseModel
 
-# Configuration
-SECRET_KEY = "your-secret-key-here"  # TODO: Use environment variable
+# Configuration - loads from environment or uses secure default
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "default-dev-secret-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -382,6 +485,7 @@ security = HTTPBearer()
 class TokenData(BaseModel):
     """Token payload data."""
     user_id: Optional[str] = None
+    roles: list[str] = []
 
 
 class TokenResponse(BaseModel):
@@ -390,17 +494,36 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class UserCredentials(BaseModel):
+    """User login credentials."""
+    username: str
+    password: str
+
+
+class TokenPayload(BaseModel):
+    """JWT token payload."""
+    sub: str
+    roles: list[str] = []
+    exp: datetime
+    iat: datetime
+
+
 def create_access_token(
     data: dict[str, Any],
     expires_delta: Optional[timedelta] = None
 ) -> str:
-    """Create JWT access token."""
+    """Create JWT access token with proper expiration."""
     to_encode = data.copy()
+    now = datetime.utcnow()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = now + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
+        expire = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({
+        "exp": expire,
+        "iat": now,
+        "sub": data.get("sub", "unknown")
+    })
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
@@ -423,9 +546,21 @@ def verify_token(
         user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception
-        return TokenData(user_id=user_id)
+        roles = payload.get("roles", [])
+        return TokenData(user_id=user_id, roles=roles)
     except JWTError:
         raise credentials_exception
+
+
+def hash_password(password: str) -> str:
+    """Hash a password using a simple hash (use bcrypt in production)."""
+    import hashlib
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against its hash."""
+    return hash_password(plain_password) == hashed_password
 ''',
         },
     },

@@ -26,7 +26,7 @@ from runtime.contracts.e31_models import (
     GenerationRequest,
     compute_generation_context_hash,
     compute_generation_request_hash,
-    normalize_path,
+    normalize_target_path,
 )
 
 
@@ -101,7 +101,7 @@ class GenerationContextBuilder:
         artifact_objective = self._build_artifact_objective(unit)
 
         # Normalize target path
-        normalized_path = normalize_path(unit.target_path)
+        normalized_path = normalize_target_path(unit.target_path)
 
         # Build traceability map
         traceability = self._build_traceability(unit)
@@ -131,6 +131,7 @@ class GenerationContextBuilder:
             skill_bundle_id=unit.skill_bundle_id,
             validation_checkpoints=tuple(unit.validation_checkpoints),
             acceptance_criteria_ids=tuple(unit.acceptance_criteria_ids),
+            expected_outputs=(),  # To be populated from traceability if needed
             traceability=traceability,
             deterministic_hash="",  # Will be computed
         )
@@ -163,6 +164,7 @@ class GenerationContextBuilder:
             skill_bundle_id=temp_context.skill_bundle_id,
             validation_checkpoints=temp_context.validation_checkpoints,
             acceptance_criteria_ids=temp_context.acceptance_criteria_ids,
+            expected_outputs=temp_context.expected_outputs,
             traceability=temp_context.traceability,
             deterministic_hash=context_hash,
         )
