@@ -119,6 +119,28 @@ from runtime.contracts.exceptions import (
 )
 from runtime.contracts.models import EngineeringContract, EngineeringContractReport
 from runtime.contracts.validation import ContractValidator
+# E3.4 Repository & Workspace Integration
+from runtime.contracts.e34_models import (
+    ArtifactFileResult,
+    ExecutionError,
+    InvalidMissionError,
+    InvalidPlanError,
+    MissionRequirements,
+    ProjectExecutionResult,
+    ProjectInitializer,
+    ProjectType,
+    WorkspaceBoundaryError,
+    WorkspaceResolution,
+    WorkspaceResolutionError,
+    compute_execution_result_hash,
+)
+from runtime.contracts.integration import (
+    MissionRequirementsAdapter,
+    MissionToPlanConverter,
+    ProjectExecutionEngine,
+    ProjectGenerator,
+    WorkspaceResolver,
+)
 
 __all__ = [
     # P4.G4 core
@@ -216,6 +238,24 @@ __all__ = [
     "create_generated_content",
     "get_invocation_engine",
     "set_invocation_engine",
+    # E3.4 Repository & Workspace Integration
+    "MissionRequirements",
+    "ProjectExecutionResult",
+    "ProjectInitializer",
+    "ProjectType",
+    "WorkspaceResolution",
+    "WorkspaceBoundaryError",
+    "WorkspaceResolutionError",
+    "InvalidMissionError",
+    "InvalidPlanError",
+    "ExecutionError",
+    "ArtifactFileResult",
+    "compute_execution_result_hash",
+    "MissionRequirementsAdapter",
+    "MissionToPlanConverter",
+    "ProjectExecutionEngine",
+    "ProjectGenerator",
+    "WorkspaceResolver",
     # Helpers
     "compute_artifact_execution_id",
     "compute_artifact_execution_hash",
