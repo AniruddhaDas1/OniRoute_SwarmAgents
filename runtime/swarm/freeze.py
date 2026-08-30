@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Dict, List
 
 AUTONOMOUS_SWARM_FROZEN: bool = True
-SWARM_SUBSYSTEM_VERSION: str = "v1.2.0-P3.A5"
+SWARM_SUBSYSTEM_VERSION: str = "v1.2.1-P3.A5"
 SWARM_SUBSYSTEM_STATUS: str = "CERTIFIED_AND_FROZEN"
 
 FROZEN_SWARM_CONTRACTS: List[str] = [

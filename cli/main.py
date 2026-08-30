@@ -68,7 +68,35 @@ from runtime.swarm import AutonomousExecutionEngine, ExecutionTaskQueue, Runtime
 from runtime.scaffold import WorkspaceScaffoldEngine, WorkspaceScaffoldReport, WorkspaceScaffoldError
 from runtime.blueprint import ProjectBlueprintEngine, ProjectBlueprintReport, ProjectBlueprintError
 from runtime.allocation import ImplementationAllocationEngine, ImplementationAllocationReport, ImplementationAllocationError
-from runtime.contracts import EngineeringContractEngine, EngineeringContractReport, EngineeringContractError
+from runtime.contracts import (
+    EngineeringContractEngine,
+    EngineeringContractBuilder,
+    EngineeringContractReport,
+    EngineeringContractError,
+    ContractValidator,
+    DeliverableContract,
+    AcceptanceCriteria,
+    ContractTraceability,
+    ContractDecompositionEngine,
+    ContractDecompositionReport,
+    SubContract,
+    DependencyGraph,
+    DependencyEdge,
+    ArtifactRoute,
+    ExecutionWave,
+    ParallelExecutionGroup,
+    # E2.3 artifact execution planning
+    ArtifactExecutionPlanner,
+    ArtifactExecutionPlan,
+    ArtifactExecutionUnit,
+    ArtifactExecutionWave,
+    ArtifactDependencyGraph,
+    GenerationStrategy,
+    GenerationStrategySummary,
+    ConflictReport,
+    Conflict,
+    ArtifactPlanningError,
+)
 from runtime.assembly import ProjectAssemblyCertificationEngine, ProjectAssemblyCertificationReport, AssemblyCertificationError
 from runtime.engineering import EngineeringWorkerEngine, EngineeringResult, EngineeringWorkerError, AutonomousEngineeringCertificationEngine, EngineeringCertificationReport
 from runtime.review import QualityGateEngine, QualityReport, QualityGateError
@@ -3318,6 +3346,438 @@ def allocate_command(
         sys.exit(1)
 
 
+@app.command("dynamic-contracts")
+def dynamic_contracts_command(
+    request: list[str] = typer.Argument(None, help='Natural language request string (e.g. "Build a real estate website").'),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON EngineeringContractReport."),
+) -> None:
+    """E2.1: Generate Dynamic Engineering Contracts from Plan + Skill Bundles + Agent Profiles.
+
+    Consumes: EngineeringExecutionPlan + ExecutionSkillBundleReport + AgentProfileReport
+    Produces: EngineeringContractReport (diagnostic only — no execution, no code generation)
+    """
+    import sys
+    try:
+        ws_path = workspace_path or Path.cwd()
+        raw_prompt = " ".join(request) if request else "Build application"
+        if request and "--json" in request:
+            json_output = True
+            raw_prompt = " ".join([r for r in request if r != "--json"])
+            if not raw_prompt.strip():
+                raw_prompt = "Build application"
+
+        ws_intel = WorkspaceIntelligence()
+        ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+        repo_intel = RepositoryIntelligence()
+        repo_context = repo_intel.analyze_repository(ws_context)
+
+        intent_analyzer = IntentAnalyzer()
+        intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=ws_path)
+
+        plan_gen = EngineeringPlanGenerator()
+        exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+        loader = RepositoryLoader(Path.cwd())
+        registry = loader.load()
+        resolver = Resolver(registry)
+
+        discovery_engine = SkillDiscoveryEngine(registry, resolver)
+        selection_report = discovery_engine.discover_skills(exec_plan)
+
+        ranking_engine = SkillRankingEngine(registry, resolver)
+        ranked_report = ranking_engine.rank_skills(selection_report, exec_plan)
+
+        bundling_engine = SkillBundlingEngine(registry, resolver)
+        bundle_report = bundling_engine.bundle_skills(ranked_report, exec_plan, selection_report)
+
+        profile_builder = AgentProfileBuilderEngine(registry, resolver)
+        profile_report = profile_builder.build_profiles(bundle_report, exec_plan)
+
+        contract_builder = EngineeringContractBuilder()
+        contract_report = contract_builder.build(exec_plan, bundle_report, profile_report)
+
+        validator = ContractValidator()
+        validation_results = validator.validate(contract_report)
+
+        if json_output:
+            console.print_json(data=contract_report.model_dump(mode="json"))
+            return
+
+        console.print(f"[bold green]✓ Dynamic Engineering Contracts Complete[/] ({contract_report.report_id})")
+
+        overview_table = Table(title="E2.1 Dynamic Engineering Contract Report")
+        overview_table.add_column("Property", style="bold cyan")
+        overview_table.add_column("Value", style="bold yellow")
+        overview_table.add_row("Report ID", contract_report.report_id)
+        overview_table.add_row("Mission ID", contract_report.mission_id)
+        overview_table.add_row("Execution Plan ID", contract_report.execution_plan_id)
+        overview_table.add_row("Bundle Report ID", contract_report.bundle_report_id)
+        overview_table.add_row("Profile Report ID", contract_report.agent_profile_report_id)
+        overview_table.add_row("Technology Stack", contract_report.technology_stack)
+        overview_table.add_row("Coverage", f"{contract_report.coverage.get('coverage_percent', 0):.1f}%")
+        overview_table.add_row("Total Contracts", str(len(contract_report.contracts)))
+        overview_table.add_row("Total Deliverables", str(len(contract_report.deliverables)))
+        overview_table.add_row("Total Acceptance Criteria", str(len(contract_report.acceptance_criteria_models)))
+        overview_table.add_row("Total Traceability Records", str(len(contract_report.traceability)))
+        overview_table.add_row("Deterministic", str(contract_report.deterministic))
+        console.print(overview_table)
+
+        contracts_table = Table(title="Engineering Contracts")
+        contracts_table.add_column("Contract ID", style="bold cyan")
+        contracts_table.add_column("Discipline", style="bold yellow")
+        contracts_table.add_column("Agent Profile", style="bold green")
+        contracts_table.add_column("Priority", style="bold magenta")
+        contracts_table.add_column("Wave", style="bold blue")
+        contracts_table.add_column("Repository Scope")
+        contracts_table.add_column("Deliverables", style="bold white")
+        for c in contract_report.contracts:
+            deliv_count = len([d for d in contract_report.deliverables if d.contract_id == c.contract_id])
+            contracts_table.add_row(
+                c.contract_id,
+                c.engineering_discipline,
+                c.assigned_profile_id or c.agent_profile_id,
+                c.generation_priority,
+                str(c.execution_wave),
+                c.repository_scope,
+                f"{deliv_count} deliverable(s)",
+            )
+        console.print(contracts_table)
+
+        dependency_table = Table(title="Contract Dependencies (DAG)")
+        dependency_table.add_column("Contract ID", style="bold cyan")
+        dependency_table.add_column("Dependencies", style="bold yellow")
+        for c in contract_report.contracts:
+            deps_str = ", ".join(c.dependencies) if c.dependencies else "None"
+            dependency_table.add_row(c.contract_id, deps_str)
+        console.print(dependency_table)
+
+        validation_table = Table(title="Contract Validation Results")
+        validation_table.add_column("Check", style="bold cyan")
+        validation_table.add_column("Status", style="bold green")
+        validation_table.add_column("Detail")
+        all_passed = all(v.get("passed", False) for v in validation_results.values())
+        for check_name, result in validation_results.items():
+            status = "✓ PASS" if result.get("passed") else "✗ FAIL"
+            detail = result.get("detail", "")
+            validation_table.add_row(check_name, status, str(detail))
+        console.print(validation_table)
+        console.print(f"[dim]E2.1 — No LLM calls, no code generation, no agent execution.[/]")
+
+    except ContractCoverageError as exc:
+        console.print(f"[red]Coverage Error:[/] {str(exc)}")
+        sys.exit(1)
+    except ContractValidationError as exc:
+        console.print(f"[red]Validation Error:[/] {str(exc)}")
+        sys.exit(1)
+    except Exception as exc:
+        console.print(f"[red]Dynamic Contracts Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("prepare-artifacts")
+def prepare_artifacts_command(
+    request: list[str] = typer.Argument(None, help='Natural language request string (e.g. "Build a real estate website").'),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON ArtifactExecutionPlan."),
+) -> None:
+    """E2.3: Generate ArtifactExecutionPlan from Contract Decomposition Report.
+
+    Consumes: ContractDecompositionReport
+    Produces: ArtifactExecutionPlan (primary input for E3.1 Real Code Generation)
+    """
+    import sys
+    try:
+        ws_path = workspace_path or Path.cwd()
+        raw_prompt = " ".join(request) if request else "Build application"
+        if request and "--json" in request:
+            json_output = True
+            raw_prompt = " ".join([r for r in request if r != "--json"])
+            if not raw_prompt.strip():
+                raw_prompt = "Build application"
+
+        ws_intel = WorkspaceIntelligence()
+        ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+        repo_intel = RepositoryIntelligence()
+        repo_context = repo_intel.analyze_repository(ws_context)
+
+        intent_analyzer = IntentAnalyzer()
+        intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=ws_path)
+
+        plan_gen = EngineeringPlanGenerator()
+        exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+        loader = RepositoryLoader(Path.cwd())
+        registry = loader.load()
+        resolver = Resolver(registry)
+
+        discovery_engine = SkillDiscoveryEngine(registry, resolver)
+        selection_report = discovery_engine.discover_skills(exec_plan)
+
+        ranking_engine = SkillRankingEngine(registry, resolver)
+        ranked_report = ranking_engine.rank_skills(selection_report, exec_plan)
+
+        bundling_engine = SkillBundlingEngine(registry, resolver)
+        bundle_report = bundling_engine.bundle_skills(ranked_report, exec_plan, selection_report)
+
+        profile_builder = AgentProfileBuilderEngine(registry, resolver)
+        profile_report = profile_builder.build_profiles(bundle_report, exec_plan)
+
+        # E2.1: Build contracts
+        contract_builder = EngineeringContractBuilder()
+        contract_report = contract_builder.build(exec_plan, bundle_report, profile_report)
+
+        # E2.2: Decompose contracts
+        decomposer = ContractDecompositionEngine()
+        decomposition_report = decomposer.decompose(contract_report)
+
+        # E2.3: Plan artifact execution
+        planner = ArtifactExecutionPlanner()
+        execution_plan = planner.plan(decomposition_report)
+
+        if json_output:
+            console.print_json(data=execution_plan.model_dump(mode="json"))
+            return
+
+        console.print(f"[bold green]✓ Artifact Execution Planning Complete[/] ({execution_plan.plan_id})")
+
+        # Plan overview
+        overview_table = Table(title="E2.3 Artifact Execution Plan")
+        overview_table.add_column("Property", style="bold cyan")
+        overview_table.add_column("Value", style="bold yellow")
+        overview_table.add_row("Plan ID", execution_plan.plan_id)
+        overview_table.add_row("Mission ID", execution_plan.mission_id)
+        overview_table.add_row("Decomposition Report ID", execution_plan.contract_decomposition_report_id)
+        overview_table.add_row("Total Artifacts", str(execution_plan.total_artifacts))
+        overview_table.add_row("Total Waves", str(execution_plan.total_waves))
+        overview_table.add_row("Deterministic", str(execution_plan.deterministic))
+        overview_table.add_row("Validation Passed", str(execution_plan.validation_passed))
+        console.print(overview_table)
+
+        # Generation strategy summary
+        ss = execution_plan.generation_strategy_summary
+        strategy_table = Table(title="Generation Strategy Summary")
+        strategy_table.add_column("Strategy", style="bold cyan")
+        strategy_table.add_column("Count", style="bold yellow")
+        strategy_table.add_row("TEMPLATE", str(ss.template_count))
+        strategy_table.add_row("PATTERN", str(ss.pattern_count))
+        strategy_table.add_row("LLM_GENERATED", str(ss.llm_generated_count))
+        strategy_table.add_row("UNRESOLVED", str(ss.unresolved_count))
+        console.print(strategy_table)
+
+        if ss.unresolved_artifacts:
+            console.print(f"[yellow]⚠ UNRESOLVED artifacts:[/] {', '.join(ss.unresolved_artifacts)}")
+
+        # Artifact execution units
+        units_table = Table(title="Artifact Execution Units")
+        units_table.add_column("Unit ID", style="bold cyan")
+        units_table.add_column("Artifact Type", style="bold yellow")
+        units_table.add_column("Target Path", style="bold green")
+        units_table.add_column("Strategy", style="bold magenta")
+        units_table.add_column("Wave", style="bold blue")
+        for unit in execution_plan.execution_units:
+            units_table.add_row(
+                unit.artifact_execution_id,
+                unit.artifact_type,
+                unit.target_path,
+                unit.generation_strategy.value,
+                str(unit.execution_wave),
+            )
+        console.print(units_table)
+
+        # Execution waves
+        waves_table = Table(title="Execution Waves")
+        waves_table.add_column("Wave", style="bold cyan")
+        waves_table.add_column("Name", style="bold yellow")
+        waves_table.add_column("Artifacts", style="bold green")
+        waves_table.add_column("Parallel", style="bold magenta")
+        waves_table.add_column("Blocking Waves", style="bold blue")
+        for wave in execution_plan.execution_waves:
+            waves_table.add_row(
+                str(wave.wave_number),
+                wave.wave_name,
+                str(len(wave.artifact_execution_ids)),
+                "✓" if wave.parallelizable else "✗",
+                str(wave.blocking_waves) if wave.blocking_waves else "None",
+            )
+        console.print(waves_table)
+
+        # Repository scope summary
+        rs = execution_plan.repository_scope_summary
+        scope_table = Table(title="Repository Scope Summary")
+        scope_table.add_column("Scope", style="bold cyan")
+        scope_table.add_column("Unit Count", style="bold yellow")
+        for scope, count in sorted(rs.scopes.items()):
+            scope_table.add_row(scope, str(count))
+        console.print(scope_table)
+
+        # Conflict report
+        cr = execution_plan.conflict_report
+        if cr.total_conflicts > 0:
+            conflict_table = Table(title=f"Conflicts ({cr.errors} errors, {cr.warnings} warnings)")
+            conflict_table.add_column("Type", style="bold red")
+            conflict_table.add_column("Description", style="bold yellow")
+            conflict_table.add_column("Severity")
+            for cf in cr.conflicts:
+                conflict_table.add_row(cf.conflict_type.value, cf.description[:80], cf.severity)
+            console.print(conflict_table)
+        else:
+            console.print("[bold green]✓ No planning conflicts detected[/]")
+
+        console.print(f"[dim]E2.3 — No LLM calls, no code generation, no agent execution.[/]")
+
+    except ArtifactPlanningError as exc:
+        console.print(f"[red]Artifact Planning Error:[/] {str(exc)}")
+        sys.exit(1)
+    except Exception as exc:
+        console.print(f"[red]Prepare Artifacts Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
+@app.command("decompose-contracts")
+def decompose_contracts_command(
+    request: list[str] = typer.Argument(None, help='Natural language request string (e.g. "Build a real estate website").'),
+    workspace_path: Path | None = typer.Option(None, "--workspace", "-w", help="Explicit workspace path override."),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON ContractDecompositionReport."),
+) -> None:
+    """E2.2: Decompose EngineeringContracts into SubContracts, Dependency Graph, and Execution Waves.
+
+    Consumes: EngineeringContractReport (from E2.1)
+    Produces: ContractDecompositionReport (diagnostic only — no execution, no code generation)
+    """
+    import sys
+    try:
+        ws_path = workspace_path or Path.cwd()
+        raw_prompt = " ".join(request) if request else "Build application"
+        if request and "--json" in request:
+            json_output = True
+            raw_prompt = " ".join([r for r in request if r != "--json"])
+            if not raw_prompt.strip():
+                raw_prompt = "Build application"
+
+        ws_intel = WorkspaceIntelligence()
+        ws_context = ws_intel.analyze_workspace(cwd=ws_path, explicit_workspace=ws_path)
+        repo_intel = RepositoryIntelligence()
+        repo_context = repo_intel.analyze_repository(ws_context)
+
+        intent_analyzer = IntentAnalyzer()
+        intent_report = intent_analyzer.analyze(raw_prompt, explicit_workspace=ws_path)
+
+        plan_gen = EngineeringPlanGenerator()
+        exec_plan = plan_gen.generate_plan(intent_report, ws_context, repo_context)
+
+        loader = RepositoryLoader(Path.cwd())
+        registry = loader.load()
+        resolver = Resolver(registry)
+
+        discovery_engine = SkillDiscoveryEngine(registry, resolver)
+        selection_report = discovery_engine.discover_skills(exec_plan)
+
+        ranking_engine = SkillRankingEngine(registry, resolver)
+        ranked_report = ranking_engine.rank_skills(selection_report, exec_plan)
+
+        bundling_engine = SkillBundlingEngine(registry, resolver)
+        bundle_report = bundling_engine.bundle_skills(ranked_report, exec_plan, selection_report)
+
+        profile_builder = AgentProfileBuilderEngine(registry, resolver)
+        profile_report = profile_builder.build_profiles(bundle_report, exec_plan)
+
+        contract_builder = EngineeringContractBuilder()
+        contract_report = contract_builder.build(exec_plan, bundle_report, profile_report)
+
+        decomposer = ContractDecompositionEngine()
+        decomposition_report = decomposer.decompose(contract_report)
+
+        if json_output:
+            console.print_json(data=decomposition_report.model_dump(mode="json"))
+            return
+
+        console.print(f"[bold green]✓ Contract Decomposition Complete[/] ({decomposition_report.report_id})")
+
+        overview_table = Table(title="E2.2 Contract Decomposition Report")
+        overview_table.add_column("Property", style="bold cyan")
+        overview_table.add_column("Value", style="bold yellow")
+        overview_table.add_row("Report ID", decomposition_report.report_id)
+        overview_table.add_row("Mission ID", decomposition_report.mission_id)
+        overview_table.add_row("Parent Contract Report", decomposition_report.parent_contract_report_id)
+        overview_table.add_row("Total Sub-Contracts", str(decomposition_report.total_sub_contracts))
+        overview_table.add_row("Execution Waves", str(decomposition_report.total_waves))
+        overview_table.add_row("Artifact Routes", str(decomposition_report.total_artifact_routes))
+        overview_table.add_row("Parallel Groups", str(decomposition_report.parallelizable_groups))
+        overview_table.add_row("Coverage", f"{decomposition_report.coverage.get('coverage_percent', 0):.1f}%")
+        overview_table.add_row("Deterministic", str(decomposition_report.deterministic))
+        console.print(overview_table)
+
+        sub_contracts_table = Table(title="Sub-Contracts")
+        sub_contracts_table.add_column("SubContract ID", style="bold cyan")
+        sub_contracts_table.add_column("Parent Contract", style="bold yellow")
+        sub_contracts_table.add_column("Atomic", style="bold green")
+        sub_contracts_table.add_column("Wave", style="bold blue")
+        sub_contracts_table.add_column("Deliverables", style="bold white")
+        sub_contracts_table.add_column("Repository Scope")
+        for s in decomposition_report.sub_contracts:
+            sub_contracts_table.add_row(
+                s.sub_contract_id,
+                s.parent_contract_id,
+                "YES" if s.is_atomic else "NO",
+                str(s.execution_wave),
+                str(len(s.owned_deliverables)),
+                s.repository_scope,
+            )
+        console.print(sub_contracts_table)
+
+        waves_table = Table(title="Execution Waves")
+        waves_table.add_column("Wave", style="bold yellow")
+        waves_table.add_column("Name", style="bold cyan")
+        waves_table.add_column("Sub-Contracts", style="bold green")
+        waves_table.add_column("Parallel", style="bold magenta")
+        waves_table.add_column("Blocking Waves")
+        for w in decomposition_report.execution_waves:
+            waves_table.add_row(
+                str(w.wave_number),
+                w.wave_name,
+                str(len(w.sub_contract_ids)),
+                "YES" if w.parallelizable else "NO",
+                ", ".join(map(str, w.blocking_waves)) if w.blocking_waves else "None",
+            )
+        console.print(waves_table)
+
+        if decomposition_report.dependency_graph.edges:
+            dep_table = Table(title="Dependency Graph Edges")
+            dep_table.add_column("From", style="bold cyan")
+            dep_table.add_column("To", style="bold yellow")
+            dep_table.add_column("Type", style="bold green")
+            for edge in decomposition_report.dependency_graph.edges[:20]:
+                dep_table.add_row(edge.from_id, edge.to_id, edge.dependency_type.value)
+            console.print(dep_table)
+
+        if decomposition_report.artifact_routes:
+            art_table = Table(title="Artifact Routes")
+            art_table.add_column("Route ID", style="bold cyan")
+            art_table.add_column("Artifact", style="bold yellow")
+            art_table.add_column("Producer", style="bold green")
+            art_table.add_column("Type", style="bold magenta")
+            art_table.add_column("Path", style="bold white")
+            for r in decomposition_report.artifact_routes[:15]:
+                art_table.add_row(r.route_id, r.artifact_id, r.producing_sub_contract_id, r.artifact_type, r.repository_path)
+            console.print(art_table)
+
+        validation_table = Table(title="Decomposition Validation Results")
+        validation_table.add_column("Check", style="bold cyan")
+        validation_table.add_column("Status", style="bold green")
+        validation_table.add_column("Detail")
+        for check_name, result in decomposition_report.validation_results.items():
+            status = "PASS" if result.get("passed") else "FAIL"
+            detail = result.get("detail", "")
+            validation_table.add_row(check_name, status, str(detail))
+        console.print(validation_table)
+        console.print(f"[dim]E2.2 — No LLM calls, no code generation, no agent execution.[/]")
+
+    except Exception as exc:
+        console.print(f"[red]Decomposition Error:[/] {str(exc)}")
+        sys.exit(1)
+
+
 @app.command("contracts")
 def contracts_command(
     allocation_path: Path | None = typer.Option(
@@ -4549,7 +5009,7 @@ REGISTERED_CLI_COMMANDS: set[str] = {
     "optimize", "audit", "approvals", "permissions", "budget",
     "providers", "capabilities", "capability", "organization", "blueprint", "session", "execute", "recommend-model", "tools",
     "mcp", "recommend-tool", "invoke", "search", "mission", "intent", "skills", "rank-skills", "bundles", "profiles", "deployment", "initialize", "coordinate",
-    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept", "certify-engineering",
+    "review", "retry", "resume", "recovery", "collaborate", "conversation", "thread", "handoff", "artifact", "scaffold", "blueprint-project", "allocate", "dynamic-contracts", "decompose-contracts", "prepare-artifacts", "contracts", "certify-assembly", "engineer", "heal", "validate", "accept", "certify-engineering",
     "build", "create", "fix", "refactor", "migrate", "status", "watch",
     "pause", "cancel", "logs",
     "init", "config", "update", "version",

@@ -1,7 +1,7 @@
-# OniRoute v1.2 — Multi-stage Production Docker Image
+# OniRoute v1.2.1 — Multi-stage Production Docker Image
 # Usage:
-#   docker build -t oniroute/oniroute:1.2.0 .
-#   docker run --rm -v $(pwd):/workspace oniroute/oniroute:1.2.0 build "my app"
+#   docker build -t oniroute/oniroute:1.2.1 .
+#   docker run --rm -v $(pwd):/workspace oniroute/oniroute:1.2.1 build "my app"
 
 # ── Stage 1: Build ────────────────────────────────────────────────────────
 FROM python:3.14-slim AS builder
@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 FROM python:3.14-slim AS production
 
 LABEL maintainer="OniRoute Team"
-LABEL version="1.2.0"
+LABEL version="1.2.1"
 LABEL description="OniRoute Swarm AI Engine v1.2 — Organization Level Swarm Coding AI Agents"
 
 # Install git (required for workspace operations)

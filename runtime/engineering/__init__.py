@@ -4,13 +4,22 @@ Consumes EngineeringContractReport and generates source code, configuration, tes
 """
 
 from runtime.engineering.certification import AutonomousEngineeringCertificationEngine
-from runtime.engineering.engine import EngineeringWorkerEngine
+from runtime.engineering.engine import EngineeringWorkerEngine, InvocationPlanner, ResponseAggregator
 from runtime.engineering.exceptions import (
     EngineeringBoundaryViolation,
     EngineeringExecutionError,
     EngineeringWorkerError,
 )
-from runtime.engineering.models import EngineeringCertificationReport, EngineeringResult
+from runtime.engineering.models import (
+    BatchResult,
+    EngineeringCertificationReport,
+    EngineeringFailure,
+    EngineeringResult,
+    ExecutionBatch,
+    InvocationTask,
+    TaskContext,
+    TaskState,
+)
 
 __all__ = [
     "EngineeringWorkerEngine",
@@ -20,4 +29,12 @@ __all__ = [
     "EngineeringWorkerError",
     "EngineeringBoundaryViolation",
     "EngineeringExecutionError",
+    "InvocationTask",
+    "ExecutionBatch",
+    "BatchResult",
+    "EngineeringFailure",
+    "InvocationPlanner",
+    "ResponseAggregator",
+    "TaskState",
+    "TaskContext",
 ]

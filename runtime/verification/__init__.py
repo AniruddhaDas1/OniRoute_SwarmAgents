@@ -1,0 +1,17 @@
+"""Runtime Verification subsystem (Phase E1.6)."""
+
+from runtime.verification.capability_matrix import (
+    CATALOG_ONLY_PROTOCOLS,
+    CATALOG_ONLY_PROVIDERS,
+    CONFIGURED_MODELS,
+    IMPLEMENTED_ADAPTERS,
+    REAL_PROVIDER_SMOKE_REQUIRED,
+)
+
+__all__ = [
+    "IMPLEMENTED_ADAPTERS",
+    "CONFIGURED_MODELS",
+    "CATALOG_ONLY_PROVIDERS",
+    "CATALOG_ONLY_PROTOCOLS",
+    "REAL_PROVIDER_SMOKE_REQUIRED",
+]

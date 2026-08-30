@@ -9,7 +9,7 @@
 <p align="center">
   <a href="LICENSE"><img alt="License Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-2f6f9f.svg"></a>
   <a href="pyproject.toml"><img alt="Python 3.12 or newer" src="https://img.shields.io/badge/python-3.12%2B-3776ab.svg"></a>
-  <a href="VERSION"><img alt="Version 1.2.0" src="https://img.shields.io/badge/version-1.2.0-29a89a.svg"></a>
+  <a href="VERSION"><img alt="Version 1.2.1" src="https://img.shields.io/badge/version-1.2.1-29a89a.svg"></a>
   <a href="docs/ONIROUTE_CERTIFICATION_REPORT.md"><img alt="Coverage 100%" src="https://img.shields.io/badge/coverage-100%25-green.svg"></a>
   <a href="docs/RUNTIME_ARCHITECTURE.md"><img alt="Runtime v0.6" src="https://img.shields.io/badge/runtime-v0.6-244f73.svg"></a>
   <a href="docs/INSTALL.md"><img alt="Documentation Complete" src="https://img.shields.io/badge/docs-complete-0f766e.svg"></a>
@@ -32,7 +32,7 @@
 
 OniRoute is an architecture-first, local-first framework for modeling, operating, and orchestrating governed engineering organizations composed of specialized AI Agents, reusable Skills, declarative Workflows, Knowledge Sources, Universal Model Abstractions (UMAL), and local runtime engines.
 
-Version **1.2.0 ("Swarm Intelligence")** certifies the complete Product Layer (P1–P6), adding zero-setup multi-platform distribution (`pipx`, `pip`, Homebrew, Docker, Standalone Executables), interactive natural language routing, hierarchical configuration, and automated release engineering.
+Version **1.2.1** certifies the complete Product Layer (P1–P6) with the E1 Runtime Kernel frozen and verified, adding real provider streaming, multi-step invocation, autonomous engineering workers, and freeze-certified architecture boundaries.
 
 ---
 
@@ -220,7 +220,7 @@ See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for full configuration specif
 ## Roadmap
 
 - [x] **v1.0.0 — Core Engine Frozen**: Runtime v0.6, ICOE v1.1, UMAL, Governance.
-- [x] **v1.2.0 — Product Layer Frozen**: Zero-setup distribution (`pipx`, `brew`, `docker`), `init`, `config`, `doctor`, `update`, `version`, NL Router.
+- [x] **v1.2.1 — E1 Runtime Kernel Frozen**: Real provider streaming, multi-step invocation, autonomous engineering, runtime verification, freeze-certified architecture.
 - [ ] **v1.3.0 — Distributed Swarm Mesh**: Multi-node remote agent coordination over gRPC/WebSocket.
 
 ---

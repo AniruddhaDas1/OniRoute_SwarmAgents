@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.1
+
+- E1.7 Runtime Kernel freeze and certification
+- Real provider streaming (OpenAI SSE, Ollama ndjson)
+- Multi-step invocation for autonomous engineering (E1.2–E1.4)
+- Runtime verification with capability matrix and failure matrices (E1.6)
+- Freeze manifest and guard enforcement (E1.7)
+- 757+ tests passing, 0 failures, 0 regressions
+
 ## 1.2.0
 
 - Platform distribution layer (P6.D4)

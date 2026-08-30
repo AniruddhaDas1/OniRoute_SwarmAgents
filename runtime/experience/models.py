@@ -19,6 +19,11 @@ StreamEventType = Literal[
     "MISSION_COMPLETED",
     "MISSION_FAILED",
     "CANCELLED",
+    "STREAM_STARTED",
+    "STREAM_CHUNK",
+    "STREAM_PROGRESS",
+    "STREAM_COMPLETED",
+    "STREAM_FAILED",
 ]
 
 
