@@ -243,10 +243,11 @@ class TestRecoveryPlanBuilder:
         gate_result = create_sample_gate_result(report)
         readiness_result = create_sample_readiness_result(gate_result)
 
+        assessment_engine = RecoveryAssessmentEngine()
+        assessment = assessment_engine.create_assessment(readiness_result, gate_result)
+
         builder = RecoveryPlanBuilder()
-        plan = builder.build_plan(
-            readiness_result, gate_result, RecoveryEligibility.NOT_NEEDED
-        )
+        plan = builder.build_plan(assessment)
 
         assert plan.eligibility == RecoveryEligibility.NOT_NEEDED
         assert plan.total_actions == 0
@@ -260,15 +261,14 @@ class TestRecoveryPlanBuilder:
             ),
         ]
         report = create_sample_report(findings, ReviewVerdict.FAIL)
-        gate_result = create_sample_gate_result(report, QualityGateDecision.FAIL, False)
-        readiness_result = create_sample_readiness_result(
-            gate_result, ProgressionStatus.NOT_READY, ReleaseReadinessLevel.DEVELOPMENT, False
-        )
+        gate_result = create_sample_gate_result(report)
+        readiness_result = create_sample_readiness_result(gate_result)
+
+        assessment_engine = RecoveryAssessmentEngine()
+        assessment = assessment_engine.create_assessment(readiness_result, gate_result)
 
         builder = RecoveryPlanBuilder()
-        plan = builder.build_plan(
-            readiness_result, gate_result, RecoveryEligibility.RECOVERABLE
-        )
+        plan = builder.build_plan(assessment)
 
         assert plan.eligibility == RecoveryEligibility.RECOVERABLE
         assert plan.total_actions > 0
@@ -417,13 +417,12 @@ class TestEvidencePreservation:
         gate_result = create_sample_gate_result(report)
         readiness_result = create_sample_readiness_result(gate_result)
 
+        assessment_engine = RecoveryAssessmentEngine()
+        assessment = assessment_engine.create_assessment(readiness_result, gate_result)
+
         builder = RecoveryPlanBuilder()
-        plan1 = builder.build_plan(
-            readiness_result, gate_result, RecoveryEligibility.NOT_NEEDED
-        )
-        plan2 = builder.build_plan(
-            readiness_result, gate_result, RecoveryEligibility.NOT_NEEDED
-        )
+        plan1 = builder.build_plan(assessment)
+        plan2 = builder.build_plan(assessment)
 
         assert plan1.plan_hash == plan2.plan_hash
 
@@ -474,13 +473,12 @@ class TestDeterminism:
         gate_result = create_sample_gate_result(report)
         readiness_result = create_sample_readiness_result(gate_result)
 
+        assessment_engine = RecoveryAssessmentEngine()
+        assessment = assessment_engine.create_assessment(readiness_result, gate_result)
+
         builder = RecoveryPlanBuilder()
-        plan1 = builder.build_plan(
-            readiness_result, gate_result, RecoveryEligibility.NOT_NEEDED
-        )
-        plan2 = builder.build_plan(
-            readiness_result, gate_result, RecoveryEligibility.NOT_NEEDED
-        )
+        plan1 = builder.build_plan(assessment)
+        plan2 = builder.build_plan(assessment)
 
         assert plan1.plan_id == plan2.plan_id
         assert plan1.plan_hash == plan2.plan_hash
@@ -634,8 +632,9 @@ class TestRetryLimits:
         gate_result = create_sample_gate_result(report)
         readiness_result = create_sample_readiness_result(gate_result)
 
+        assessment_engine = RecoveryAssessmentEngine(max_recovery_attempts=3)
+        assessment = assessment_engine.create_assessment(readiness_result, gate_result)
+
         builder = RecoveryPlanBuilder(max_recovery_attempts=3)
-        plan = builder.build_plan(
-            readiness_result, gate_result, RecoveryEligibility.NOT_NEEDED
-        )
+        plan = builder.build_plan(assessment)
         assert plan.max_recovery_attempts == 3

@@ -3,9 +3,9 @@
 Phase E5 — Self-Healing and Recovery Integration.
 
 Provides:
-- RecoveryAssessmentEngine: Determines if recovery is possible
-- RecoveryPlanBuilder: Creates repair plans from findings
-- RecoveryEngine: Executes recovery with bounded retries
+- RecoveryAssessmentEngine (E5.1): Determines if recovery is possible
+- RecoveryPlanBuilder (E5.2): Creates repair plans from findings
+- RecoveryEngine (E5.3): Executes recovery with bounded retries (NOT YET IMPLEMENTED)
 - Integration with E4.3 ReleaseReadinessResult
 
 Architecture:
@@ -13,20 +13,30 @@ Architecture:
         ↓
     RecoveryAssessmentEngine (E5.1)
         ↓
-    RecoveryPlan (E5.2)
+    RecoveryAssessment (E5.1 output)
         ↓
-    RecoveryEngine (E5.3)
+    RecoveryPlanBuilder (E5.2)
+        ↓
+    RecoveryPlan (E5.2 output)
+        ↓
+    RecoveryEngine (E5.3) - NOT YET IMPLEMENTED
         ↓
     RecoveryResult
         ↓
     E4.1 Re-review (if auto-repairable)
 
-Does NOT:
-- Modify frozen E1 contracts
-- Directly call providers
-- Perform unlimited retries
-- Mark failed artifacts as successful
-- Bypass E4 review pipeline
+E5.2 Responsibilities (PLAN GENERATION ONLY):
+- Convert findings to repair actions
+- Group related findings
+- Determine action ordering
+- Build dependency graph
+- Ensure determinism
+
+E5.2 Does NOT:
+- Execute repairs
+- Call providers
+- Modify files
+- Perform retries
 
 Self-contained: depends only on Python stdlib + pydantic + E4 models.
 """
@@ -36,12 +46,14 @@ from __future__ import annotations
 import hashlib
 import json
 import time
+from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from runtime.contracts.e42_models import (
     FindingCategory,
+    GroupedByArtifact,
     QualityGateResult,
 )
 from runtime.contracts.e43_models import (
@@ -50,13 +62,19 @@ from runtime.contracts.e43_models import (
     ReleaseReadinessResult,
 )
 from runtime.contracts.e5_models import (
+    AUTO_REPAIRABLE_ACTIONS,
+    compute_recovery_assessment_hash,
     compute_recovery_plan_hash,
     compute_recovery_result_hash,
     CATEGORY_TO_ACTION,
     determine_priority,
     FindingClassification,
+    FindingReference,
+    GroupedFindings,
+    get_action_priority_rank,
     RepairAction,
     RecoveryAttempt,
+    RecoveryAssessment,
     RecoveryEligibility,
     RecoveryNotEligibleError,
     RecoveryPlan,
@@ -72,44 +90,145 @@ from runtime.contracts.e5_models import (
 class RecoveryAssessmentEngine:
     """Assesses whether recovery is possible for a failed project.
 
+    E5.1 produces a RecoveryAssessment that E5.2 consumes.
+
     Determines:
     - Whether recovery is needed
     - Whether recovery is possible (auto-repairable vs manual)
     - Which findings can be auto-repaired
+    - Groups findings by artifact for coherent recovery
     """
+
+    def __init__(self, max_recovery_attempts: int = 3):
+        """Initialize the assessment engine.
+
+        Args:
+            max_recovery_attempts: Maximum recovery attempts (default 3)
+        """
+        self.max_recovery_attempts = max_recovery_attempts
 
     def assess(
         self,
         readiness_result: ReleaseReadinessResult,
-        max_recovery_attempts: int = 3,
     ) -> RecoveryEligibility:
-        """Assess recovery eligibility.
+        """Assess recovery eligibility (legacy method for compatibility).
 
         Args:
             readiness_result: ReleaseReadinessResult from E4.3
-            max_recovery_attempts: Maximum recovery attempts
 
         Returns:
             RecoveryEligibility
         """
+        assessment = self.create_assessment(readiness_result)
+        return assessment.eligibility
+
+    def create_assessment(
+        self,
+        readiness_result: ReleaseReadinessResult,
+        gate_result: Optional[QualityGateResult] = None,
+    ) -> RecoveryAssessment:
+        """Create a comprehensive recovery assessment.
+
+        This is the primary E5.1 output that E5.2 consumes.
+
+        Args:
+            readiness_result: ReleaseReadinessResult from E4.3
+            gate_result: Optional QualityGateResult from E4.2
+
+        Returns:
+            RecoveryAssessment with grouped findings and eligibility
+        """
+        assessment_id = f"asmt-{readiness_result.readiness_id[4:]}" if len(readiness_result.readiness_id) > 4 else f"asmt-{readiness_result.readiness_id}"
+
+        # Step 1: Determine eligibility
+        eligibility = self._determine_eligibility(readiness_result)
+
+        # Step 2: Collect and group findings
+        all_findings, grouped_findings = self._collect_and_group_findings(
+            readiness_result, gate_result
+        )
+
+        # Step 3: Calculate severity and category summaries
+        critical_count, error_count, warning_count = self._count_by_severity(all_findings)
+        repairable_count, manual_count = self._count_by_category(all_findings)
+
+        # Step 4: Collect affected artifacts and files
+        affected_artifacts = self._collect_affected_artifacts(all_findings)
+        affected_files = self._collect_affected_files(all_findings)
+
+        # Step 5: Determine reason
+        reason = self._determine_reason(eligibility, readiness_result, all_findings)
+
+        # Step 6: Build evidence
+        evidence = self._build_assessment_evidence(readiness_result, all_findings, grouped_findings)
+
+        # Create assessment
+        assessment = RecoveryAssessment(
+            assessment_id=assessment_id,
+            readiness_id=readiness_result.readiness_id,
+            gate_id=readiness_result.gate_id,
+            eligibility=eligibility,
+            reason=reason,
+            total_findings=len(all_findings),
+            grouped_findings=tuple(grouped_findings),
+            all_findings=tuple(all_findings),
+            critical_findings=critical_count,
+            error_findings=error_count,
+            warning_findings=warning_count,
+            repairable_findings=repairable_count,
+            manual_review_findings=manual_count,
+            affected_artifacts=tuple(sorted(affected_artifacts)),
+            affected_files=tuple(sorted(affected_files)),
+            max_recovery_attempts=self.max_recovery_attempts,
+            evidence=evidence,
+            assessment_hash="",  # Will be set below
+        )
+
+        # Compute hash
+        assessment_hash = compute_recovery_assessment_hash(assessment)
+
+        # Return with hash
+        return RecoveryAssessment(
+            assessment_id=assessment.assessment_id,
+            readiness_id=assessment.readiness_id,
+            gate_id=assessment.gate_id,
+            eligibility=assessment.eligibility,
+            reason=assessment.reason,
+            total_findings=assessment.total_findings,
+            grouped_findings=assessment.grouped_findings,
+            all_findings=assessment.all_findings,
+            critical_findings=assessment.critical_findings,
+            error_findings=assessment.error_findings,
+            warning_findings=assessment.warning_findings,
+            repairable_findings=assessment.repairable_findings,
+            manual_review_findings=assessment.manual_review_findings,
+            affected_artifacts=assessment.affected_artifacts,
+            affected_files=assessment.affected_files,
+            max_recovery_attempts=assessment.max_recovery_attempts,
+            evidence=assessment.evidence,
+            assessment_hash=assessment_hash,
+        )
+
+    def _determine_eligibility(
+        self,
+        readiness_result: ReleaseReadinessResult,
+    ) -> RecoveryEligibility:
+        """Determine recovery eligibility from readiness result."""
         # Check if recovery is needed
         if readiness_result.can_release:
             return RecoveryEligibility.NOT_NEEDED
 
         # Check progression status
         if readiness_result.progression_status == ProgressionStatus.BLOCKED:
-            # Check if any blockers are repairable
             if self._has_repairable_blockers(readiness_result):
                 return RecoveryEligibility.RECOVERABLE
             return RecoveryEligibility.NOT_RECOVERABLE
 
         if readiness_result.progression_status == ProgressionStatus.NOT_READY:
-            # Check if any issues are repairable
             if self._has_repairable_issues(readiness_result):
                 return RecoveryEligibility.RECOVERABLE
             return RecoveryEligibility.NOT_RECOVERABLE
 
-        # Should not reach here if can_release is False
         return RecoveryEligibility.NOT_RECOVERABLE
 
     def _has_repairable_blockers(
@@ -117,15 +236,17 @@ class RecoveryAssessmentEngine:
         readiness_result: ReleaseReadinessResult,
     ) -> bool:
         """Check if any blockers are repairable."""
-        # Check blockers by category
         for category in readiness_result.blockers.blocking_categories:
-            category_enum = FindingCategory(category)
-            action_type = CATEGORY_TO_ACTION.get(category_enum)
-            if action_type and action_type not in (
-                RepairActionType.MANUAL_REVIEW,
-                RepairActionType.REGENERATE,
-            ):
-                return True
+            try:
+                category_enum = FindingCategory(category)
+                action_type = CATEGORY_TO_ACTION.get(category_enum)
+                if action_type and action_type not in (
+                    RepairActionType.MANUAL_REVIEW,
+                    RepairActionType.REGENERATE,
+                ):
+                    return True
+            except ValueError:
+                continue
         return False
 
     def _has_repairable_issues(
@@ -133,10 +254,166 @@ class RecoveryAssessmentEngine:
         readiness_result: ReleaseReadinessResult,
     ) -> bool:
         """Check if any issues are repairable."""
-        # If there are only ERROR findings, they might be repairable
         if readiness_result.error_findings > 0:
             return True
         return False
+
+    def _collect_and_group_findings(
+        self,
+        readiness_result: ReleaseReadinessResult,
+        gate_result: Optional[QualityGateResult],
+    ) -> Tuple[List[FindingReference], List[GroupedFindings]]:
+        """Collect all findings and group them by artifact."""
+        all_findings: List[FindingReference] = []
+        grouped_map: Dict[str, List[FindingReference]] = defaultdict(list)
+
+        if gate_result is not None:
+            # Extract findings from QualityGateResult
+            for artifact_group in gate_result.project_decision.by_artifact:
+                for finding_class in artifact_group.findings:
+                    finding_ref = FindingReference(
+                        finding_id=finding_class.finding_id,
+                        check_id="",
+                        check_type="",
+                        artifact_id=finding_class.artifact_id,
+                        file_path=finding_class.file_path,
+                        category=finding_class.category,
+                        severity=finding_class.severity.value,
+                        message=finding_class.message,
+                        is_blocking=finding_class.is_blocking,
+                        evidence=finding_class.evidence,
+                        rule_id=finding_class.rule_id,
+                    )
+                    all_findings.append(finding_ref)
+                    key = self._get_group_key(finding_ref)
+                    grouped_map[key].append(finding_ref)
+
+        # Build grouped findings
+        grouped_findings: List[GroupedFindings] = []
+        for key, findings in grouped_map.items():
+            if not findings:
+                continue
+
+            # Determine primary category (most common or highest priority)
+            category_counts: Dict[str, int] = defaultdict(int)
+            for f in findings:
+                category_counts[f.category.value] += 1
+            primary_category_str = max(category_counts, key=category_counts.get)
+            primary_category = FindingCategory(primary_category_str)
+
+            # Find max severity
+            severity_order = {"CRITICAL": 0, "ERROR": 1, "WARNING": 2, "INFO": 3}
+            max_sev = max(findings, key=lambda f: severity_order.get(f.severity, 3))
+            blocking_count = sum(1 for f in findings if f.is_blocking)
+
+            group_id = f"grp-{findings[0].artifact_id}"
+
+            grouped_findings.append(GroupedFindings(
+                group_id=group_id,
+                artifact_id=findings[0].artifact_id,
+                file_path=findings[0].file_path,
+                findings=tuple(findings),
+                max_severity=max_sev.severity,
+                primary_category=primary_category,
+                categories=tuple(sorted(set(f.category.value for f in findings))),
+                total_findings=len(findings),
+                blocking_findings=blocking_count,
+            ))
+
+        return all_findings, grouped_findings
+
+    def _get_group_key(self, finding: FindingReference) -> str:
+        """Get group key for a finding (artifact_id + file_path)."""
+        return f"{finding.artifact_id}:{finding.file_path}"
+
+    def _count_by_severity(
+        self,
+        findings: List[FindingReference],
+    ) -> Tuple[int, int, int]:
+        """Count findings by severity."""
+        critical = sum(1 for f in findings if f.severity == "CRITICAL")
+        error = sum(1 for f in findings if f.severity == "ERROR")
+        warning = sum(1 for f in findings if f.severity == "WARNING")
+        return critical, error, warning
+
+    def _count_by_category(
+        self,
+        findings: List[FindingReference],
+    ) -> Tuple[int, int]:
+        """Count findings by repairability."""
+        repairable = 0
+        manual = 0
+        for f in findings:
+            action_type = CATEGORY_TO_ACTION.get(f.category, RepairActionType.MANUAL_REVIEW)
+            if action_type in AUTO_REPAIRABLE_ACTIONS:
+                repairable += 1
+            else:
+                manual += 1
+        return repairable, manual
+
+    def _collect_affected_artifacts(
+        self,
+        findings: List[FindingReference],
+    ) -> Set[str]:
+        """Collect all affected artifact IDs."""
+        return set(f.artifact_id for f in findings)
+
+    def _collect_affected_files(
+        self,
+        findings: List[FindingReference],
+    ) -> Set[str]:
+        """Collect all affected file paths."""
+        return set(f.file_path for f in findings if f.file_path)
+
+    def _determine_reason(
+        self,
+        eligibility: RecoveryEligibility,
+        readiness_result: ReleaseReadinessResult,
+        findings: List[FindingReference],
+    ) -> str:
+        """Determine the reason for the assessment."""
+        if eligibility == RecoveryEligibility.NOT_NEEDED:
+            return "Project is ready for release"
+
+        if eligibility == RecoveryEligibility.RECOVERABLE:
+            blockers = readiness_result.blockers
+            if blockers.blocking_artifacts:
+                return f"Can recover {len(blockers.blocking_artifacts)} blocking artifact(s)"
+            return f"Auto-repairable: {len(findings)} finding(s) found"
+
+        if eligibility == RecoveryEligibility.NOT_RECOVERABLE:
+            # Check if it's due to manual review requirements
+            manual_count = sum(
+                1 for f in findings
+                if CATEGORY_TO_ACTION.get(f.category, RepairActionType.MANUAL_REVIEW)
+                not in AUTO_REPAIRABLE_ACTIONS
+            )
+            if manual_count > 0:
+                return "Issues require manual review or regeneration"
+            return "Issues require manual review or regeneration"
+
+        if eligibility == RecoveryEligibility.TERMINAL_FAILURE:
+            return "Recovery failed after max retries"
+
+        return "Unknown"
+
+    def _build_assessment_evidence(
+        self,
+        readiness_result: ReleaseReadinessResult,
+        findings: List[FindingReference],
+        grouped_findings: List[GroupedFindings],
+    ) -> Dict[str, Any]:
+        """Build evidence for the assessment."""
+        return {
+            "readiness_id": readiness_result.readiness_id,
+            "gate_id": readiness_result.gate_id,
+            "progression_status": readiness_result.progression_status.value,
+            "readiness_level": readiness_result.readiness_level.value,
+            "total_findings": len(findings),
+            "total_groups": len(grouped_findings),
+            "blocking_artifacts": list(readiness_result.blockers.blocking_artifacts),
+            "blocking_categories": list(readiness_result.blockers.blocking_categories),
+        }
 
     def get_repairable_artifact_ids(
         self,
@@ -167,85 +444,181 @@ class RecoveryAssessmentEngine:
 # ---------------------------------------------------------------------------
 
 class RecoveryPlanBuilder:
-    """Builds recovery plans from release readiness failures.
+    """Builds recovery plans from E5.1 RecoveryAssessment output.
 
-    Creates structured repair plans with:
-    - Repair actions for each finding
-    - Priority ordering
-    - Repair prompts for LLM-based repair
+    E5.2 is RESPONSIBLE for:
+    - Converting findings to repair actions
+    - Grouping related findings
+    - Determining action ordering
+    - Building dependency graph
+    - Ensuring determinism
+
+    E5.2 is NOT responsible for:
+    - Executing repairs
+    - Calling providers
+    - Modifying files
+    - Performing retries
+
+    Key features:
+    - Deterministic ordering (severity + category + dependency)
+    - Finding traceability (finding_ids preserved)
+    - Grouped actions (multiple findings → single action where appropriate)
+    - Dependency awareness (foundational fixes first)
     """
 
     def __init__(self, max_recovery_attempts: int = 3):
         """Initialize builder.
 
         Args:
-            max_recovery_attempts: Maximum recovery attempts
+            max_recovery_attempts: Maximum recovery attempts per action
         """
         self.max_recovery_attempts = max_recovery_attempts
 
     def build_plan(
         self,
-        readiness_result: ReleaseReadinessResult,
-        gate_result: QualityGateResult,
-        assessment: RecoveryEligibility,
+        assessment: RecoveryAssessment,
     ) -> RecoveryPlan:
-        """Build recovery plan from readiness result.
+        """Build a recovery plan from a recovery assessment.
+
+        This is the primary E5.2 method that produces the output plan.
 
         Args:
-            readiness_result: ReleaseReadinessResult from E4.3
-            gate_result: QualityGateResult from E4.2
-            assessment: Recovery eligibility
+            assessment: RecoveryAssessment from E5.1
 
         Returns:
-            RecoveryPlan
+            RecoveryPlan with ordered, dependency-aware repair actions
         """
-        plan_id = f"rpln-{readiness_result.readiness_id[4:]}" if len(readiness_result.readiness_id) > 4 else f"rpln-{readiness_result.readiness_id}"
+        plan_id = f"rpln-{assessment.assessment_id[4:]}" if len(assessment.assessment_id) > 4 else f"rpln-{assessment.assessment_id}"
 
-        # Determine reason
-        reason = self._determine_reason(assessment, readiness_result)
+        # Handle non-recoverable cases
+        if assessment.eligibility in (
+            RecoveryEligibility.NOT_NEEDED,
+            RecoveryEligibility.NOT_RECOVERABLE,
+            RecoveryEligibility.TERMINAL_FAILURE,
+        ):
+            return self._build_empty_plan(assessment, plan_id)
 
-        # Build actions
-        actions = self._build_actions(readiness_result, gate_result)
+        # Build actions from grouped findings
+        actions = self._build_actions_from_groups(assessment.grouped_findings)
+
+        # Apply deterministic ordering
+        ordered_actions = self._order_actions(actions)
+
+        # Assign execution order numbers
+        for i, action in enumerate(ordered_actions):
+            ordered_actions[i] = RepairAction(
+                action_id=action.action_id,
+                finding_ids=action.finding_ids,
+                group_id=action.group_id,
+                artifact_id=action.artifact_id,
+                file_path=action.file_path,
+                category=action.category,
+                severity=action.severity,
+                message=action.message,
+                action_type=action.action_type,
+                priority=action.priority,
+                order=i + 1,  # 1-based execution order
+                description=action.description,
+                repair_prompt=action.repair_prompt,
+                depends_on=action.depends_on,
+                max_retries=action.max_retries,
+                is_repairable=action.is_repairable,
+                requires_manual_review=action.requires_manual_review,
+                evidence_refs=action.evidence_refs,
+            )
 
         # Count action types
         repairable_count = sum(
-            1 for a in actions
-            if a.action_type not in (
-                RepairActionType.MANUAL_REVIEW,
-                RepairActionType.REGENERATE,
-            )
+            1 for a in ordered_actions
+            if a.is_repairable and not a.requires_manual_review
         )
         manual_count = sum(
-            1 for a in actions
-            if a.action_type in (
-                RepairActionType.MANUAL_REVIEW,
-                RepairActionType.REGENERATE,
-            )
+            1 for a in ordered_actions
+            if a.requires_manual_review or not a.is_repairable
         )
 
+        # Collect affected scope
+        affected_artifacts = list(sorted(set(a.artifact_id for a in ordered_actions)))
+        affected_files = list(sorted(set(a.file_path for a in ordered_actions if a.file_path)))
+
         # Build evidence
-        evidence = {
-            "readiness_id": readiness_result.readiness_id,
-            "gate_id": readiness_result.gate_id,
-            "assessment": assessment.value,
-            "total_findings": readiness_result.total_findings,
-            "blocking_artifacts": list(readiness_result.blockers.blocking_artifacts),
-        }
+        evidence = self._build_plan_evidence(assessment, ordered_actions)
 
         # Create plan
         plan = RecoveryPlan(
             plan_id=plan_id,
-            readiness_id=readiness_result.readiness_id,
-            gate_id=readiness_result.gate_id,
-            eligibility=assessment,
-            reason=reason,
-            actions=tuple(actions),
-            total_actions=len(actions),
+            assessment_id=assessment.assessment_id,
+            readiness_id=assessment.readiness_id,
+            gate_id=assessment.gate_id,
+            eligibility=assessment.eligibility,
+            reason=assessment.reason,
+            actions=tuple(ordered_actions),
+            total_actions=len(ordered_actions),
             repairable_actions=repairable_count,
             manual_actions=manual_count,
+            total_groups=len(assessment.grouped_findings),
+            findings_addressed=assessment.total_findings,
             max_recovery_attempts=self.max_recovery_attempts,
+            affected_artifacts=tuple(affected_artifacts),
+            affected_files=tuple(affected_files),
             evidence=evidence,
             plan_hash="",  # Will be set below
+            version="1.0",
+        )
+
+        # Compute hash
+        plan_hash = compute_recovery_plan_hash(plan)
+
+        # Return with hash
+        return RecoveryPlan(
+            plan_id=plan.plan_id,
+            assessment_id=plan.assessment_id,
+            readiness_id=plan.readiness_id,
+            gate_id=plan.gate_id,
+            eligibility=plan.eligibility,
+            reason=plan.reason,
+            actions=plan.actions,
+            total_actions=plan.total_actions,
+            repairable_actions=plan.repairable_actions,
+            manual_actions=plan.manual_actions,
+            total_groups=plan.total_groups,
+            findings_addressed=plan.findings_addressed,
+            max_recovery_attempts=plan.max_recovery_attempts,
+            affected_artifacts=plan.affected_artifacts,
+            affected_files=plan.affected_files,
+            evidence=plan.evidence,
+            plan_hash=plan_hash,
+            version=plan.version,
+        )
+
+    def _build_empty_plan(
+        self,
+        assessment: RecoveryAssessment,
+        plan_id: str,
+    ) -> RecoveryPlan:
+        """Build an empty plan for non-recoverable cases."""
+        evidence = {"eligibility": assessment.eligibility.value, "reason": assessment.reason}
+
+        # Create initial plan to compute hash
+        plan = RecoveryPlan(
+            plan_id=plan_id,
+            assessment_id=assessment.assessment_id,
+            readiness_id=assessment.readiness_id,
+            gate_id=assessment.gate_id,
+            eligibility=assessment.eligibility,
+            reason=assessment.reason,
+            actions=(),
+            total_actions=0,
+            repairable_actions=0,
+            manual_actions=0,
+            total_groups=0,
+            findings_addressed=assessment.total_findings,
+            max_recovery_attempts=self.max_recovery_attempts,
+            affected_artifacts=assessment.affected_artifacts,
+            affected_files=assessment.affected_files,
+            evidence=evidence,
+            plan_hash="",
+            version="1.0",
         )
 
         # Compute hash
@@ -254,118 +627,192 @@ class RecoveryPlanBuilder:
         # Return with hash
         return RecoveryPlan(
             plan_id=plan_id,
-            readiness_id=readiness_result.readiness_id,
-            gate_id=readiness_result.gate_id,
-            eligibility=assessment,
-            reason=reason,
-            actions=tuple(actions),
-            total_actions=len(actions),
-            repairable_actions=repairable_count,
-            manual_actions=manual_count,
+            assessment_id=assessment.assessment_id,
+            readiness_id=assessment.readiness_id,
+            gate_id=assessment.gate_id,
+            eligibility=assessment.eligibility,
+            reason=assessment.reason,
+            actions=(),
+            total_actions=0,
+            repairable_actions=0,
+            manual_actions=0,
+            total_groups=0,
+            findings_addressed=assessment.total_findings,
             max_recovery_attempts=self.max_recovery_attempts,
+            affected_artifacts=assessment.affected_artifacts,
+            affected_files=assessment.affected_files,
             evidence=evidence,
             plan_hash=plan_hash,
+            version="1.0",
         )
 
-    def _determine_reason(
+    def _build_actions_from_groups(
         self,
-        assessment: RecoveryEligibility,
-        readiness_result: ReleaseReadinessResult,
-    ) -> str:
-        """Determine reason for recovery assessment."""
-        if assessment == RecoveryEligibility.NOT_NEEDED:
-            return "Project is ready for release"
-        if assessment == RecoveryEligibility.RECOVERABLE:
-            blockers = readiness_result.blockers
-            if blockers.blocking_artifacts:
-                return f"Can recover {len(blockers.blocking_artifacts)} blocking artifact(s)"
-            return "Auto-repairable issues found"
-        if assessment == RecoveryEligibility.NOT_RECOVERABLE:
-            return "Issues require manual review or regeneration"
-        if assessment == RecoveryEligibility.TERMINAL_FAILURE:
-            return "Recovery failed after max retries"
-        return "Unknown"
+        grouped_findings: Tuple[GroupedFindings, ...],
+    ) -> List[RepairAction]:
+        """Build repair actions from grouped findings.
 
-    def _build_actions(
-        self,
-        readiness_result: ReleaseReadinessResult,
-        gate_result: QualityGateResult,
-    ) -> List[RecoveryAction]:
-        """Build repair actions from findings."""
+        Groups findings by artifact+file into coherent repair actions.
+        """
         actions = []
         action_index = 0
 
-        # Process by artifact
-        for artifact_decision in gate_result.project_decision.artifact_decisions:
-            if artifact_decision.total_findings == 0:
-                continue
-
-            # Find corresponding grouped findings
-            artifact_group = next(
-                (g for g in gate_result.project_decision.by_artifact
-                 if g.artifact_id == artifact_decision.artifact_id),
-                None
+        for group in grouped_findings:
+            # Determine action type from primary category
+            action_type = CATEGORY_TO_ACTION.get(
+                group.primary_category,
+                RepairActionType.MANUAL_REVIEW
             )
-            if not artifact_group:
-                continue
 
-            # Process each finding classification
-            for finding_class in artifact_group.findings:
-                action_type = CATEGORY_TO_ACTION.get(
-                    finding_class.category,
-                    RepairActionType.MANUAL_REVIEW
-                )
+            # Check if auto-repairable
+            is_repairable = action_type in AUTO_REPAIRABLE_ACTIONS
+            requires_manual_review = action_type in (
+                RepairActionType.MANUAL_REVIEW,
+                RepairActionType.REGENERATE,
+            )
 
-                # Check if auto-repairable
-                is_repairable = action_type not in (
-                    RepairActionType.MANUAL_REVIEW,
-                    RepairActionType.REGENERATE,
-                )
+            # Calculate priority from severity
+            severity_priority = determine_priority(group.max_severity)
 
-                # Build repair prompt
-                repair_prompt = self._build_repair_prompt(
-                    finding_class, action_type
-                )
+            # Get action type priority
+            action_priority = get_action_priority_rank(action_type)
 
-                action_index += 1
-                actions.append(RepairAction(
-                    action_id=f"ract-{artifact_decision.artifact_id}-{action_index:04d}",
-                    finding_id=finding_class.finding_id,
-                    artifact_id=artifact_decision.artifact_id,
-                    file_path=finding_class.file_path,
-                    category=finding_class.category,
-                    severity=finding_class.severity.value,
-                    message=finding_class.message,
-                    action_type=action_type,
-                    priority=determine_priority(finding_class.severity.value),
-                    description=f"Repair {action_type.value} issue: {finding_class.message[:100]}",
-                    repair_prompt=repair_prompt,
-                    max_retries=self.max_recovery_attempts,
-                    is_repairable=is_repairable,
-                ))
+            # Combined priority (severity first, then action type)
+            priority = severity_priority * 10 + action_priority
 
-        # Sort by priority
-        actions.sort(key=lambda a: a.priority)
+            # Build description from findings
+            description = self._build_description(group, action_type)
+
+            # Build repair prompt
+            repair_prompt = self._build_repair_prompt(group, action_type)
+
+            # Collect finding IDs for traceability
+            finding_ids = tuple(f.finding_id for f in group.findings)
+
+            # Build evidence references
+            evidence_refs = []
+            for f in group.findings:
+                evidence_refs.extend(list(f.evidence))
+            evidence_refs = tuple(evidence_refs[:10])  # Limit evidence refs
+
+            action_index += 1
+            actions.append(RepairAction(
+                action_id=f"ract-{group.artifact_id}-{action_index:04d}",
+                finding_ids=finding_ids,
+                group_id=group.group_id,
+                artifact_id=group.artifact_id,
+                file_path=group.file_path,
+                category=group.primary_category,
+                severity=group.max_severity,
+                message=f"{group.total_findings} finding(s) in {group.file_path}",
+                action_type=action_type,
+                priority=priority,
+                order=0,  # Will be set during ordering
+                description=description,
+                repair_prompt=repair_prompt,
+                depends_on=(),  # Will be set during dependency analysis
+                max_retries=self.max_recovery_attempts,
+                is_repairable=is_repairable,
+                requires_manual_review=requires_manual_review,
+                evidence_refs=evidence_refs,
+            ))
+
         return actions
+
+    def _order_actions(
+        self,
+        actions: List[RepairAction],
+    ) -> List[RepairAction]:
+        """Order actions deterministically.
+
+        Ordering rules:
+        1. By priority (severity + action type)
+        2. Foundational categories first (syntax, structure, config)
+        3. Manual review last
+
+        This ensures the same input always produces the same order.
+        """
+        # Sort by composite key: (priority, category_order, action_type_order, artifact_id)
+        return sorted(
+            actions,
+            key=lambda a: (
+                a.priority,
+                self._get_category_order(a.category),
+                get_action_priority_rank(a.action_type),
+                a.artifact_id,
+            )
+        )
+
+    def _get_category_order(self, category: FindingCategory) -> int:
+        """Get ordering rank for a category (foundational categories first)."""
+        category_order = {
+            FindingCategory.SYNTAX: 0,
+            FindingCategory.STRUCTURE: 1,
+            FindingCategory.CONFIGURATION: 2,
+            FindingCategory.DEPENDENCY: 3,
+            FindingCategory.PLACEHOLDER: 4,
+            FindingCategory.CONTENT: 5,
+            FindingCategory.FILESYSTEM: 6,
+            FindingCategory.SECURITY: 7,
+            FindingCategory.CONTRACT: 8,
+            FindingCategory.QUALITY: 9,
+            FindingCategory.OTHER: 10,
+        }
+        return category_order.get(category, 10)
+
+    def _build_description(
+        self,
+        group: GroupedFindings,
+        action_type: RepairActionType,
+    ) -> str:
+        """Build human-readable description for action."""
+        # group.categories is Tuple[str, ...] - strings already
+        categories_str = ", ".join(sorted(set(group.categories)))
+        blocking_str = f" ({group.blocking_findings} blocking)" if group.blocking_findings > 0 else ""
+        return (
+            f"Repair {action_type.value}: {group.total_findings} finding(s) in "
+            f"{group.file_path}{blocking_str}. Categories: {categories_str}"
+        )
 
     def _build_repair_prompt(
         self,
-        finding: FindingClassification,
+        group: GroupedFindings,
         action_type: RepairActionType,
     ) -> str:
         """Build repair prompt for LLM-based repair."""
-        prompts = {
-            RepairActionType.FIX_SYNTAX: f"Fix syntax error in {finding.file_path}: {finding.message}",
-            RepairActionType.FIX_STRUCTURE: f"Fix structure issue in {finding.file_path}: {finding.message}",
-            RepairActionType.FIX_CONFIGURATION: f"Fix configuration in {finding.file_path}: {finding.message}",
-            RepairActionType.FIX_DEPENDENCY: f"Fix dependency issue in {finding.file_path}: {finding.message}",
-            RepairActionType.REMOVE_PLACEHOLDER: f"Remove placeholder content in {finding.file_path}: {finding.message}",
-            RepairActionType.ADD_FILE: f"Add missing content to {finding.file_path}: {finding.message}",
-            RepairActionType.FIX_CONTENT: f"Fix content issue in {finding.file_path}: {finding.message}",
-            RepairActionType.MANUAL_REVIEW: f"Manual review required for {finding.file_path}: {finding.message}",
-            RepairActionType.REGENERATE: f"Regenerate artifact {finding.artifact_id}: {finding.message}",
+        prompt_templates = {
+            RepairActionType.FIX_SYNTAX: "Fix syntax error(s) in {path}",
+            RepairActionType.FIX_STRUCTURE: "Fix structure issue(s) in {path}",
+            RepairActionType.FIX_CONFIGURATION: "Fix configuration in {path}",
+            RepairActionType.FIX_DEPENDENCY: "Fix dependency issue(s) in {path}",
+            RepairActionType.REMOVE_PLACEHOLDER: "Remove placeholder content in {path}",
+            RepairActionType.ADD_FILE: "Add missing content to {path}",
+            RepairActionType.FIX_CONTENT: "Fix content quality issue(s) in {path}",
+            RepairActionType.MANUAL_REVIEW: "Manual review required for {path}",
+            RepairActionType.REGENERATE: "Regenerate artifact {artifact}",
         }
-        return prompts.get(action_type, f"Repair {finding.message}")
+        template = prompt_templates.get(action_type, "Repair {path}")
+        return template.format(path=group.file_path, artifact=group.artifact_id)
+
+    def _build_plan_evidence(
+        self,
+        assessment: RecoveryAssessment,
+        actions: List[RepairAction],
+    ) -> Dict[str, Any]:
+        """Build evidence for the plan."""
+        return {
+            "assessment_id": assessment.assessment_id,
+            "readiness_id": assessment.readiness_id,
+            "gate_id": assessment.gate_id,
+            "eligibility": assessment.eligibility.value,
+            "reason": assessment.reason,
+            "total_findings": assessment.total_findings,
+            "total_groups": len(assessment.grouped_findings),
+            "total_actions": len(actions),
+            "repairable_actions": sum(1 for a in actions if a.is_repairable),
+            "manual_actions": sum(1 for a in actions if a.requires_manual_review),
+            "blocking_artifacts": list(assessment.affected_artifacts)[:10],
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -402,58 +849,84 @@ class RecoveryEngine:
     def recover(
         self,
         readiness_result: ReleaseReadinessResult,
-        gate_result: QualityGateResult,
+        gate_result: Optional[QualityGateResult] = None,
     ) -> Tuple[RecoveryPlan, RecoveryResult]:
         """Attempt recovery for a failed project.
 
         Args:
             readiness_result: ReleaseReadinessResult from E4.3
-            gate_result: QualityGateResult from E4.2
+            gate_result: Optional QualityGateResult from E4.2
 
         Returns:
             Tuple of (RecoveryPlan, RecoveryResult)
 
         Raises:
             RecoveryNotEligibleError: If recovery is not eligible
+
+        Note:
+            E5.3 is NOT YET IMPLEMENTED. This method provides a skeleton
+            that demonstrates the E5.1 → E5.2 flow. The actual recovery
+            execution (E5.3) is pending implementation.
         """
         start_time = time.time()
         recovery_started = datetime.now(timezone.utc).isoformat()
 
-        # Step 1: Assess eligibility
-        assessment = self.assessment_engine.assess(readiness_result)
+        # Step 1: Create assessment (E5.1)
+        assessment = self.assessment_engine.create_assessment(
+            readiness_result, gate_result
+        )
 
-        if assessment == RecoveryEligibility.NOT_NEEDED:
+        if assessment.eligibility == RecoveryEligibility.NOT_NEEDED:
             # No recovery needed
-            plan = self.plan_builder.build_plan(
-                readiness_result, gate_result, assessment
-            )
+            plan = self.plan_builder.build_plan(assessment)
             result = self._create_not_needed_result(
                 plan, readiness_result, recovery_started
             )
             return plan, result
 
-        if assessment == RecoveryEligibility.NOT_RECOVERABLE:
+        if assessment.eligibility == RecoveryEligibility.NOT_RECOVERABLE:
             raise RecoveryNotEligibleError(
-                f"Recovery not eligible: {assessment.value}"
+                f"Recovery not eligible: {assessment.eligibility.value}"
             )
 
-        # Step 2: Build recovery plan
-        plan = self.plan_builder.build_plan(
-            readiness_result, gate_result, assessment
-        )
+        # Step 2: Build recovery plan (E5.2)
+        plan = self.plan_builder.build_plan(assessment)
 
-        # Step 3: Execute recovery
-        result = self._execute_recovery(plan, readiness_result, recovery_started)
+        # Step 3: Execute recovery (E5.3 - NOT YET IMPLEMENTED)
+        # For now, return a simulated result showing the plan
+        result = self._simulate_recovery_execution(
+            plan, assessment, readiness_result, recovery_started
+        )
 
         return plan, result
 
-    def _execute_recovery(
+    def _simulate_recovery_execution(
         self,
         plan: RecoveryPlan,
+        assessment: RecoveryAssessment,
         readiness_result: ReleaseReadinessResult,
         recovery_started: str,
     ) -> RecoveryResult:
-        """Execute recovery plan."""
+        """Simulate recovery execution (E5.3 placeholder).
+
+        Note: E5.3 is NOT YET IMPLEMENTED. This is a simulation that
+        demonstrates what the execution would produce. It does NOT
+        actually execute repairs.
+
+        In a full implementation:
+        - This would call InvocationEngine for LLM-based repair
+        - It would execute actual file modifications
+        - It would validate through E4.1 re-review
+
+        Args:
+            plan: RecoveryPlan from E5.2
+            assessment: RecoveryAssessment from E5.1
+            readiness_result: Original ReleaseReadinessResult
+            recovery_started: ISO timestamp when recovery started
+
+        Returns:
+            Simulated RecoveryResult
+        """
         start_time = time.time()
         attempts: List[RecoveryAttempt] = []
         successful = 0
@@ -465,9 +938,9 @@ class RecoveryEngine:
 
         recovery_id = f"rcvy-{plan.plan_id[4:]}" if len(plan.plan_id) > 4 else f"rcvy-{plan.plan_id}"
 
-        # Execute each repair action
+        # Execute each repair action (simulated)
         for action in plan.actions:
-            if not action.is_repairable:
+            if not action.is_repairable or action.requires_manual_review:
                 # Skip non-repairable actions
                 attempts.append(RecoveryAttempt(
                     attempt_id=f"att-{action.action_id}-001",
@@ -478,7 +951,7 @@ class RecoveryEngine:
                     success=False,
                     finding_resolved=False,
                     action_taken=f"Skipped: {action.action_type.value}",
-                    result_message="Action requires manual review",
+                    result_message="Action requires manual review - E5.3 not yet implemented",
                     before_state={},
                     after_state={},
                     started_at=recovery_started,
@@ -488,29 +961,43 @@ class RecoveryEngine:
                 skipped += 1
                 continue
 
-            # Attempt repair
-            attempt = self._attempt_repair(action, plan)
-            attempts.append(attempt)
+            # Simulate repair attempt
+            # In full E5.3, this would call InvocationEngine
+            attempts.append(RecoveryAttempt(
+                attempt_id=f"att-{action.action_id}-001",
+                plan_id=plan.plan_id,
+                action_id=action.action_id,
+                attempt_number=1,
+                status="PENDING",
+                success=False,
+                finding_resolved=False,
+                action_taken=f"Would execute: {action.action_type.value}",
+                result_message="E5.3 not yet implemented - repair not executed",
+                before_state={
+                    "file_path": action.file_path,
+                    "category": action.category.value,
+                    "severity": action.severity,
+                },
+                after_state={},
+                started_at=recovery_started,
+                completed_at="",
+                duration_ms=0.0,
+            ))
 
-            if attempt.success:
-                successful += 1
-                resolved_findings.append(action.finding_id)
-                if action.file_path:
-                    modified_files.append(action.file_path)
-            else:
-                failed += 1
-
-            # Check if we've exceeded retry limit
-            if failed >= plan.max_recovery_attempts:
-                break
-
-        # Determine final status
+        # Determine final status (simulated)
         total_attempts = len(attempts)
-        can_proceed = successful > 0 and failed < plan.max_recovery_attempts
+        # In full implementation, this would be based on actual results
+        can_proceed = plan.eligibility == RecoveryEligibility.RECOVERABLE
         status = RecoveryEligibility.RECOVERABLE if can_proceed else RecoveryEligibility.TERMINAL_FAILURE
 
         recovery_completed = datetime.now(timezone.utc).isoformat()
         total_duration = (time.time() - start_time) * 1000
+
+        # Collect all finding IDs from plan
+        all_finding_ids = []
+        for action in plan.actions:
+            all_finding_ids.extend(list(action.finding_ids))
+        remaining_findings = all_finding_ids
 
         # Build result
         result = RecoveryResult(
@@ -525,17 +1012,17 @@ class RecoveryEngine:
             failed_attempts=failed,
             skipped_attempts=skipped,
             resolved_findings=tuple(resolved_findings),
-            remaining_findings=tuple(
-                f.finding_id for f in plan.actions
-                if f.finding_id not in resolved_findings
-            ),
+            remaining_findings=tuple(remaining_findings),
             modified_files=tuple(modified_files),
             new_files=tuple(new_files),
             attempts=tuple(attempts),
             evidence={
                 "plan_id": plan.plan_id,
+                "assessment_id": plan.assessment_id,
                 "total_actions": plan.total_actions,
                 "recovery_eligibility": plan.eligibility.value,
+                "e5_3_implemented": False,
+                "note": "E5.3 not yet implemented - repairs not executed",
             },
             recovery_started=recovery_started,
             recovery_completed=recovery_completed,
@@ -560,17 +1047,17 @@ class RecoveryEngine:
             failed_attempts=failed,
             skipped_attempts=skipped,
             resolved_findings=tuple(resolved_findings),
-            remaining_findings=tuple(
-                f.finding_id for f in plan.actions
-                if f.finding_id not in resolved_findings
-            ),
+            remaining_findings=tuple(remaining_findings),
             modified_files=tuple(modified_files),
             new_files=tuple(new_files),
             attempts=tuple(attempts),
             evidence={
                 "plan_id": plan.plan_id,
+                "assessment_id": plan.assessment_id,
                 "total_actions": plan.total_actions,
                 "recovery_eligibility": plan.eligibility.value,
+                "e5_3_implemented": False,
+                "note": "E5.3 not yet implemented - repairs not executed",
             },
             recovery_started=recovery_started,
             recovery_completed=recovery_completed,
