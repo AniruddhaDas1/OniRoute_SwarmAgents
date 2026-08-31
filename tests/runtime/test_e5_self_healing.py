@@ -394,13 +394,13 @@ class TestRecoveryEngine:
         engine = RecoveryEngine(temp_workspace)
 
         # Valid relative path
-        assert engine._verify_workspace_path("src/main.py") is True
+        assert engine.repair_executor._verify_path("src/main.py") is True
 
         # Invalid absolute path
-        assert engine._verify_workspace_path("/etc/passwd") is False
+        assert engine.repair_executor._verify_path("/etc/passwd") is False
 
         # Invalid path traversal
-        assert engine._verify_workspace_path("../etc/passwd") is False
+        assert engine.repair_executor._verify_path("../etc/passwd") is False
 
 
 # ---------------------------------------------------------------------------
